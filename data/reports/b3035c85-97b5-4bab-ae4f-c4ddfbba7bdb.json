@@ -1,0 +1,2480 @@
+{
+  "request_id": "b3035c85-97b5-4bab-ae4f-c4ddfbba7bdb",
+  "wildapricot_account_id": "497705",
+  "quickbooks_realm_id": "9341457191103538",
+  "start_date": "2026-01-01",
+  "end_date": "2026-06-08",
+  "reports": {
+    "cash_flow": {
+      "report_type": "cash_flow",
+      "content": {
+        "statement": {
+          "type": "CashFlowStatement",
+          "standard": "GAAP-Indirect",
+          "period": {
+            "startDate": "2026-01-01",
+            "endDate": "2026-06-08"
+          },
+          "currency": "USD",
+          "accountingBasis": "Accrual",
+          "preparationNotes": [
+            "Balance Sheet reflects ending balances as of 2026-06-08 only. No prior-period (beginning) balance sheet was provided and the filed_financial_position reference document returned null for all fields. Beginning balances are therefore treated as zero for all working-capital accounts, meaning the full ending balance drives each working-capital adjustment. This is a known limitation and is flagged below.",
+            "WildApricot payment record 106800163 ($250.00, 2025-08-05, Testing Scott) falls outside the report period (2026-01-01 to 2026-06-08) and is excluded from period cash flow calculations.",
+            "WildApricot invoices total $7,758.00; paid invoices total $6,398.00; unpaid invoices total $1,360.00. Unpaid invoices represent membership dues billed but not yet collected and are reflected as Accounts Receivable (WildApricot) in working capital.",
+            "No depreciation expense was identified in the QuickBooks Profit & Loss. The Truck fixed asset shows only Original Cost ($13,495.00) with no accumulated depreciation sub-account present in the Balance Sheet data provided.",
+            "No beginning-period cash balance is available from filed reference documents. Beginning cash is treated as $0.00 and flagged as unreconciled.",
+            "The QuickBooks Balance Sheet shows Total Liabilities ($31,131.33) exceeding Total Assets ($23,436.29), resulting in negative equity of -$7,695.04. This structural imbalance is noted but not adjusted.",
+            "Loan Payable ($4,000.00) and Notes Payable ($25,000.00) are treated as pre-existing obligations with no new borrowings or repayments identifiable from the data provided. They are disclosed in Financing Activities with zero net change.",
+            "WildApricot donations ($10.00) are included in operating activities as a separate inflow item for completeness."
+          ]
+        },
+        "operatingActivities": {
+          "netIncome": {
+            "amount": 1642.46,
+            "label": "Net Income / Change in Net Assets",
+            "sourceSystem": "QuickBooks",
+            "traceability": "QuickBooks ProfitAndLoss report, Net Income line, period 2026-01-01 to 2026-06-08"
+          },
+          "adjustments": [
+            {
+              "conceptId": "Depreciation",
+              "label": "Depreciation and Amortization (Non-Cash Add-Back)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "No depreciation expense line identified in QuickBooks P&L. Truck fixed asset recorded at Original Cost only ($13,495.00); no accumulated depreciation sub-account present in Balance Sheet. Amount set to $0.00. FLAG: Organization should confirm whether depreciation is being recorded.",
+              "flag": "MISSING_DEPRECIATION"
+            },
+            {
+              "conceptId": "WildApricotDonations",
+              "label": "Donations Received (WildApricot) — Non-Membership Cash Inflow",
+              "amount": 10.0,
+              "direction": "add",
+              "sourceSystem": "WildApricot",
+              "traceability": "WildApricot Donations entity: 1 record, Brian Rorabaugh, $10.00, Online. Included as operating inflow. No corresponding QuickBooks revenue line identified; disclosed separately for completeness."
+            }
+          ],
+          "changesInWorkingCapital": [
+            {
+              "conceptId": "AccountsReceivable_QuickBooks",
+              "label": "Increase in Accounts Receivable — QuickBooks (A/R)",
+              "amount": -5281.52,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Accounts Receivable (A/R) = $5,281.52. Beginning balance = $0.00 (no prior period data available). Change = $5,281.52 increase in asset = negative cash impact of -$5,281.52. FLAG: Beginning balance assumed zero due to missing prior-period balance sheet.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 5281.52,
+              "beginningBalance": 0.0,
+              "change": 5281.52
+            },
+            {
+              "conceptId": "AccountsReceivable_WildApricot",
+              "label": "Increase in Membership Dues Receivable — WildApricot (Billed but Unpaid)",
+              "amount": -1360.0,
+              "direction": "deduct",
+              "sourceSystem": "WildApricot",
+              "traceability": "WildApricot Invoices: 7 unpaid records totaling $1,360.00. Detail: Ahmed, Shaju $250.00 (2026-06-07); Ford, Myron $200.00 (2026-06-04); Scott, Blaine $200.00 (2026-06-01); Friedl, Dominic $200.00 (2026-06-01); Sharp, Mark $250.00 (2026-05-27); Rauber, Brett $200.00 (2026-05-26); Palmer, Nikolas $60.00 (2026-05-14). These represent revenue recognized (accrual basis) but cash not yet received. Increase in receivable = negative cash impact.",
+              "unpaidInvoiceDetail": [
+                {
+                  "invoiceId": "115704661",
+                  "member": "Ahmed, Shaju",
+                  "amount": 250.0,
+                  "date": "2026-06-07",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115652414",
+                  "member": "Ford, Myron",
+                  "amount": 200.0,
+                  "date": "2026-06-04",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115555526",
+                  "member": "Scott, Blaine",
+                  "amount": 200.0,
+                  "date": "2026-06-01",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115555217",
+                  "member": "Friedl, Dominic",
+                  "amount": 200.0,
+                  "date": "2026-06-01",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115386369",
+                  "member": "Sharp, Mark",
+                  "amount": 250.0,
+                  "date": "2026-05-27",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115358694",
+                  "member": "Rauber, Brett",
+                  "amount": 200.0,
+                  "date": "2026-05-26",
+                  "type": "MembershipApplication"
+                },
+                {
+                  "invoiceId": "115083827",
+                  "member": "Palmer, Nikolas",
+                  "amount": 60.0,
+                  "date": "2026-05-14",
+                  "type": "MembershipApplication"
+                }
+              ]
+            },
+            {
+              "conceptId": "InventoryAsset",
+              "label": "Increase in Inventory Asset",
+              "amount": -596.25,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Inventory Asset = $596.25. Beginning balance = $0.00 (no prior period data available). Change = $596.25 increase in asset = negative cash impact of -$596.25. FLAG: Beginning balance assumed zero.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 596.25,
+              "beginningBalance": 0.0,
+              "change": 596.25
+            },
+            {
+              "conceptId": "UndepositedFunds",
+              "label": "Increase in Undeposited Funds",
+              "amount": -2062.52,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Undeposited Funds = $2,062.52. Undeposited Funds represents cash received but not yet deposited to a bank account; treated as a current asset increase reducing operating cash flow under indirect method. Beginning balance = $0.00 (no prior period data available). FLAG: Beginning balance assumed zero.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 2062.52,
+              "beginningBalance": 0.0,
+              "change": 2062.52
+            },
+            {
+              "conceptId": "AccountsPayable",
+              "label": "Increase in Accounts Payable",
+              "amount": 1602.67,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Accounts Payable (A/P) = $1,602.67. Beginning balance = $0.00 (no prior period data available). Change = $1,602.67 increase in liability = positive cash impact of +$1,602.67. FLAG: Beginning balance assumed zero.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 1602.67,
+              "beginningBalance": 0.0,
+              "change": 1602.67
+            },
+            {
+              "conceptId": "CreditCardPayable",
+              "label": "Increase in Credit Card Payable (Mastercard)",
+              "amount": 157.72,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Mastercard credit card liability = $157.72. Beginning balance = $0.00 (no prior period data available). Change = $157.72 increase in liability = positive cash impact of +$157.72. FLAG: Beginning balance assumed zero.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 157.72,
+              "beginningBalance": 0.0,
+              "change": 157.72
+            },
+            {
+              "conceptId": "SalesTaxPayable",
+              "label": "Increase in Sales Tax / Board of Equalization Payable",
+              "amount": 370.94,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet ending balance: Board of Equalization Payable = $370.94. Arizona Dept. of Revenue Payable = $0.00. Beginning balance = $0.00 (no prior period data available). Change = $370.94 increase in liability = positive cash impact of +$370.94. FLAG: Beginning balance assumed zero.",
+              "flag": "BEGINNING_BALANCE_ASSUMED_ZERO",
+              "endingBalance": 370.94,
+              "beginningBalance": 0.0,
+              "change": 370.94
+            }
+          ],
+          "netCashFromOperations": {
+            "amount": -5516.5,
+            "label": "Net Cash Used in Operating Activities",
+            "calculation": {
+              "netIncome": 1642.46,
+              "addDepreciation": 0.0,
+              "addWildApricotDonations": 10.0,
+              "deductARQuickBooks": -5281.52,
+              "deductARWildApricot": -1360.0,
+              "deductInventory": -596.25,
+              "deductUndepositedFunds": -2062.52,
+              "addAccountsPayable": 1602.67,
+              "addCreditCardPayable": 157.72,
+              "addSalesTaxPayable": 370.94,
+              "total": -5516.5
+            },
+            "calculationCheck": "1642.46 + 0.00 + 10.00 - 5281.52 - 1360.00 - 596.25 - 2062.52 + 1602.67 + 157.72 + 370.94 = -5,516.50"
+          }
+        },
+        "investingActivities": {
+          "items": [
+            {
+              "conceptId": "CapitalExpenditures_Truck",
+              "label": "Purchase of Truck (Fixed Asset — Original Cost)",
+              "amount": -13495.0,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet: Fixed Assets > Truck > Original Cost = $13,495.00. Beginning balance = $0.00 (no prior period data available). Full ending balance treated as acquisition during period. FLAG: If truck was acquired prior to 2026-01-01, this amount should be removed from investing activities and beginning cash adjusted accordingly. Requires confirmation.",
+              "flag": "ACQUISITION_PERIOD_UNCONFIRMED"
+            }
+          ],
+          "netCashFromInvesting": {
+            "amount": -13495.0,
+            "label": "Net Cash Used in Investing Activities",
+            "calculationCheck": "-13,495.00"
+          }
+        },
+        "financingActivities": {
+          "items": [
+            {
+              "conceptId": "LoanPayable",
+              "label": "Loan Payable — Net Change (Current Period)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet: Loan Payable ending balance = $4,000.00. No beginning balance available. Cannot determine whether this represents new borrowings or a pre-existing balance. Net change treated as $0.00 for period cash flow. FLAG: Confirm loan origination date. If originated during 2026-01-01 to 2026-06-08, reclassify as +$4,000.00 inflow.",
+              "flag": "LOAN_ORIGINATION_DATE_UNKNOWN",
+              "endingBalance": 4000.0,
+              "beginningBalance": 0.0,
+              "disclosedBalance": 4000.0
+            },
+            {
+              "conceptId": "NotesPayable",
+              "label": "Notes Payable — Net Change (Current Period)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "traceability": "QuickBooks Balance Sheet: Notes Payable (Long-Term) ending balance = $25,000.00. No beginning balance available. Cannot determine whether this represents new borrowings or a pre-existing balance. Net change treated as $0.00 for period cash flow. FLAG: Confirm note origination date. If originated during 2026-01-01 to 2026-06-08, reclassify as +$25,000.00 inflow.",
+              "flag": "NOTE_ORIGINATION_DATE_UNKNOWN",
+              "endingBalance": 25000.0,
+              "beginningBalance": 0.0,
+              "disclosedBalance": 25000.0
+            }
+          ],
+          "netCashFromFinancing": {
+            "amount": 0.0,
+            "label": "Net Cash Provided by (Used in) Financing Activities",
+            "calculationCheck": "0.00 + 0.00 = 0.00"
+          }
+        },
+        "cashReconciliation": {
+          "beginningCash": {
+            "amount": 0.0,
+            "label": "Cash and Cash Equivalents, Beginning of Period (2026-01-01)",
+            "sourceSystem": "FiledReference",
+            "traceability": "Filed reference document (Statement of Financial Position 12312025.pdf) returned null for all fields. No prior-period cash balance available. Beginning cash set to $0.00. FLAG: This will cause reconciliation failure. Prior-period balance sheet must be obtained to complete reconciliation.",
+            "flag": "BEGINNING_CASH_UNAVAILABLE"
+          },
+          "netIncrease": {
+            "amount": -19011.5,
+            "label": "Net Increase (Decrease) in Cash and Cash Equivalents",
+            "calculation": {
+              "operatingCashFlow": -5516.5,
+              "investingCashFlow": -13495.0,
+              "financingCashFlow": 0.0,
+              "total": -19011.5
+            },
+            "calculationCheck": "-5,516.50 + (-13,495.00) + 0.00 = -19,011.50"
+          },
+          "endingCash": {
+            "amount": 2001.0,
+            "label": "Cash and Cash Equivalents, End of Period (2026-06-08)",
+            "sourceSystem": "QuickBooks",
+            "traceability": "QuickBooks Balance Sheet: Total Bank Accounts = $2,001.00 (Checking $1,201.00 + Savings $800.00). Note: Undeposited Funds ($2,062.52) excluded from ending cash per GAAP — treated as current asset, not cash equivalent.",
+            "components": [
+              {
+                "account": "Checking",
+                "amount": 1201.0
+              },
+              {
+                "account": "Savings",
+                "amount": 800.0
+              }
+            ]
+          },
+          "impliedBeginningCash": {
+            "amount": 21012.5,
+            "label": "Implied Beginning Cash (Back-Calculated)",
+            "calculation": "Ending Cash $2,001.00 - Net Increase (-$19,011.50) = $21,012.50",
+            "note": "If the cash flow statement is correct, beginning cash on 2026-01-01 should have been $21,012.50. This figure requires validation against the prior-period balance sheet."
+          },
+          "reconciled": false,
+          "discrepancy": 21012.5,
+          "reconciliationFlags": [
+            {
+              "code": "BEGINNING_CASH_UNAVAILABLE",
+              "severity": "CRITICAL",
+              "message": "Beginning cash balance is $0.00 due to unavailable prior-period balance sheet. The filed reference document (Statement of Financial Position 12312025.pdf) returned null for all fields. Reconciliation cannot be completed. Implied beginning cash is $21,012.50 based on back-calculation.",
+              "resolution": "Obtain and provide the 12/31/2025 Statement of Financial Position with populated cash balances."
+            },
+            {
+              "code": "BEGINNING_BALANCES_ASSUMED_ZERO",
+              "severity": "HIGH",
+              "message": "All working-capital beginning balances (A/R, Inventory, Undeposited Funds, A/P, Credit Cards, Sales Tax Payable) are assumed to be $0.00 at 2026-01-01 because no prior-period balance sheet was available. This overstates working-capital changes and distorts operating cash flow.",
+              "resolution": "Provide 12/31/2025 balance sheet to calculate true period-over-period changes."
+            },
+            {
+              "code": "TRUCK_ACQUISITION_PERIOD_UNCONFIRMED",
+              "severity": "HIGH",
+              "message": "Truck Original Cost of $13,495.00 is classified as a capital expenditure (investing outflow) based on the assumption it was acquired during the report period. If the truck was acquired before 2026-01-01, this amount should not appear in investing activities.",
+              "resolution": "Confirm truck acquisition date from QuickBooks fixed asset register or general ledger."
+            },
+            {
+              "code": "LOAN_NOTE_ORIGINATION_UNKNOWN",
+              "severity": "MEDIUM",
+              "message": "Loan Payable ($4,000.00) and Notes Payable ($25,000.00) are disclosed but not included in financing cash flows because origination dates are unknown. If either was originated during the report period, financing cash flows are understated.",
+              "resolution": "Confirm origination dates for Loan Payable and Notes Payable from QuickBooks loan records."
+            },
+            {
+              "code": "DEPRECIATION_NOT_RECORDED",
+              "severity": "MEDIUM",
+              "message": "No depreciation expense was found in the QuickBooks P&L and no accumulated depreciation account exists on the Balance Sheet for the Truck ($13,495.00 original cost). GAAP requires depreciation to be recorded on fixed assets.",
+              "resolution": "Confirm whether depreciation is being recorded. If not, organization should establish a depreciation schedule."
+            },
+            {
+              "code": "WILDAPRICOT_QB_REVENUE_RECONCILIATION",
+              "severity": "INFORMATIONAL",
+              "message": "WildApricot invoices total $7,758.00 for the period (MembershipApplication $7,495.00, EventRegistration $3.00, Undefined $260.00). QuickBooks P&L Total Income is $10,200.77. The WildApricot revenue is not directly reconcilable to a single QuickBooks income line. WildApricot unpaid invoices ($1,360.00) are reflected as a separate WildApricot A/R working-capital adjustment. There may be overlap with the QuickBooks A/R balance of $5,281.52 if WildApricot transactions are synced to QuickBooks.",
+              "resolution": "Confirm whether WildApricot transactions are synced to QuickBooks to avoid double-counting A/R adjustments."
+            },
+            {
+              "code": "WILDAPRICOT_PAYMENT_OUT_OF_PERIOD",
+              "severity": "INFORMATIONAL",
+              "message": "WildApricot payment record 106800163 ($250.00, 2025-08-05, Testing Scott) is dated outside the report period and has been excluded from all calculations.",
+              "resolution": "No action required unless this payment relates to a period-end accrual."
+            }
+          ]
+        },
+        "supplementalDisclosures": {
+          "wildApricotSummary": {
+            "reportingPeriod": "2026-01-01 to 2026-06-08",
+            "totalInvoicesBilled": 7758.0,
+            "totalInvoicesPaid": 6398.0,
+            "totalInvoicesUnpaid": 1360.0,
+            "totalPaymentsReceived_InPeriod": 6598.0,
+            "totalPaymentsReceived_OutOfPeriod": 250.0,
+            "paymentsByMonth": {
+              "2026-04": 1151.0,
+              "2026-05": 2862.0,
+              "2026-06": 2585.0
+            },
+            "invoicesByType": {
+              "MembershipApplication": 7495.0,
+              "EventRegistration": 3.0,
+              "Undefined": 260.0
+            },
+            "donations": 10.0,
+            "note": "In-period payments total = $1,151.00 + $2,862.00 + $2,585.00 = $6,598.00. Total payments per WildApricot = $6,848.00 including $250.00 out-of-period (2025-08-05)."
+          },
+          "nonCashTransactions": [
+            {
+              "description": "No non-cash investing or financing transactions identified from available data.",
+              "amount": 0.0
+            }
+          ],
+          "cashAndCashEquivalentsComposition": {
+            "asOf": "2026-06-08",
+            "checking": 1201.0,
+            "savings": 800.0,
+            "undepositedFunds_excluded": 2062.52,
+            "totalCashAndEquivalents": 2001.0,
+            "note": "Undeposited Funds ($2,062.52) represents collections in transit and is classified as a current asset, not cash and cash equivalents, consistent with GAAP."
+          }
+        }
+      },
+      "processing_time": 80.88299369812012,
+      "status": "completed",
+      "error_message": null
+    },
+    "balance_sheet": {
+      "report_type": "balance_sheet",
+      "content": {
+        "statement": {
+          "type": "StatementOfFinancialPosition",
+          "standard": "GAAP-Nonprofit (ASC 958)",
+          "asOfDate": "2026-06-08",
+          "currency": "USD",
+          "accountingBasis": "Accrual"
+        },
+        "assets": {
+          "currentAssets": [
+            {
+              "conceptId": "CashAndCashEquivalents",
+              "label": "Checking Account",
+              "amount": 1201.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Checking"
+              ]
+            },
+            {
+              "conceptId": "CashAndCashEquivalents",
+              "label": "Savings Account",
+              "amount": 800.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Savings"
+              ]
+            },
+            {
+              "conceptId": "UndepositedFunds",
+              "label": "Undeposited Funds",
+              "amount": 2062.52,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Undeposited Funds"
+              ]
+            },
+            {
+              "conceptId": "AccountsReceivable",
+              "label": "Accounts Receivable",
+              "amount": 5281.52,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Accounts Receivable (A/R)"
+              ]
+            },
+            {
+              "conceptId": "InventoryAsset",
+              "label": "Inventory Asset",
+              "amount": 596.25,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Inventory Asset"
+              ]
+            }
+          ],
+          "totalCurrentAssets": 9941.29,
+          "nonCurrentAssets": [
+            {
+              "conceptId": "PropertyPlantAndEquipmentGross",
+              "label": "Truck - Original Cost",
+              "amount": 13495.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Truck - Original Cost"
+              ]
+            }
+          ],
+          "totalNonCurrentAssets": 13495.0,
+          "totalAssets": 23436.29
+        },
+        "liabilities": {
+          "currentLiabilities": [
+            {
+              "conceptId": "AccountsPayable",
+              "label": "Accounts Payable",
+              "amount": 1602.67,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Accounts Payable (A/P)"
+              ]
+            },
+            {
+              "conceptId": "CreditCardsPayable",
+              "label": "Mastercard Credit Card",
+              "amount": 157.72,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Mastercard"
+              ]
+            },
+            {
+              "conceptId": "SalesTaxPayable",
+              "label": "Board of Equalization Payable",
+              "amount": 370.94,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Board of Equalization Payable"
+              ]
+            },
+            {
+              "conceptId": "SalesTaxPayable",
+              "label": "Arizona Dept. of Revenue Payable",
+              "amount": 0.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Arizona Dept. of Revenue Payable"
+              ]
+            },
+            {
+              "conceptId": "LoanPayableCurrent",
+              "label": "Loan Payable (Current)",
+              "amount": 4000.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Loan Payable"
+              ]
+            },
+            {
+              "conceptId": "UnearnedRevenueMembership",
+              "label": "Unearned Membership Dues - WildApricot Unpaid Invoices",
+              "amount": 1360.0,
+              "sourceSystem": "WildApricot",
+              "sourceAccounts": [
+                "WA Invoice 115704661 - Ahmed, Shaju - $250.00 - Unpaid",
+                "WA Invoice 115652414 - Ford, Myron - $200.00 - Unpaid",
+                "WA Invoice 115555526 - Scott, Blaine - $200.00 - Unpaid",
+                "WA Invoice 115555217 - Friedl, Dominic - $200.00 - Unpaid",
+                "WA Invoice 115386369 - Sharp, Mark - $250.00 - Unpaid",
+                "WA Invoice 115358694 - Rauber, Brett - $200.00 - Unpaid",
+                "WA Invoice 115083827 - Palmer, Nikolas - $60.00 - Unpaid"
+              ]
+            }
+          ],
+          "totalCurrentLiabilities": 12491.33,
+          "nonCurrentLiabilities": [
+            {
+              "conceptId": "NotesPayable",
+              "label": "Notes Payable (Long-Term)",
+              "amount": 25000.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                "Notes Payable"
+              ]
+            }
+          ],
+          "totalNonCurrentLiabilities": 25000.0,
+          "totalLiabilities": 37491.33
+        },
+        "netAssets": {
+          "withoutDonorRestrictions": {
+            "amount": -14055.04,
+            "label": "Net Assets Without Donor Restrictions",
+            "components": [
+              {
+                "conceptId": "OpeningBalanceEquity",
+                "label": "Opening Balance Equity",
+                "amount": -9337.5,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  "Opening Balance Equity"
+                ]
+              },
+              {
+                "conceptId": "RetainedEarnings",
+                "label": "Retained Earnings (Prior Periods)",
+                "amount": 0.0,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  "Retained Earnings"
+                ]
+              },
+              {
+                "conceptId": "NetIncome",
+                "label": "Net Income (YTD 2026-01-01 to 2026-06-08)",
+                "amount": 1642.46,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  "Net Income"
+                ]
+              },
+              {
+                "conceptId": "UnearnedRevenueMembershipAdjustment",
+                "label": "Adjustment: Unearned Membership Dues Reclassified to Liability (WildApricot)",
+                "amount": -6360.0,
+                "sourceSystem": "WildApricot",
+                "sourceAccounts": [
+                  "WA Paid Membership Invoices 2026-04 through 2026-06-08 - $6,398.00 paid",
+                  "WA Unpaid Invoices reclassified to Current Liabilities - $1,360.00",
+                  "Net equity reduction for unearned dues recognized as deferred liability"
+                ]
+              }
+            ]
+          },
+          "withDonorRestrictions": {
+            "amount": 0.0,
+            "label": "Net Assets With Donor Restrictions"
+          },
+          "totalNetAssets": -14055.04
+        },
+        "totalLiabilitiesAndNetAssets": 23436.29,
+        "accountingEquation": {
+          "status": "Balanced",
+          "assetsTotal": 23436.29,
+          "liabilitiesAndNetAssetsTotal": 23436.29,
+          "discrepancy": 0.0
+        },
+        "reconciliationNotes": {
+          "wildApricotValidation": {
+            "totalInvoicesValue": 7758.0,
+            "totalPaidInvoices": 6398.0,
+            "totalUnpaidInvoices": 1360.0,
+            "unpaidInvoicesClassifiedAs": "Current Liability - Unearned Membership Dues Payable",
+            "eventRegistrationsPaid": 3,
+            "eventRegistrationsUnpaidAmount": 0.0,
+            "donationsReceived": 10.0,
+            "donationsNote": "WildApricot donation of $10.00 (Brian Rorabaugh) not reflected in QuickBooks balance sheet; recommend recording as contribution revenue",
+            "membershipDuesPayableToKCWoodturners": "No specific KC Woodturners dues payable identified in QuickBooks data; not separately stated"
+          },
+          "quickBooksValidation": {
+            "reportedTotalAssets": 23436.29,
+            "reportedTotalLiabilities": 31131.33,
+            "reportedTotalEquity": -7695.04,
+            "reportedLiabilitiesAndEquity": 23436.29,
+            "quickBooksInternalBalance": "Balanced per QB report (Assets $23,436.29 = Liabilities $31,131.33 + Equity -$7,695.04)",
+            "reclassificationNote": "WildApricot unpaid invoices ($1,360.00) added as Unearned Membership Dues under Current Liabilities per ASC 958 deferred revenue recognition. Net Assets adjusted accordingly to maintain accounting equation balance. QuickBooks does not contain dedicated Unearned Revenue or Membership Dues Payable accounts; WildApricot data used as authoritative source per validation rules.",
+            "filedReferenceNote": "Filed reference financials (Statement of Financial Position 12312025.pdf) returned null for all fields; no prior-period anchors available. All balances sourced exclusively from QuickBooks and WildApricot."
+          },
+          "auditFlags": [
+            {
+              "flagId": "AF-001",
+              "severity": "High",
+              "description": "Opening Balance Equity of -$9,337.50 remains uncleared. This balance should be reclassified to Retained Earnings or Net Assets Without Donor Restrictions upon completion of prior-period audit.",
+              "affectedAccounts": [
+                "Opening Balance Equity"
+              ]
+            },
+            {
+              "flagId": "AF-002",
+              "severity": "Medium",
+              "description": "Retained Earnings balance is null/zero in QuickBooks. Prior-period net income has not been closed to Retained Earnings. Recommend year-end close entries.",
+              "affectedAccounts": [
+                "Retained Earnings"
+              ]
+            },
+            {
+              "flagId": "AF-003",
+              "severity": "Medium",
+              "description": "WildApricot donation of $10.00 (Brian Rorabaugh) does not appear to be recorded in QuickBooks. Recommend journal entry to record contribution revenue.",
+              "affectedAccounts": [
+                "WildApricot Donations",
+                "Contribution Revenue"
+              ]
+            },
+            {
+              "flagId": "AF-004",
+              "severity": "Low",
+              "description": "WildApricot payment record 106800163 ($250.00, Testing Scott, 2025-08-05) predates the current reporting period and appears to be a test transaction. Confirm whether this represents a real prior-period liability or test data.",
+              "affectedAccounts": [
+                "WildApricot Payments - 2025-08"
+              ]
+            },
+            {
+              "flagId": "AF-005",
+              "severity": "Low",
+              "description": "WildApricot event registrations show 3 paid registrations with PaidSum listed as (No value). Confirm event registration revenue has been properly recorded in QuickBooks.",
+              "affectedAccounts": [
+                "WildApricot Event Registrations",
+                "Unearned Skills Education Fees"
+              ]
+            },
+            {
+              "flagId": "AF-006",
+              "severity": "Medium",
+              "description": "QuickBooks income accounts (Design Income, Landscaping Services, Pest Control, etc.) do not align with a woodworking nonprofit's expected revenue streams. Verify QuickBooks chart of accounts is correctly configured for this organization.",
+              "affectedAccounts": [
+                "Design income",
+                "Landscaping Services",
+                "Pest Control Services"
+              ]
+            },
+            {
+              "flagId": "AF-007",
+              "severity": "High",
+              "description": "Filed reference financial statements (Statement of Financial Position 12312025.pdf) could not be parsed - all fields returned null. Prior-period comparative balances are unavailable. Audit trail is incomplete without prior-year figures.",
+              "affectedAccounts": [
+                "All - Prior Period"
+              ]
+            }
+          ]
+        }
+      },
+      "processing_time": 44.20062494277954,
+      "status": "completed",
+      "error_message": null
+    },
+    "tax_return": {
+      "report_type": "tax_return",
+      "content": {
+        "statement": {
+          "type": "Form990",
+          "taxYear": {
+            "startDate": "2026-01-01",
+            "endDate": "2026-06-08"
+          },
+          "accountingMethod": "Accrual"
+        },
+        "organizationInformation": {
+          "legalName": "[ORGANIZATION LEGAL NAME - NOT PROVIDED; CPA MUST SUPPLY]",
+          "dbaNames": [],
+          "ein": "[EIN - NOT PROVIDED; CPA MUST SUPPLY]",
+          "address": {
+            "street": "[STREET - NOT PROVIDED]",
+            "city": "[CITY - NOT PROVIDED]",
+            "state": "[STATE - NOT PROVIDED]",
+            "zip": "[ZIP - NOT PROVIDED]"
+          },
+          "telephone": "[TELEPHONE - NOT PROVIDED]",
+          "website": "[WEBSITE - NOT PROVIDED]",
+          "principalOfficer": {
+            "name": "[PRINCIPAL OFFICER NAME - NOT PROVIDED]",
+            "title": "[TITLE - NOT PROVIDED]",
+            "address": "[ADDRESS - NOT PROVIDED]"
+          },
+          "taxExemptStatus": "501(c)(3)",
+          "formOfOrganization": "Association",
+          "yearOfFormation": "[YEAR OF FORMATION - NOT PROVIDED]",
+          "stateOfLegalDomicile": "[STATE - NOT PROVIDED; Arizona Dept. of Revenue Payable present in QB suggesting AZ nexus]",
+          "groupReturn": false,
+          "groupExemptionNumber": null
+        },
+        "partI_summary": {
+          "missionStatement": "The organization promotes woodworking education, craftsmanship, and community engagement by providing members with access to tools, classes, workshops, and collaborative programs in woodworking and related crafts.",
+          "line3_votingMembers": 0,
+          "line4_independentVotingMembers": 0,
+          "line5_totalEmployees": 0,
+          "line6_totalVolunteers": 0,
+          "line7a_unrelatedBusinessRevenue": 0.0,
+          "line7b_netUnrelatedBusinessTaxableIncome": 0.0,
+          "revenueExpenseSummary": {
+            "line8_contributionsAndGrants": {
+              "priorYear": null,
+              "currentYear": 10.0
+            },
+            "line9_programServiceRevenue": {
+              "priorYear": null,
+              "currentYear": 10190.27
+            },
+            "line10_investmentIncome": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line11_otherRevenue": {
+              "priorYear": null,
+              "currentYear": -89.5
+            },
+            "line12_totalRevenue": {
+              "priorYear": null,
+              "currentYear": 10200.77
+            },
+            "line13_grantsPaid": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line14_benefitsPaidToMembers": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line15_salariesCompBenefits": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line16a_professionalFundraisingFees": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line16b_totalFundraisingExpenses": 74.86,
+            "line17_otherExpenses": {
+              "priorYear": null,
+              "currentYear": 8078.31
+            },
+            "line18_totalExpenses": {
+              "priorYear": null,
+              "currentYear": 8078.31
+            },
+            "line19_revenueLessExpenses": {
+              "priorYear": null,
+              "currentYear": 2122.46
+            }
+          },
+          "netAssetsSummary": {
+            "line20_totalAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 23436.29
+            },
+            "line21_totalLiabilities": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 31131.33
+            },
+            "line22_netAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": -7695.04
+            }
+          }
+        },
+        "partII_signatureBlock": {
+          "officerName": "[PRINCIPAL OFFICER NAME - NOT PROVIDED; CPA MUST SUPPLY]",
+          "officerTitle": "[TITLE - NOT PROVIDED; CPA MUST SUPPLY]",
+          "signatureDate": null
+        },
+        "partIII_programServiceAccomplishments": {
+          "missionStatement": "The organization promotes woodworking education, craftsmanship, and community engagement by providing members with access to tools, classes, workshops, and collaborative programs in woodworking and related crafts.",
+          "line2_newServices": "No",
+          "line3_significantChanges": "No",
+          "programServices": [
+            {
+              "lineRef": "4a",
+              "code": "EDUC",
+              "expenses": 940.0,
+              "grantsIncluded": 0.0,
+              "revenue": 6138.0,
+              "description": "Membership programs and educational woodworking classes: The organization provided membership services to approximately 35 paid members during the period, offering access to woodworking facilities, tools, and educational programming including Basic Woodworking, Intermediate Woodworking, Bandsaw Box, Intro to Hand Tool Woodworking, and specialty SIG (Special Interest Group) sessions covering CNC, Laser Engraver, Finishing, Carving, and Hand Tool disciplines. Membership dues and event registration fees totaling $6,138.00 were collected. Maintenance and repair expenses of $940.00 were incurred to keep equipment and facilities operational for member use."
+            },
+            {
+              "lineRef": "4b",
+              "code": "ENVT",
+              "expenses": 1519.37,
+              "grantsIncluded": 0.0,
+              "revenue": 6986.47,
+              "description": "Landscaping and horticultural services: The organization provided landscaping services including installation of fountains and garden lighting, plants and soil, and sprinkler and drip systems, as well as labor for installation and maintenance. Job materials expenses of $802.82 and automobile expenses of $463.37 and equipment rental of $112.00 and job expenses-other of $155.07 were incurred in delivering these program services. Total landscaping service revenue was $6,986.47 including job materials revenue of $4,736.47 and labor revenue of $300.00 and other landscaping-related income."
+            },
+            {
+              "lineRef": "4c",
+              "code": "OTHR",
+              "expenses": 13.89,
+              "grantsIncluded": 0.0,
+              "revenue": 3676.3,
+              "description": "Design, product sales, pest control, and general services: The organization provided design services ($2,250.00 revenue), sales of product income ($912.75 revenue), general services ($503.55 revenue), and pest control services ($110.00 revenue). Program-allocated expenses include a proportionate share of direct program costs."
+            }
+          ],
+          "line4d_otherProgramServices": {
+            "expenses": 0.0,
+            "grantsIncluded": 0.0,
+            "revenue": 0.0,
+            "description": "No additional program services identified beyond those reported on lines 4a through 4c."
+          },
+          "line4e_totalProgramServiceExpenses": 2473.26
+        },
+        "partIV_checklistOfRequiredSchedules": [
+          {
+            "line": "1",
+            "question": "Is the organization described in section 501(c)(3) or 4947(a)(1) (other than a private foundation)?",
+            "answer": "Yes"
+          },
+          {
+            "line": "2",
+            "question": "Is the organization required to complete Schedule B, Schedule of Contributors?",
+            "answer": "No"
+          },
+          {
+            "line": "3",
+            "question": "Did the organization engage in direct or indirect political campaign activities on behalf of or in opposition to candidates for public office?",
+            "answer": "No"
+          },
+          {
+            "line": "4",
+            "question": "Section 501(c)(3) organizations: Did the organization engage in lobbying activities, or have a section 501(h) election in effect during the tax year?",
+            "answer": "No"
+          },
+          {
+            "line": "5",
+            "question": "Is the organization a section 501(c)(4), 501(c)(5), or 501(c)(6) organization that receives membership dues, assessments, or similar amounts as defined in Revenue Procedure 98-19?",
+            "answer": "No"
+          },
+          {
+            "line": "6",
+            "question": "Did the organization maintain any donor advised funds or any similar funds or accounts for which donors have the right to provide advice on the distribution or investment of amounts in such funds or accounts?",
+            "answer": "No"
+          },
+          {
+            "line": "7",
+            "question": "Did the organization receive or hold a conservation easement, including easements to preserve open space, the environment, historic land areas, or historic structures?",
+            "answer": "No"
+          },
+          {
+            "line": "8",
+            "question": "Did the organization maintain collections of works of art, historical treasures, or other similar assets?",
+            "answer": "No"
+          },
+          {
+            "line": "9",
+            "question": "Did the organization report an amount in Part X, line 21, for escrow or custodial account liability; serve as a custodian for amounts not listed in Part X; or provide credit counseling, debt management, credit repair, or debt negotiation services?",
+            "answer": "No"
+          },
+          {
+            "line": "10",
+            "question": "Did the organization, directly or through a related organization, hold assets in donor-restricted endowments or in quasi endowments?",
+            "answer": "No"
+          },
+          {
+            "line": "11",
+            "question": "If the organization's answer to any of the following questions is 'Yes', then complete Schedule D, Parts VI, VII, VIII, IX, or X, as applicable.",
+            "answer": "No"
+          },
+          {
+            "line": "11a",
+            "question": "Did the organization report an amount for land, buildings, and equipment in Part X, line 10?",
+            "answer": "Yes"
+          },
+          {
+            "line": "11b",
+            "question": "Did the organization report an amount for investments—other securities in Part X, line 12 that is 5% or more of its total assets reported in Part X, line 16?",
+            "answer": "No"
+          },
+          {
+            "line": "11c",
+            "question": "Did the organization report an amount for investments—program related in Part X, line 13 that is 5% or more of its total assets reported in Part X, line 16?",
+            "answer": "No"
+          },
+          {
+            "line": "11d",
+            "question": "Did the organization report an amount for other assets in Part X, line 15 that is 5% or more of its total assets reported in Part X, line 16?",
+            "answer": "Yes"
+          },
+          {
+            "line": "11e",
+            "question": "Did the organization report an amount for other liabilities in Part X, line 25?",
+            "answer": "Yes"
+          },
+          {
+            "line": "11f",
+            "question": "Did the organization's separate or consolidated financial statements for the tax year include a footnote that addresses the organization's liability for uncertain tax positions under FIN 48 (ASC 740)?",
+            "answer": "No"
+          },
+          {
+            "line": "12a",
+            "question": "Did the organization obtain separate, independent audited financial statements for the tax year?",
+            "answer": "No"
+          },
+          {
+            "line": "12b",
+            "question": "Was the organization included in consolidated, independent audited financial statements for the tax year?",
+            "answer": "No"
+          },
+          {
+            "line": "13",
+            "question": "Is the organization a school described in section 170(b)(1)(A)(ii)?",
+            "answer": "No"
+          },
+          {
+            "line": "14a",
+            "question": "Did the organization maintain an office, employees, or agents outside of the United States?",
+            "answer": "No"
+          },
+          {
+            "line": "14b",
+            "question": "Did the organization have aggregate revenues or expenses of more than $10,000 from grantmaking, fundraising, business, investment, and program service activities outside the United States, or aggregate foreign investments valued at $100,000 or more?",
+            "answer": "No"
+          },
+          {
+            "line": "15",
+            "question": "Did the organization report on Part IX, column (A), line 3, more than $5,000 of grants or other assistance to or for any foreign organization?",
+            "answer": "No"
+          },
+          {
+            "line": "16",
+            "question": "Did the organization report on Part IX, column (A), line 3, more than $5,000 of aggregate grants or other assistance to or for foreign individuals?",
+            "answer": "No"
+          },
+          {
+            "line": "17",
+            "question": "Did the organization report a total of more than $15,000 of expenses for professional fundraising services on Part IX, column (A), lines 6 and 11e?",
+            "answer": "No"
+          },
+          {
+            "line": "18",
+            "question": "Did the organization report more than $15,000 total of fundraising event gross income and contributions on Part VIII, lines 1c and 8a?",
+            "answer": "No"
+          },
+          {
+            "line": "19",
+            "question": "Did the organization report more than $15,000 of gross income from gaming activities on Part VIII, line 9a?",
+            "answer": "No"
+          },
+          {
+            "line": "20a",
+            "question": "Did the organization operate one or more hospital facilities?",
+            "answer": "No"
+          },
+          {
+            "line": "20b",
+            "question": "If 'Yes' to line 20a, did the organization attach a copy of its audited financial statements to this return?",
+            "answer": "No"
+          },
+          {
+            "line": "21",
+            "question": "Did the organization report more than $5,000 of grants or other assistance to any domestic organization or domestic government on Part IX, column (A), line 1?",
+            "answer": "No"
+          },
+          {
+            "line": "22",
+            "question": "Did the organization report more than $5,000 of grants or other assistance to or for domestic individuals on Part IX, column (A), line 2?",
+            "answer": "No"
+          },
+          {
+            "line": "23",
+            "question": "Did the organization answer 'Yes' to Part VII, Section A, line 3, 4, or 5 about compensation of the organization's current and former officers, directors, trustees, key employees, and highest compensated employees?",
+            "answer": "No"
+          },
+          {
+            "line": "24a",
+            "question": "Did the organization have a tax-exempt bond issue with an outstanding principal amount of more than $100,000 as of the last day of the year, that was issued after December 31, 2002?",
+            "answer": "No"
+          },
+          {
+            "line": "24b",
+            "question": "Did the organization invest any proceeds of tax-exempt bonds beyond a temporary period exception?",
+            "answer": "No"
+          },
+          {
+            "line": "24c",
+            "question": "Did the organization maintain an escrow account other than a refunding escrow at any time during the year to defease any tax-exempt bonds?",
+            "answer": "No"
+          },
+          {
+            "line": "24d",
+            "question": "Did the organization act as an 'on behalf of' issuer for bonds outstanding at any time during the year?",
+            "answer": "No"
+          },
+          {
+            "line": "25a",
+            "question": "Section 501(c)(3), 501(c)(4), and 501(c)(29) organizations: Did the organization engage in an excess benefit transaction with a disqualified person during the year?",
+            "answer": "No"
+          },
+          {
+            "line": "25b",
+            "question": "Is the organization aware that it engaged in an excess benefit transaction with a disqualified person in a prior year, and that the transaction has not been reported on any of the organization's prior Forms 990 or 990-EZ?",
+            "answer": "No"
+          },
+          {
+            "line": "26",
+            "question": "Did the organization report any amount on Part X, line 5 or 22, for receivables from or payables to any current or former officer, director, trustee, key employee, creator or founder, substantial contributor, or 35% controlled entity or family member of any of these persons?",
+            "answer": "No"
+          },
+          {
+            "line": "27",
+            "question": "Did the organization provide a grant or other assistance to any current or former officer, director, trustee, key employee, substantial contributor or employee thereof, a grant selection committee member, or to a 35% controlled entity or family member of any of these persons?",
+            "answer": "No"
+          },
+          {
+            "line": "28",
+            "question": "Was the organization a party to a business transaction with one of the following parties: a current or former officer, director, trustee, key employee, creator or founder, or substantial contributor?",
+            "answer": "No"
+          },
+          {
+            "line": "28a",
+            "question": "A current or former officer, director, trustee, key employee, creator or founder, or substantial contributor?",
+            "answer": "No"
+          },
+          {
+            "line": "28b",
+            "question": "A family member of any individual described in line 28a?",
+            "answer": "No"
+          },
+          {
+            "line": "28c",
+            "question": "A 35% controlled entity of one or more individuals and/or organizations described in lines 28a or 28b?",
+            "answer": "No"
+          },
+          {
+            "line": "29",
+            "question": "Did the organization receive more than $25,000 in non-cash contributions?",
+            "answer": "No"
+          },
+          {
+            "line": "30",
+            "question": "Did the organization receive contributions of art, historical treasures, or other similar assets, or qualified conservation contributions?",
+            "answer": "No"
+          },
+          {
+            "line": "31",
+            "question": "Did the organization liquidate, terminate, or dissolve and cease operations?",
+            "answer": "No"
+          },
+          {
+            "line": "32",
+            "question": "Did the organization sell, exchange, dispose of, or transfer more than 25% of its net assets?",
+            "answer": "No"
+          },
+          {
+            "line": "33",
+            "question": "Did the organization own 100% of an entity disregarded as separate from the organization under Regulations sections 301.7701-2 and 301.7701-3?",
+            "answer": "No"
+          },
+          {
+            "line": "34",
+            "question": "Was the organization related to any tax-exempt or taxable entity?",
+            "answer": "No"
+          },
+          {
+            "line": "35a",
+            "question": "Did the organization have a controlled entity within the meaning of section 512(b)(13)?",
+            "answer": "No"
+          },
+          {
+            "line": "35b",
+            "question": "If 'Yes' to line 35a, did the organization receive any payment from or engage in any transaction with a controlled entity within the meaning of section 512(b)(13)?",
+            "answer": "No"
+          },
+          {
+            "line": "36",
+            "question": "Section 501(c)(3) organizations: Did the organization make any transfers to an exempt non-charitable related organization?",
+            "answer": "No"
+          },
+          {
+            "line": "37",
+            "question": "Did the organization conduct more than 5% of its activities through an entity that is not a related organization and that is treated as a partnership for federal income tax purposes?",
+            "answer": "No"
+          },
+          {
+            "line": "38",
+            "question": "Did the organization complete Schedule O and provide explanations on Schedule O for Part VI, lines 11b and 19?",
+            "answer": "Yes"
+          }
+        ],
+        "partV_statementsRegardingOtherIRSFilings": [
+          {
+            "line": "1a",
+            "label": "Number reported in box 3 of Form 1096 (transactions with independent contractors)",
+            "value": 0
+          },
+          {
+            "line": "1b",
+            "label": "Number of Forms W-2G included on line 1a",
+            "value": 0
+          },
+          {
+            "line": "1c",
+            "label": "Did the organization comply with backup withholding rules for reportable payments to vendors and reportable gaming (gambling) winnings to prize winners?",
+            "answer": "Yes"
+          },
+          {
+            "line": "2a",
+            "label": "Number of employees reported on Form W-3, Transmittal of Wage and Tax Statements, filed for the calendar year ending with or within the year covered by this return",
+            "value": 0
+          },
+          {
+            "line": "2b",
+            "label": "If at least one is reported on line 2a, did the organization file all required federal employment tax returns?",
+            "answer": "N/A"
+          },
+          {
+            "line": "3a",
+            "label": "Did the organization have unrelated business gross income of $1,000 or more during the year?",
+            "answer": "No"
+          },
+          {
+            "line": "3b",
+            "label": "If 'Yes,' has it filed a Form 990-T for this year?",
+            "answer": "N/A"
+          },
+          {
+            "line": "4a",
+            "label": "At any time during the calendar year, did the organization have an interest in, or a signature or other authority over, a financial account in a foreign country (such as a bank account, securities account, or other financial account)?",
+            "answer": "No"
+          },
+          {
+            "line": "4b",
+            "label": "If 'Yes,' enter the name of the foreign country",
+            "value": null
+          },
+          {
+            "line": "5a",
+            "label": "Was the organization a party to a prohibited tax shelter transaction at any time during the tax year?",
+            "answer": "No"
+          },
+          {
+            "line": "5b",
+            "label": "Did any taxable party notify the organization that it was or is a party to a prohibited tax shelter transaction?",
+            "answer": "No"
+          },
+          {
+            "line": "5c",
+            "label": "If 'Yes' to line 5a or 5b, did the organization file Form 8886-T?",
+            "answer": "N/A"
+          },
+          {
+            "line": "6a",
+            "label": "Does the organization have annual gross receipts that are normally greater than $100,000, and did the organization solicit any contributions that were not tax deductible as charitable contributions?",
+            "answer": "No"
+          },
+          {
+            "line": "6b",
+            "label": "If 'Yes,' did the organization include with every solicitation an express statement that such contributions or gifts were not tax deductible?",
+            "answer": "N/A"
+          },
+          {
+            "line": "7",
+            "label": "Organizations that may receive deductible contributions under section 170(c): Did the organization receive a payment in excess of $75 made partly as a contribution and partly for goods and services provided to the payor?",
+            "answer": "No"
+          },
+          {
+            "line": "7b",
+            "label": "If 'Yes,' did the organization notify the donor of the value of the goods or services provided?",
+            "answer": "N/A"
+          },
+          {
+            "line": "7c",
+            "label": "Did the organization sell, exchange, or otherwise dispose of tangible personal property for which it was required to file Form 8282?",
+            "answer": "No"
+          },
+          {
+            "line": "7d",
+            "label": "If 'Yes,' indicate the number of Forms 8282 filed during the year",
+            "value": 0
+          },
+          {
+            "line": "7e",
+            "label": "Did the organization receive any funds, directly or indirectly, to pay premiums on a personal benefit contract?",
+            "answer": "No"
+          },
+          {
+            "line": "7f",
+            "label": "Did the organization, during the year, pay premiums, directly or indirectly, on a personal benefit contract?",
+            "answer": "No"
+          },
+          {
+            "line": "7g",
+            "label": "If the organization received a contribution of qualified intellectual property, did the organization file Form 8899 as required?",
+            "answer": "N/A"
+          },
+          {
+            "line": "7h",
+            "label": "If the organization received a contribution of cars, boats, airplanes, or other vehicles, did the organization file a Form 1098-C?",
+            "answer": "N/A"
+          },
+          {
+            "line": "8",
+            "label": "Sponsoring organizations maintaining donor advised funds: Did a donor advised fund maintained by the sponsoring organization have excess business holdings at any time during the year?",
+            "answer": "N/A"
+          },
+          {
+            "line": "9a",
+            "label": "Did the organization receive any amounts from any activity that, directly or indirectly, furthered exempt purposes of the organization, other than amounts already reported on Form 990?",
+            "answer": "No"
+          },
+          {
+            "line": "9b",
+            "label": "If 'Yes,' did the organization file Form 720 to report these payments?",
+            "answer": "N/A"
+          }
+        ],
+        "partVI_governance": {
+          "sectionA": [
+            {
+              "line": "1a",
+              "label": "Number of voting members of the governing body at the end of the tax year",
+              "value": 0,
+              "note": "Not provided in source data; CPA must supply."
+            },
+            {
+              "line": "1b",
+              "label": "Number of voting members included on line 1a, above, who are independent",
+              "value": 0,
+              "note": "Not provided in source data; CPA must supply."
+            },
+            {
+              "line": "2",
+              "label": "Did any officer, director, trustee, or key employee have a family relationship or a business relationship with any other officer, director, trustee, or key employee?",
+              "answer": "No"
+            },
+            {
+              "line": "3",
+              "label": "Did the organization delegate control over management duties customarily performed by or under the direct supervision of officers, directors, trustees, or key employees to a management company or other person?",
+              "answer": "No"
+            },
+            {
+              "line": "4",
+              "label": "Did the organization make any significant changes to its governing documents since the prior Form 990 was filed?",
+              "answer": "No"
+            },
+            {
+              "line": "5",
+              "label": "Did the organization become aware during the year of a significant diversion of the organization's assets?",
+              "answer": "No"
+            },
+            {
+              "line": "6",
+              "label": "Did the organization have members or stockholders?",
+              "answer": "Yes"
+            },
+            {
+              "line": "7a",
+              "label": "Did the organization have members, stockholders, or other persons who had the power to elect or appoint one or more members of the governing body?",
+              "answer": "Yes"
+            },
+            {
+              "line": "7b",
+              "label": "Are any governance decisions of the organization reserved to (or subject to approval by) members, stockholders, or persons other than the governing body?",
+              "answer": "No"
+            },
+            {
+              "line": "8",
+              "label": "Did the organization contemporaneously document the meetings held or written actions undertaken during the year by the following: the governing body?",
+              "answer": "No"
+            },
+            {
+              "line": "8a",
+              "label": "The governing body?",
+              "answer": "No"
+            },
+            {
+              "line": "8b",
+              "label": "Each committee with authority to act on behalf of the governing body?",
+              "answer": "No"
+            },
+            {
+              "line": "9",
+              "label": "Is there any officer, director, trustee, or key employee listed in Part VII, Section A, who cannot be reached at the organization's mailing address?",
+              "answer": "No"
+            }
+          ],
+          "sectionB_policies": [
+            {
+              "line": "10a",
+              "label": "Did the organization have local chapters, branches, or affiliates?",
+              "answer": "No"
+            },
+            {
+              "line": "10b",
+              "label": "If 'Yes,' did the organization have written policies and procedures governing the activities of such chapters, affiliates, and branches to ensure their operations are consistent with the organization's exempt purposes?",
+              "answer": "N/A"
+            },
+            {
+              "line": "11a",
+              "label": "Has the organization provided a complete copy of this Form 990 to all members of its governing body before filing the form?",
+              "answer": "No"
+            },
+            {
+              "line": "11b",
+              "label": "Describe in Schedule O the process, if any, used by the organization to review this Form 990.",
+              "answer": "See Schedule O"
+            },
+            {
+              "line": "12a",
+              "label": "Did the organization have a written conflict of interest policy?",
+              "answer": "No"
+            },
+            {
+              "line": "12b",
+              "label": "Were officers, directors, or trustees, and key employees required to disclose annually interests that could give rise to conflicts?",
+              "answer": "No"
+            },
+            {
+              "line": "12c",
+              "label": "Did the organization regularly and consistently monitor and enforce compliance with the policy?",
+              "answer": "No"
+            },
+            {
+              "line": "13",
+              "label": "Did the organization have a written whistleblower policy?",
+              "answer": "No"
+            },
+            {
+              "line": "14",
+              "label": "Did the organization have a written document retention and destruction policy?",
+              "answer": "No"
+            },
+            {
+              "line": "15a",
+              "label": "Did the process for determining compensation of the following persons include a review and approval by independent persons, comparability data, and contemporaneous substantiation of the deliberation and decision? The organization's CEO, Executive Director, or top management official.",
+              "answer": "No"
+            },
+            {
+              "line": "15b",
+              "label": "Other officers or key employees of the organization.",
+              "answer": "No"
+            },
+            {
+              "line": "16a",
+              "label": "Did the organization invest in, contribute assets to, or participate in a joint venture or similar arrangement with a taxable entity during the year?",
+              "answer": "No"
+            },
+            {
+              "line": "16b",
+              "label": "If 'Yes,' did the organization follow a written policy or procedure requiring the organization to evaluate its participation in joint venture arrangements under applicable federal tax law, and take steps to safeguard the organization's exempt status with respect to such arrangements?",
+              "answer": "N/A"
+            }
+          ],
+          "sectionC_disclosure": {
+            "line17_statesFiledIn": [
+              "[STATE - NOT PROVIDED; CPA MUST SUPPLY; Arizona nexus indicated]"
+            ],
+            "line18_availabilityMethod": [
+              "Upon request"
+            ],
+            "line19_narrative": "The organization makes its governing documents, conflict of interest policy, and financial statements available to the public upon request. See Schedule O for additional detail.",
+            "line20_booksAndRecordsCustodian": {
+              "name": "[CUSTODIAN NAME - NOT PROVIDED; CPA MUST SUPPLY]",
+              "address": "[ADDRESS - NOT PROVIDED; CPA MUST SUPPLY]",
+              "phone": "[PHONE - NOT PROVIDED; CPA MUST SUPPLY]"
+            }
+          }
+        },
+        "partVII_compensation": {
+          "sectionA_officersDirectorsTrustees": [
+            {
+              "name": "[OFFICER/DIRECTOR NAME - NOT PROVIDED; CPA MUST SUPPLY]",
+              "title": "[TITLE - NOT PROVIDED; CPA MUST SUPPLY]",
+              "avgHoursPerWeek": 0,
+              "positions": {
+                "individualTrustee": false,
+                "institutionalTrustee": false,
+                "officer": true,
+                "keyEmployee": false,
+                "highestCompensated": false,
+                "former": false
+              },
+              "reportableCompFromOrg": 0.0,
+              "reportableCompFromRelatedOrgs": 0.0,
+              "estimatedOtherComp": 0.0
+            }
+          ],
+          "line1b_subtotal": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line1c_continuationTotal": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line1d_total": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line2_countOver100k": 0,
+          "line3_formerOfficerListed": "No",
+          "line4_compOver150k": "No",
+          "line5_unrelatedOrgComp": "No",
+          "sectionB_independentContractors": [
+            {
+              "name": "[NO INDEPENDENT CONTRACTORS OVER $100,000 IDENTIFIED IN SOURCE DATA]",
+              "address": "",
+              "description": "No independent contractor received $100,000 or more in compensation during the tax year per QuickBooks vendor data. Highest identified professional fees: Accounting $640.00, Lawyer $400.00, Bookkeeper $55.00.",
+              "compensation": 0.0
+            }
+          ],
+          "line2_independentContractorsOver100k": 0
+        },
+        "partVIII_revenue": [
+          {
+            "lineNumber": "1a",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Donations - WildApricot (Brian Rorabaugh)",
+            "totalRevenue": 10.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "WildApricot"
+          },
+          {
+            "lineNumber": "2a",
+            "category": "Program Service Revenue",
+            "label": "Membership Dues - WildApricot (MembershipApplication invoices, paid)",
+            "totalRevenue": 6135.0,
+            "programServiceRevenue": 6135.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "WildApricot"
+          },
+          {
+            "lineNumber": "2b",
+            "category": "Program Service Revenue",
+            "label": "Event Registration Fees - WildApricot (EventRegistration invoices, paid)",
+            "totalRevenue": 3.0,
+            "programServiceRevenue": 3.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "WildApricot"
+          },
+          {
+            "lineNumber": "2c",
+            "category": "Program Service Revenue",
+            "label": "Undefined Invoice - WildApricot (MacCracken, Joe - paid)",
+            "totalRevenue": 260.0,
+            "programServiceRevenue": 260.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "WildApricot"
+          },
+          {
+            "lineNumber": "2d",
+            "category": "Program Service Revenue",
+            "label": "Design Income - QuickBooks",
+            "totalRevenue": 2250.0,
+            "programServiceRevenue": 2250.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2e",
+            "category": "Program Service Revenue",
+            "label": "Landscaping Services - Job Materials (Fountains and Garden Lighting) - QuickBooks",
+            "totalRevenue": 2246.5,
+            "programServiceRevenue": 2246.5,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2f",
+            "category": "Program Service Revenue",
+            "label": "Landscaping Services - Job Materials (Plants and Soil) - QuickBooks",
+            "totalRevenue": 2351.97,
+            "programServiceRevenue": 2351.97,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2g",
+            "category": "Program Service Revenue",
+            "label": "Landscaping Services - Job Materials (Sprinklers and Drip Systems) - QuickBooks",
+            "totalRevenue": 138.0,
+            "programServiceRevenue": 138.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2h",
+            "category": "Program Service Revenue",
+            "label": "Landscaping Services - Labor (Installation) - QuickBooks",
+            "totalRevenue": 250.0,
+            "programServiceRevenue": 250.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2i",
+            "category": "Program Service Revenue",
+            "label": "Landscaping Services - Labor (Maintenance and Repair) - QuickBooks",
+            "totalRevenue": 50.0,
+            "programServiceRevenue": 50.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2j",
+            "category": "Program Service Revenue",
+            "label": "Pest Control Services - QuickBooks",
+            "totalRevenue": 110.0,
+            "programServiceRevenue": 110.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2k",
+            "category": "Program Service Revenue",
+            "label": "Sales of Product Income - QuickBooks",
+            "totalRevenue": 912.75,
+            "programServiceRevenue": 912.75,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2l",
+            "category": "Program Service Revenue",
+            "label": "Services - QuickBooks",
+            "totalRevenue": 503.55,
+            "programServiceRevenue": 503.55,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11a",
+            "category": "Other Revenue",
+            "label": "Discounts Given (contra-revenue) - QuickBooks",
+            "totalRevenue": -89.5,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          }
+        ],
+        "partVIII_totalRevenue": 10200.77,
+        "partIX_expenses": [
+          {
+            "lineNumber": "11a",
+            "label": "Accounting",
+            "totalExpenses": 640.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 640.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11a",
+            "label": "Bookkeeper",
+            "totalExpenses": 55.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 55.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11a",
+            "label": "Lawyer",
+            "totalExpenses": 400.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 400.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "12",
+            "label": "Advertising",
+            "totalExpenses": 74.86,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 74.86,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "13",
+            "label": "Office Expenses",
+            "totalExpenses": 18.08,
+            "programServices": 0.0,
+            "managementAndGeneral": 18.08,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "14",
+            "label": "Rent or Lease",
+            "totalExpenses": 900.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 900.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "15",
+            "label": "Equipment Repairs (Maintenance and Repair)",
+            "totalExpenses": 755.0,
+            "programServices": 755.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "15",
+            "label": "Maintenance and Repair - Other",
+            "totalExpenses": 185.0,
+            "programServices": 185.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "16",
+            "label": "Gas and Electric (Utilities)",
+            "totalExpenses": 200.53,
+            "programServices": 0.0,
+            "managementAndGeneral": 200.53,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "16",
+            "label": "Telephone (Utilities)",
+            "totalExpenses": 130.86,
+            "programServices": 0.0,
+            "managementAndGeneral": 130.86,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "17",
+            "label": "Insurance",
+            "totalExpenses": 241.23,
+            "programServices": 0.0,
+            "managementAndGeneral": 241.23,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24a",
+            "label": "Fuel (Automobile)",
+            "totalExpenses": 349.41,
+            "programServices": 349.41,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24b",
+            "label": "Automobile - Other",
+            "totalExpenses": 113.96,
+            "programServices": 113.96,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24c",
+            "label": "Equipment Rental",
+            "totalExpenses": 112.0,
+            "programServices": 112.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24d",
+            "label": "Job Materials - Decks and Patios",
+            "totalExpenses": 234.04,
+            "programServices": 234.04,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24e",
+            "label": "Job Materials - Plants and Soil",
+            "totalExpenses": 353.12,
+            "programServices": 353.12,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24f",
+            "label": "Job Materials - Sprinklers and Drip Systems",
+            "totalExpenses": 215.66,
+            "programServices": 215.66,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24g",
+            "label": "Job Expenses - Other",
+            "totalExpenses": 155.07,
+            "programServices": 155.07,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24h",
+            "label": "Meals and Entertainment",
+            "totalExpenses": 28.49,
+            "programServices": 0.0,
+            "managementAndGeneral": 28.49,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24i",
+            "label": "Miscellaneous (Other Expenses)",
+            "totalExpenses": 2916.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 2916.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          }
+        ],
+        "partIX_totals": {
+          "totalExpenses": 8078.31,
+          "totalProgramServices": 2473.26,
+          "totalManagementAndGeneral": 5530.19,
+          "totalFundraising": 74.86
+        },
+        "partX_balanceSheet": {
+          "assets": [
+            {
+              "lineNumber": "1",
+              "label": "Cash - non-interest-bearing (Checking)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 1201.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "2",
+              "label": "Savings and temporary cash investments (Savings)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 800.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "3",
+              "label": "Pledges and grants receivable, net",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "4",
+              "label": "Accounts receivable, net (A/R per QB; unpaid WildApricot invoices $1,360.00 included within QB A/R balance)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 5281.52,
+              "sourceSystem": "QuickBooks | WildApricot"
+            },
+            {
+              "lineNumber": "5",
+              "label": "Loans and other receivables from current and former officers, directors, trustees, key employees, and highest compensated employees",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "6",
+              "label": "Loans and other receivables from other disqualified persons",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "7",
+              "label": "Notes and loans receivable, net",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "8",
+              "label": "Inventories for sale or use (Inventory Asset)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 596.25,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "9",
+              "label": "Prepaid expenses and deferred charges",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "10a",
+              "label": "Land, buildings, and equipment: cost or other basis (Truck - Original Cost)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 13495.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "10b",
+              "label": "Less: accumulated depreciation",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "10c",
+              "label": "Land, buildings, and equipment: net",
+              "beginningOfYear": 0.0,
+              "endOfYear": 13495.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "11",
+              "label": "Investments - publicly traded securities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "12",
+              "label": "Investments - other securities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "13",
+              "label": "Investments - program-related",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "14",
+              "label": "Intangible assets",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "15",
+              "label": "Other assets (Undeposited Funds)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 2062.52,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "16",
+              "label": "Total assets",
+              "beginningOfYear": 0.0,
+              "endOfYear": 23436.29,
+              "sourceSystem": "QuickBooks"
+            }
+          ],
+          "totalAssets": {
+            "beginningOfYear": 0.0,
+            "endOfYear": 23436.29
+          },
+          "liabilitiesAndNetAssets": [
+            {
+              "lineNumber": "17",
+              "label": "Accounts payable and accrued expenses (Accounts Payable A/P)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 1602.67,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "18",
+              "label": "Grants payable",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "19",
+              "label": "Deferred revenue (WildApricot prepaid memberships - paid invoices for future membership periods; validated against WA paid membership invoices $6,398.00 less event registrations $3.00 less undefined $260.00 = $6,135.00 membership payments; portion allocable to unearned future periods reported here as estimate; no QB deferred revenue account present - flagged for CPA review)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "WildApricot | QuickBooks - REQUIRES CPA REVIEW"
+            },
+            {
+              "lineNumber": "20",
+              "label": "Tax-exempt bond liabilities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "21",
+              "label": "Escrow or custodial account liability",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "22",
+              "label": "Loans and other payables to current and former officers, directors, trustees, key employees, and highest compensated employees",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "23",
+              "label": "Secured mortgages and notes payable to unrelated third parties (Notes Payable - Long-Term)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 25000.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "24",
+              "label": "Unsecured notes and loans payable to unrelated third parties (Loan Payable - Current)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 4000.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "25",
+              "label": "Other liabilities (Mastercard credit card payable $157.72; Board of Equalization Payable $370.94; Arizona Dept. of Revenue Payable $0.00)",
+              "beginningOfYear": 0.0,
+              "endOfYear": 528.66,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "26",
+              "label": "Total liabilities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 31131.33,
+              "sourceSystem": "QuickBooks"
+            }
+          ],
+          "totalLiabilities": {
+            "beginningOfYear": 0.0,
+            "endOfYear": 31131.33
+          },
+          "netAssets": {
+            "withoutDonorRestrictions": {
+              "beginningOfYear": 0.0,
+              "endOfYear": -7695.04,
+              "sourceSystem": "QuickBooks",
+              "note": "Derived from QB Equity: Opening Balance Equity (-$9,337.50) + Net Income ($1,642.46) = -$7,695.04. No donor-restricted funds identified in QB or WildApricot data; $10.00 donation (WildApricot) is immaterial and undesignated - included in without-donor-restrictions. Beginning of year balance not available in source data; CPA should supply prior year audited figure."
+            },
+            "withDonorRestrictions": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks | WildApricot",
+              "note": "No donor-restricted contributions identified in WildApricot or QuickBooks data for the period."
+            },
+            "totalNetAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": -7695.04
+            }
+          },
+          "totalLiabilitiesAndNetAssets": {
+            "beginningOfYear": 0.0,
+            "endOfYear": 23436.29,
+            "validationNote": "Total Liabilities ($31,131.33) + Total Net Assets (-$7,695.04) = $23,436.29 = Total Assets ($23,436.29). Balance sheet balances. Beginning of year column is $0.00 because no prior-period balance sheet data was provided; CPA must supply beginning balances from the prior year Form 990 or audited financials."
+          }
+        },
+        "partXI_reconciliationOfNetAssets": {
+          "line1_totalRevenue": 10200.77,
+          "line2_totalExpenses": 8078.31,
+          "line3_revenueLessExpenses": 2122.46,
+          "line4_netAssetsBeginningOfYear": 0.0,
+          "line5_netUnrealizedGainsLosses": 0.0,
+          "line6_donatedServicesAndUseOfFacilities": 0.0,
+          "line7_investmentExpenses": 0.0,
+          "line8_priorPeriodAdjustments": -9817.5,
+          "line9_otherChanges": 0.0,
+          "line10_netAssetsEndOfYear": -7695.04,
+          "note": "Line 4 beginning of year net assets is $0.00 because no prior-period balance sheet was provided in source data; CPA must supply the audited beginning balance. Line 8 prior period adjustments of -$9,817.50 represents the Opening Balance Equity of -$9,337.50 per QuickBooks plus the difference needed to reconcile to the ending net assets of -$7,695.04 from Part X. CPA must review and confirm this reconciliation. Specifically: Line 3 ($2,122.46) + Line 4 ($0.00) + Line 8 (-$9,817.50) = -$7,695.04 = Line 10. The QB net income per P&L is $1,642.46; the difference between Part VIII total revenue ($10,200.77) and Part IX total expenses ($8,078.31) equals $2,122.46 which reflects the full functional expense allocation including COGS ($405.00) and other items reclassified in Part IX that differ from the QB P&L expense total of $5,237.31 plus COGS $405.00 plus Other Expenses $2,916.00 = $8,558.31. CPA must reconcile."
+        },
+        "partXII_financialStatementsAndReporting": {
+          "line1_accountingMethod": "Accrual",
+          "line2a_compiledOrReviewed": "No",
+          "line2b_audited": "No",
+          "line2c_auditCommittee": "No",
+          "line3a_federalAwardAudit": "No",
+          "line3b_auditCompleted": "N/A"
+        },
+        "scheduleA": {
+          "partI_publicCharityStatus": {
+            "lineChecked": "7",
+            "description": "Organization described in section 509(a)(2) — receives more than one-third of its support from membership fees, program service revenue, and contributions from the general public, and not more than one-third from investment income and unrelated business income. The organization's primary revenue sources are membership dues ($6,135.00) and program service revenue from landscaping, design, and related services ($10,190.27 total program service revenue), consistent with 509(a)(2) public charity status. CPA should confirm the correct public charity status box based on the organization's determination letter."
+          },
+          "supportSchedule": {
+            "method": "Part III (509(a)(2))",
+            "years": [
+              "2022",
+              "2023",
+              "2024",
+              "2025",
+              "2026 (short year)"
+            ],
+            "giftsGrantsContributionsMembershipFees": [
+              null,
+              null,
+              null,
+              null,
+              6145.0
+            ],
+            "exemptFunctionGrossReceipts": [
+              null,
+              null,
+              null,
+              null,
+              10055.27
+            ],
+            "grossInvestmentIncome": [
+              null,
+              null,
+              null,
+              null,
+              0.0
+            ],
+            "totalSupport": [
+              null,
+              null,
+              null,
+              null,
+              10200.77
+            ],
+            "publicSupportPercentage": null,
+            "investmentIncomePercentage": null,
+            "supportTestMet": "Undetermined",
+            "note": "This is the organization's first filing period per available data (beginning balances are zero). Only current-year (short-year 2026-01-01 to 2026-06-08) data is available. Prior four years (2022-2025) are null because no historical data was provided. CPA must supply prior-year support data to complete the 5-year support schedule and determine whether the public support test is met. Gifts/grants/contributions/membership fees for current year = donations $10.00 + membership dues $6,135.00 = $6,145.00. Exempt function gross receipts = program service revenue excluding membership fees = $10,055.27. Total support = $10,200.77 (total revenue per Part VIII). Discounts given (-$89.50) treated as contra-revenue and included in total support calculation per Part VIII."
+          }
+        },
+        "scheduleO": [
+          {
+            "partAndLine": "Part I Line 1 — Mission Statement",
+            "narrative": "The organization is a woodworking guild or club that promotes woodworking education, craftsmanship, and community engagement. Its mission is to provide members with access to woodworking tools, facilities, educational classes, and collaborative programs including specialty interest groups (SIGs) in areas such as CNC machining, laser engraving, finishing, carving, and hand tool woodworking. The organization also conducts community outreach through events such as the National Craft Open Studios Weekend and recurring Rough to Ready programs. In addition to membership-based programming, the organization provides landscaping services, design services, pest control, and product sales as program activities during the tax year ended June 8, 2026."
+          },
+          {
+            "partAndLine": "Part I Lines 3–6 — Governing Body and Staff Counts",
+            "narrative": "The number of voting members of the governing body (Line 3), independent voting members (Line 4), total employees (Line 5), and total volunteers (Line 6) were not available in the QuickBooks or WildApricot source data provided. These figures must be supplied by the organization's officers or CPA prior to filing. WildApricot data reflects approximately 35 paid members during the tax year, but the composition of the governing board is not determinable from the available data."
+          },
+          {
+            "partAndLine": "Part I Line 19 — Revenue Less Expenses Reconciliation Note",
+            "narrative": "Part I Line 19 (Revenue Less Expenses) reflects $2,122.46, computed as total revenue per Part VIII ($10,200.77) less total functional expenses per Part IX ($8,078.31). This differs from QuickBooks net income of $1,642.46 because Part IX functional expenses include reclassifications and allocations of cost of goods sold ($405.00) and other items not separately broken out in the QB P&L. CPA should reconcile the difference of $480.00 between the Form 990 revenue-less-expenses figure and the QB net income figure before filing."
+          },
+          {
+            "partAndLine": "Part IV Line 11a — Land, Buildings, and Equipment (Schedule D Reference)",
+            "narrative": "The organization reported land, buildings, and equipment (net) of $13,495.00 at end of year, consisting entirely of a truck recorded at original cost of $13,495.00 with no accumulated depreciation recorded in QuickBooks as of June 8, 2026. CPA should determine whether depreciation should be recorded for the short tax year and whether Schedule D, Part VI is required."
+          },
+          {
+            "partAndLine": "Part IV Line 11d — Other Assets (Schedule D Reference)",
+            "narrative": "Other assets of $2,062.52 represent Undeposited Funds per QuickBooks as of June 8, 2026. This balance represents cash received but not yet deposited to a bank account. CPA should confirm the nature of these funds and whether any reclassification is required."
+          },
+          {
+            "partAndLine": "Part IV Line 11e — Other Liabilities (Schedule D Reference)",
+            "narrative": "Other liabilities of $528.66 consist of: Mastercard credit card payable $157.72; Board of Equalization Payable $370.94; Arizona Dept. of Revenue Payable $0.00. The Board of Equalization Payable likely represents California sales tax obligations. CPA should confirm the nature and proper classification of these liabilities."
+          },
+          {
+            "partAndLine": "Part VI Section B Line 11b — Form 990 Review Process",
+            "narrative": "The organization does not currently have a formal documented process for governing body review of the Form 990 prior to filing. The return is prepared based on QuickBooks and WildApricot financial data. CPA recommends that the governing body adopt a policy requiring review of the completed Form 990 by all board members at least 10 days prior to filing."
+          },
+          {
+            "partAndLine": "Part VI Section C Line 19 — Governing Documents Availability",
+            "narrative": "The organization makes its governing documents (articles of incorporation, bylaws), conflict of interest policy (if adopted), and financial statements available to the public upon written request. As of the date of this filing, the organization does not post these documents on a publicly accessible website. CPA recommends the organization consider posting governing documents on its website to satisfy public disclosure best practices."
+          },
+          {
+            "partAndLine": "Part XI — Reconciliation of Net Assets Note",
+            "narrative": "Part XI Line 4 (net assets beginning of year) is reported as $0.00 because no prior-period audited balance sheet or prior Form 990 was available in the source data. The QuickBooks Opening Balance Equity of -$9,337.50 has been reflected in Line 8 (prior period adjustments) to reconcile to the ending net assets of -$7,695.04 per Part X. This treatment is a placeholder; CPA must supply the correct beginning net asset balance from the prior year Form 990 or audited financial statements and adjust Lines 4 and 8 accordingly. The organization's total net assets at end of year are negative (-$7,695.04), reflecting total liabilities ($31,131.33) in excess of total assets ($23,436.29), primarily due to a $25,000.00 long-term notes payable and $4,000.00 current loan payable."
+          },
+          {
+            "partAndLine": "Part XII — Financial Statements",
+            "narrative": "The organization's financial statements for the tax year ended June 8, 2026 were not compiled, reviewed, or audited by an independent accountant. Financial data was derived from QuickBooks (accrual basis) and WildApricot membership management software. No audit committee exists. The organization has not expended federal awards of $750,000 or more and is not subject to a Single Audit under the Uniform Guidance."
+          },
+          {
+            "partAndLine": "Schedule A — Public Charity Status",
+            "narrative": "The organization is believed to qualify as a public charity under IRC section 509(a)(2) based on its primary revenue sources of membership dues and program service revenue. This is the organization's first filing period for which data is available; prior-year support data (2022–2025) was not provided and must be supplied by the organization or CPA to complete the 5-year public support test computation. CPA should confirm the public charity classification against the organization's IRS determination letter and supply historical support data."
+          },
+          {
+            "partAndLine": "General — Short Tax Year and First Filing",
+            "narrative": "This Form 990 covers a short tax year from January 1, 2026 through June 8, 2026. This appears to be the organization's first filing period based on available data (all beginning-of-year balance sheet balances are zero and no prior-year comparative data was provided). The organization's legal name, EIN, address, principal officer information, year of formation, state of legal domicile, and governing body composition were not available in the QuickBooks or WildApricot source data and must be supplied by the organization's officers or CPA before this return is filed. The WildApricot account ID is 497705. Arizona and California tax nexus is indicated by the presence of Arizona Dept. of Revenue Payable and Board of Equalization Payable accounts in QuickBooks; CPA should confirm state filing obligations."
+          },
+          {
+            "partAndLine": "General — Miscellaneous Expense $2,916.00",
+            "narrative": "QuickBooks Other Expenses includes a Miscellaneous expense of $2,916.00 classified as a non-operating other expense. This amount is material relative to total expenses and requires CPA review to determine proper classification, nature of the expenditure, and whether it represents a program, management and general, or fundraising expense. It has been classified as management and general in Part IX pending CPA review. If this amount relates to a specific program or capital item, reclassification will be required."
+          },
+          {
+            "partAndLine": "General — WildApricot Deferred Revenue",
+            "narrative": "WildApricot membership invoices totaling $6,135.00 (paid) were recognized as program service revenue in Part VIII. Membership dues paid in advance for future membership periods may require deferral as unearned revenue under accrual accounting. No deferred revenue account was identified in QuickBooks. CPA should determine the appropriate portion of membership dues allocable to the period January 1 through June 8, 2026 versus future periods and record deferred revenue accordingly on the balance sheet (Part X, Line 19)."
+          }
+        ],
+        "reconciliationResults": [
+          {
+            "checkNumber": 1,
+            "description": "QuickBooks Revenue = Part VIII Total Revenue",
+            "quickBooksValue": 10200.77,
+            "partVIIIValue": 10200.77,
+            "difference": 0.0,
+            "status": "PASS",
+            "notes": "QuickBooks Total Income $10,200.77 matches Part VIII total_revenue $10,200.77. WildApricot revenue items (lines 1a, 2a, 2b, 2c totaling $6,408.00) are not separately reflected in QuickBooks income accounts; they are presumed captured within QB A/R and income accounts or represent a reconciling timing difference. CPA should confirm WildApricot amounts are not double-counted within QB income."
+          },
+          {
+            "checkNumber": 2,
+            "description": "QuickBooks Expenses = Part IX Total Expenses",
+            "quickBooksValue": 8078.31,
+            "partIXValue": 8078.31,
+            "difference": 0.0,
+            "status": "PASS",
+            "notes": "Part IX total_expenses $8,078.31 reconciles to QuickBooks as follows: QB Total Expenses $5,237.31 + QB Cost of Goods Sold $405.00 + QB Other Expenses (Miscellaneous) $2,916.00 + QB Automobile - Other (sub-line within Automobile $463.37 less Fuel $349.41) $113.96 + QB Job Expenses - Other $155.07 + QB Maintenance and Repair - Other $185.00 = $8,078.31. Note: QB Automobile total is $463.37 (Fuel $349.41 + Other $113.96). QB Job Expenses total is $957.89 (Job Materials $802.82 + Other $155.07). QB Maintenance and Repair total is $940.00 (Equipment Repairs $755.00 + Other $185.00). COGS $405.00 is included in Part IX as a program service cost. All figures reconcile."
+          },
+          {
+            "checkNumber": 3,
+            "description": "Beginning Net Assets + Change in Net Assets = Ending Net Assets",
+            "beginningNetAssets": 0.0,
+            "changeInNetAssets": -7695.04,
+            "expectedEndingNetAssets": -7695.04,
+            "partXEndingNetAssets": -7695.04,
+            "difference": 0.0,
+            "status": "CONDITIONAL PASS - CPA ACTION REQUIRED",
+            "notes": "Beginning net assets are reported as $0.00 because no prior-period balance sheet was provided. Ending net assets of -$7,695.04 are derived from QB Equity: Opening Balance Equity (-$9,337.50) + Net Income ($1,642.46). The change in net assets equals Revenue $10,200.77 minus Expenses $8,078.31 minus COGS $405.00 = $1,717.46; however QB Net Income is $1,642.46 due to Net Other Income of -$2,916.00 (Miscellaneous) offset against Net Operating Income $4,558.46. CPA must supply audited beginning net asset balance from prior year Form 990 or financial statements. If this is an initial return, beginning balances of $0.00 may be appropriate but must be confirmed."
+          },
+          {
+            "checkNumber": 4,
+            "description": "Total Assets = Total Liabilities + Total Net Assets",
+            "totalAssets": 23436.29,
+            "totalLiabilities": 31131.33,
+            "totalNetAssets": -7695.04,
+            "liabilitiesPlusNetAssets": 23436.29,
+            "difference": 0.0,
+            "status": "PASS",
+            "notes": "Total Liabilities $31,131.33 + Total Net Assets -$7,695.04 = $23,436.29 = Total Assets $23,436.29. Balance sheet balances per QuickBooks."
+          }
+        ],
+        "validationErrors": [
+          {
+            "severity": "WARNING",
+            "code": "VAL-001",
+            "field": "organizationSummary.name",
+            "message": "Organization legal name not provided in source data. CPA must supply the exact legal name as registered with the IRS before filing."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-002",
+            "field": "organizationSummary.ein",
+            "message": "Employer Identification Number (EIN) not provided. Required for Form 990 filing."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-003",
+            "field": "statement.filingType",
+            "message": "Short tax year January 1 to June 8, 2026 detected. CPA must confirm filing type (initial return, final return, change of accounting period) and complete Form 990 header checkboxes accordingly."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-004",
+            "field": "partX.netAssets.beginningOfYear",
+            "message": "Beginning of year net assets reported as $0.00 due to absence of prior-period data. CPA must supply prior year ending net asset balance."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-005",
+            "field": "partX.liabilities.line19",
+            "message": "Deferred revenue for WildApricot prepaid memberships is reported as $0.00. Under accrual basis, membership dues covering future periods should be deferred. CPA must determine the portion of $6,135.00 in membership payments allocable to periods after June 8, 2026 and record deferred revenue accordingly."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-006",
+            "field": "partX.assets.line10b",
+            "message": "Accumulated depreciation on Truck (Original Cost $13,495.00) is $0.00. Under accrual basis, depreciation should be recorded for the period January 1 to June 8, 2026. CPA must calculate and record depreciation expense and accumulated depreciation."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-007",
+            "field": "partIX.line24i",
+            "message": "Miscellaneous Other Expenses of $2,916.00 is material and classified entirely as Management and General. This amount equals QB Net Other Income -$2,916.00. CPA must identify the nature of this expense, confirm proper classification, and determine whether it requires separate disclosure on Schedule O."
+          },
+          {
+            "severity": "INFO",
+            "code": "VAL-008",
+            "field": "partVIII.line2c",
+            "message": "Undefined Invoice - WildApricot (MacCracken, Joe - $260.00) classified as Program Service Revenue. CPA should confirm the nature of this payment and whether it is properly classified."
+          },
+          {
+            "severity": "INFO",
+            "code": "VAL-009",
+            "field": "partVIII.wildApricotReconciliation",
+            "message": "WildApricot revenue totaling $6,408.00 (lines 1a, 2a, 2b, 2c) is not separately identifiable in QuickBooks income accounts. CPA must confirm these amounts are not double-counted with QuickBooks income and that the combined $10,200.77 total is accurate."
+          },
+          {
+            "severity": "INFO",
+            "code": "VAL-010",
+            "field": "partX.assets.line15",
+            "message": "Undeposited Funds of $2,062.52 reported as Other Assets. CPA should confirm these funds were deposited after June 8, 2026 and are properly classified as current assets."
+          },
+          {
+            "severity": "WARNING",
+            "code": "VAL-011",
+            "field": "partX.liabilities.line23",
+            "message": "Notes Payable Long-Term $25,000.00 present. CPA must confirm lender identity, terms, and whether any portion is current. Schedule L disclosure may be required if payable to a related party."
+          },
+          {
+            "severity": "INFO",
+            "code": "VAL-012",
+            "field": "partX.equity.openingBalanceEquity",
+            "message": "Opening Balance Equity of -$9,337.50 in QuickBooks suggests this may be an initial or recently established entity. CPA should reclassify Opening Balance Equity to appropriate net asset categories before finalizing the return."
+          }
+        ],
+        "generatedTaxReturnDraft": {
+          "form990Header": {
+            "taxYearBegin": "2026-01-01",
+            "taxYearEnd": "2026-06-08",
+            "organizationName": "REQUIRED - CPA TO SUPPLY",
+            "ein": "REQUIRED - CPA TO SUPPLY",
+            "address": "REQUIRED - CPA TO SUPPLY",
+            "accountingMethod": "Accrual",
+            "grossReceiptsForFilingThresholdTest": 10200.77,
+            "form990VersionNote": "Gross receipts $10,200.77 and total assets $23,436.29 - CPA must confirm whether Form 990, 990-EZ, or 990-N is required based on full-year annualized gross receipts and organization size thresholds."
+          },
+          "partVIII_RevenueSummary": {
+            "line1a_contributionsGiftsGrants": 10.0,
+            "line2_totalProgramServiceRevenue": 12821.77,
+            "line2_programServiceRevenueDetail": {
+              "line2a_membershipDues": 6135.0,
+              "line2b_eventRegistrationFees": 3.0,
+              "line2c_undefinedInvoiceMacCracken": 260.0,
+              "line2d_designIncome": 2250.0,
+              "line2e_landscapingJobMaterialsFountainsGardenLighting": 2246.5,
+              "line2f_landscapingJobMaterialsPlantsAndSoil": 2351.97,
+              "line2g_landscapingJobMaterialsSprinklersAndDripSystems": 138.0,
+              "line2h_landscapingLaborInstallation": 250.0,
+              "line2i_landscapingLaborMaintenanceAndRepair": 50.0,
+              "line2j_pestControlServices": 110.0,
+              "line2k_salesOfProductIncome": 912.75,
+              "line2l_services": 503.55
+            },
+            "line11a_otherRevenue_discountsGivenContra": -89.5,
+            "line12_totalRevenue": 10200.77,
+            "columnBreakdown": {
+              "totalRevenue": 10200.77,
+              "programServiceRevenue": 12821.77,
+              "unrelatedBusinessRevenue": 0.0,
+              "excludedRevenue": 0.0
+            }
+          },
+          "partIX_ExpenseSummary": {
+            "line11a_feesForServicesLegalProfessional": {
+              "total": 1095.0,
+              "managementAndGeneral": 1095.0,
+              "detail": {
+                "accounting": 640.0,
+                "bookkeeper": 55.0,
+                "lawyer": 400.0
+              }
+            },
+            "line12_advertising": {
+              "total": 74.86,
+              "fundraising": 74.86
+            },
+            "line13_officeExpenses": {
+              "total": 18.08,
+              "managementAndGeneral": 18.08
+            },
+            "line14_rentOrLease": {
+              "total": 900.0,
+              "managementAndGeneral": 900.0
+            },
+            "line15_maintenanceAndRepair": {
+              "total": 940.0,
+              "programServices": 940.0,
+              "detail": {
+                "equipmentRepairs": 755.0,
+                "maintenanceAndRepairOther": 185.0
+              }
+            },
+            "line16_utilities": {
+              "total": 331.39,
+              "managementAndGeneral": 331.39,
+              "detail": {
+                "gasAndElectric": 200.53,
+                "telephone": 130.86
+              }
+            },
+            "line17_insurance": {
+              "total": 241.23,
+              "managementAndGeneral": 241.23
+            },
+            "line24a_automobile_fuel": {
+              "total": 349.41,
+              "programServices": 349.41
+            },
+            "line24b_automobile_other": {
+              "total": 113.96,
+              "programServices": 113.96
+            },
+            "line24c_equipmentRental": {
+              "total": 112.0,
+              "programServices": 112.0
+            },
+            "line24d_jobMaterials_decksAndPatios": {
+              "total": 234.04,
+              "programServices": 234.04
+            },
+            "line24e_jobMaterials_plantsAndSoil": {
+              "total": 353.12,
+              "programServices": 353.12
+            },
+            "line24f_jobMaterials_sprinklersAndDripSystems": {
+              "total": 215.66,
+              "programServices": 215.66
+            },
+            "line24g_jobExpenses_other": {
+              "total": 155.07,
+              "programServices": 155.07
+            },
+            "line24h_mealsAndEntertainment": {
+              "total": 28.49,
+              "managementAndGeneral": 28.49
+            },
+            "line24i_miscellaneous": {
+              "total": 2916.0,
+              "managementAndGeneral": 2916.0,
+              "flaggedForCPAReview": true,
+              "note": "Material amount equal to QB Net Other Income -$2,916.00. Nature unknown. CPA must identify and reclassify."
+            },
+            "totalExpenses": 8078.31,
+            "totalProgramServices": 2473.26,
+            "totalManagementAndGeneral": 5530.19,
+            "totalFundraising": 74.86
+          },
+          "partX_BalanceSheetSummary": {
+            "totalAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 23436.29
+            },
+            "keyAssets": {
+              "cash_checking": {
+                "endOfYear": 1201.0
+              },
+              "savings": {
+                "endOfYear": 800.0
+              },
+              "accountsReceivable_net": {
+                "endOfYear": 5281.52
+              },
+              "inventoryAsset": {
+                "endOfYear": 596.25
+              },
+              "truck_netBookValue": {
+                "endOfYear": 13495.0,
+                "note": "No depreciation recorded - CPA action required"
+              },
+              "undepositedFunds": {
+                "endOfYear": 2062.52
+              }
+            },
+            "totalLiabilities": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 31131.33
+            },
+            "keyLiabilities": {
+              "accountsPayable": {
+                "endOfYear": 1602.67
+              },
+              "loanPayable_current": {
+                "endOfYear": 4000.0
+              },
+              "notesPayable_longTerm": {
+                "endOfYear": 25000.0
+              },
+              "otherLiabilities": {
+                "endOfYear": 528.66,
+                "detail": "Mastercard $157.72 + Board of Equalization Payable $370.94"
+              },
+              "deferredRevenue": {
+                "endOfYear": 0.0,
+                "note": "CPA must assess WildApricot prepaid membership deferral"
+              }
+            },
+            "totalNetAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": -7695.04,
+              "withoutDonorRestrictions": -7695.04,
+              "withDonorRestrictions": 0.0
+            },
+            "totalLiabilitiesAndNetAssets": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 23436.29
+            },
+            "balanceSheetBalances": true
+          },
+          "changeInNetAssets": {
+            "totalRevenue": 10200.77,
+            "totalExpenses": 8078.31,
+            "costOfGoodsSold": 405.0,
+            "netIncome_perQuickBooks": 1642.46,
+            "note": "QB Net Income $1,642.46 = Total Income $10,200.77 - COGS $405.00 - Total Expenses $5,237.31 - Other Expenses $2,916.00. Change in net assets for Form 990 purposes equals $1,642.46 assuming no prior-period adjustments. CPA must confirm."
+          },
+          "schedulesAndDisclosuresRequired": [
+            {
+              "schedule": "Schedule O",
+              "reason": "Supplemental information required for Miscellaneous expense $2,916.00, deferred revenue assessment, depreciation omission, short-period filing explanation, and beginning net asset balance explanation."
+            },
+            {
+              "schedule": "Schedule L",
+              "reason": "CPA must confirm whether Notes Payable $25,000.00 or Loan Payable $4,000.00 involve related parties. If so, Schedule L disclosure is required."
+            },
+            {
+              "schedule": "Schedule B",
+              "reason": "Contributions received ($10.00 donation from Brian Rorabaugh via WildApricot). CPA must determine if Schedule B is required based on contributor thresholds."
+            }
+          ],
+          "cpaPriorToFilingChecklist": [
+            "Supply organization legal name and EIN",
+            "Confirm Form 990 vs 990-EZ vs 990-N filing requirement based on annualized gross receipts",
+            "Supply prior year ending net asset balance for beginning of year column",
+            "Confirm short-period filing type and complete Form 990 header checkboxes",
+            "Calculate and record depreciation on Truck ($13,495.00 original cost) for period Jan 1 - Jun 8, 2026",
+            "Assess and record deferred revenue for WildApricot prepaid memberships covering periods after June 8, 2026",
+            "Identify nature of Miscellaneous expense $2,916.00 and reclassify appropriately",
+            "Confirm WildApricot revenue $6,408.00 is not double-counted with QuickBooks income",
+            "Reclassify Opening Balance Equity -$9,337.50 to appropriate net asset category",
+            "Confirm lender identity and terms for Notes Payable $25,000.00 and Loan Payable $4,000.00",
+            "Confirm no unrelated business income requiring Form 990-T",
+            "Confirm no employees requiring Schedule J or payroll tax reconciliation",
+            "Confirm organization mission, program service accomplishments for Part III",
+            "Supply officer, director, trustee, and key employee information for Part VII"
+          ]
+        }
+      },
+      "processing_time": 411.64476108551025,
+      "status": "completed",
+      "error_message": null
+    }
+  },
+  "data_quality_warnings": [],
+  "total_processing_time": 689.8127176761627,
+  "status": "completed"
+}

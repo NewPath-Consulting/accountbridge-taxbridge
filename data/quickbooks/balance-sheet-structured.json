@@ -1,0 +1,599 @@
+[
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS"
+    ],
+    "hierarchy_path": "ASSETS",
+    "values": {
+      "account": {
+        "value": "TOTAL ASSETS",
+        "id": null
+      },
+      "total": {
+        "value": 23436.29,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets",
+    "values": {
+      "account": {
+        "value": "Total Current Assets",
+        "id": null
+      },
+      "total": {
+        "value": 9941.29,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Bank Accounts"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+    "values": {
+      "account": {
+        "value": "Total Bank Accounts",
+        "id": null
+      },
+      "total": {
+        "value": 2001.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Bank Accounts"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+    "values": {
+      "account": {
+        "value": "Checking",
+        "id": "35"
+      },
+      "total": {
+        "value": 1201.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Bank Accounts"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+    "values": {
+      "account": {
+        "value": "Savings",
+        "id": "36"
+      },
+      "total": {
+        "value": 800.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Accounts Receivable"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Accounts Receivable",
+    "values": {
+      "account": {
+        "value": "Total Accounts Receivable",
+        "id": null
+      },
+      "total": {
+        "value": 5281.52,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Accounts Receivable"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Accounts Receivable",
+    "values": {
+      "account": {
+        "value": "Accounts Receivable (A/R)",
+        "id": "84"
+      },
+      "total": {
+        "value": 5281.52,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Other Current Assets"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+    "values": {
+      "account": {
+        "value": "Total Other Current Assets",
+        "id": null
+      },
+      "total": {
+        "value": 2658.77,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Other Current Assets"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+    "values": {
+      "account": {
+        "value": "Inventory Asset",
+        "id": "81"
+      },
+      "total": {
+        "value": 596.25,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Current Assets",
+      "Other Current Assets"
+    ],
+    "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+    "values": {
+      "account": {
+        "value": "Undeposited Funds",
+        "id": "4"
+      },
+      "total": {
+        "value": 2062.52,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Fixed Assets"
+    ],
+    "hierarchy_path": "ASSETS > Fixed Assets",
+    "values": {
+      "account": {
+        "value": "Total Fixed Assets",
+        "id": null
+      },
+      "total": {
+        "value": 13495.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "ASSETS",
+      "Fixed Assets",
+      "Truck"
+    ],
+    "hierarchy_path": "ASSETS > Fixed Assets > Truck",
+    "values": {
+      "account": {
+        "value": "Total Truck",
+        "id": null
+      },
+      "total": {
+        "value": 13495.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "ASSETS",
+      "Fixed Assets",
+      "Truck"
+    ],
+    "hierarchy_path": "ASSETS > Fixed Assets > Truck",
+    "values": {
+      "account": {
+        "value": "Original Cost",
+        "id": "38"
+      },
+      "total": {
+        "value": 13495.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY",
+    "values": {
+      "account": {
+        "value": "TOTAL LIABILITIES AND EQUITY",
+        "id": null
+      },
+      "total": {
+        "value": 23436.29,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities",
+    "values": {
+      "account": {
+        "value": "Total Liabilities",
+        "id": null
+      },
+      "total": {
+        "value": 31131.33,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities",
+    "values": {
+      "account": {
+        "value": "Total Current Liabilities",
+        "id": null
+      },
+      "total": {
+        "value": 6131.33,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Accounts Payable"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Accounts Payable",
+    "values": {
+      "account": {
+        "value": "Total Accounts Payable",
+        "id": null
+      },
+      "total": {
+        "value": 1602.67,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Accounts Payable"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Accounts Payable",
+    "values": {
+      "account": {
+        "value": "Accounts Payable (A/P)",
+        "id": "33"
+      },
+      "total": {
+        "value": 1602.67,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Credit Cards"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+    "values": {
+      "account": {
+        "value": "Total Credit Cards",
+        "id": null
+      },
+      "total": {
+        "value": 157.72,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Credit Cards"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+    "values": {
+      "account": {
+        "value": "Mastercard",
+        "id": "41"
+      },
+      "total": {
+        "value": 157.72,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Other Current Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+    "values": {
+      "account": {
+        "value": "Total Other Current Liabilities",
+        "id": null
+      },
+      "total": {
+        "value": 4370.94,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Other Current Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+    "values": {
+      "account": {
+        "value": "Arizona Dept. of Revenue Payable",
+        "id": "89"
+      },
+      "total": {
+        "value": 0.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Other Current Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+    "values": {
+      "account": {
+        "value": "Board of Equalization Payable",
+        "id": "90"
+      },
+      "total": {
+        "value": 370.94,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Current Liabilities",
+      "Other Current Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+    "values": {
+      "account": {
+        "value": "Loan Payable",
+        "id": "43"
+      },
+      "total": {
+        "value": 4000.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Long-Term Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Long-Term Liabilities",
+    "values": {
+      "account": {
+        "value": "Total Long-Term Liabilities",
+        "id": null
+      },
+      "total": {
+        "value": 25000.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Liabilities",
+      "Long-Term Liabilities"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Long-Term Liabilities",
+    "values": {
+      "account": {
+        "value": "Notes Payable",
+        "id": "44"
+      },
+      "total": {
+        "value": 25000.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "summary",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Equity"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+    "values": {
+      "account": {
+        "value": "Total Equity",
+        "id": null
+      },
+      "total": {
+        "value": -7695.04,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Equity"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+    "values": {
+      "account": {
+        "value": "Opening Balance Equity",
+        "id": "34"
+      },
+      "total": {
+        "value": -9337.5,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Equity"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+    "values": {
+      "account": {
+        "value": "Retained Earnings",
+        "id": "2"
+      },
+      "total": {
+        "value": null,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "BalanceSheet",
+    "row_type": "data",
+    "hierarchy": [
+      "LIABILITIES AND EQUITY",
+      "Equity"
+    ],
+    "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+    "values": {
+      "account": {
+        "value": "Net Income",
+        "id": null
+      },
+      "total": {
+        "value": 1642.46,
+        "id": null
+      }
+    }
+  }
+]

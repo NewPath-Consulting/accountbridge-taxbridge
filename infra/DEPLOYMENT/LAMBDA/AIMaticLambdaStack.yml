@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AiMatic - Lambda Deployment Stack
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: sandbox-prod
+    Description: Deployment environment
+
+  ResourceName:
+    Type: String
+    Default: AIMatic
+    Description: Friendly name for Lambda and related resources (can be changed)
+
+  ECRRepositoryUri:
+    Type: String
+    Description: URI of the ECR repository from Infra Stack
+
+  ImageTag:
+    Type: String
+    Default: latest
+    Description: Docker image tag for Lambda
+
+Resources:
+
+#################################
+# IAM ROLE FOR LAMBDA
+#################################
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ResourceName}-lambda-role-${Environment}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AIMaticLambdaAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchCheckLayerAvailability
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - textract:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource: "*"
+
+#################################
+# LAMBDA FUNCTION
+#################################
+
+  AIMaticLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ResourceName}-${Environment}
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ImageUri: !Sub ${ECRRepositoryUri}:${ImageTag}
+      MemorySize: 2048
+      Timeout: 900
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+      EphemeralStorage:
+        Size: 512    
+      Tags:
+        - Key: Project
+          Value: AIMatic
+        - Key: Environment
+          Value: !Ref Environment
+
+#################################
+# Lambda Function URL (Public Access)
+#################################
+
+  LambdaFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt AIMaticLambda.Arn
+      AuthType: NONE
+
+  LambdaFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AIMaticLambda.Arn
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+    DependsOn: LambdaFunctionUrl
+
+  LambdaFunctionPublicInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AIMaticLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: "*"
+    DependsOn: LambdaFunctionUrl
+
+Outputs:
+
+  LambdaFriendlyName:
+    Description: Friendly name for Lambda
+    Value: !Ref ResourceName
+
+  LambdaFunctionName:
+    Description: Actual deployed Lambda Function Name
+    Value: !Sub ${ResourceName}-${Environment}
+
+  LambdaFunctionArn:
+    Description: Lambda ARN
+    Value: !GetAtt AIMaticLambda.Arn
+
+  LambdaFunctionUrl:
+    Description: Lambda Function URL
+    Value: !GetAtt LambdaFunctionUrl.FunctionUrl

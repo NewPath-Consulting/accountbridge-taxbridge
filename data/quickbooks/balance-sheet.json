@@ -1,0 +1,261 @@
+{
+  "Header": {
+    "Time": "2026-06-18T01:53:29-07:00",
+    "ReportName": "BalanceSheet",
+    "ReportBasis": "Accrual",
+    "StartPeriod": "2025-01-01",
+    "EndPeriod": "2025-12-31",
+    "SummarizeColumnsBy": "Total",
+    "Currency": "USD",
+    "Option": [
+      {
+        "Name": "AccountingStandard",
+        "Value": "GAAP"
+      },
+      {
+        "Name": "NoReportData",
+        "Value": "false"
+      }
+    ]
+  },
+  "Columns": {
+    "Column": [
+      {
+        "ColTitle": "",
+        "ColType": "Account",
+        "MetaData": [
+          {
+            "Name": "ColKey",
+            "Value": "account"
+          }
+        ]
+      },
+      {
+        "ColTitle": "Total",
+        "ColType": "Money",
+        "MetaData": [
+          {
+            "Name": "ColKey",
+            "Value": "total"
+          }
+        ]
+      }
+    ]
+  },
+  "Rows": {
+    "Row": [
+      {
+        "Header": {
+          "ColData": [
+            {
+              "value": "ASSETS"
+            },
+            {
+              "value": ""
+            }
+          ]
+        },
+        "Rows": {
+          "Row": [
+            {
+              "Header": {
+                "ColData": [
+                  {
+                    "value": "Current Assets"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Rows": {
+                "Row": [
+                  {
+                    "Header": {
+                      "ColData": [
+                        {
+                          "value": "Bank Accounts"
+                        },
+                        {
+                          "value": ""
+                        }
+                      ]
+                    },
+                    "Rows": {
+                      "Row": [
+                        {
+                          "ColData": [
+                            {
+                              "value": "Checking",
+                              "id": "35"
+                            },
+                            {
+                              "value": "5000.00"
+                            }
+                          ],
+                          "type": "Data"
+                        }
+                      ]
+                    },
+                    "Summary": {
+                      "ColData": [
+                        {
+                          "value": "Total Bank Accounts"
+                        },
+                        {
+                          "value": "5000.00"
+                        }
+                      ]
+                    },
+                    "type": "Section",
+                    "group": "BankAccounts"
+                  }
+                ]
+              },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Current Assets"
+                  },
+                  {
+                    "value": "5000.00"
+                  }
+                ]
+              },
+              "type": "Section",
+              "group": "CurrentAssets"
+            }
+          ]
+        },
+        "Summary": {
+          "ColData": [
+            {
+              "value": "TOTAL ASSETS"
+            },
+            {
+              "value": "5000.00"
+            }
+          ]
+        },
+        "type": "Section",
+        "group": "TotalAssets"
+      },
+      {
+        "Header": {
+          "ColData": [
+            {
+              "value": "LIABILITIES AND EQUITY"
+            },
+            {
+              "value": ""
+            }
+          ]
+        },
+        "Rows": {
+          "Row": [
+            {
+              "Header": {
+                "ColData": [
+                  {
+                    "value": "Liabilities"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Liabilities"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "type": "Data",
+              "group": "Liabilities"
+            },
+            {
+              "Header": {
+                "ColData": [
+                  {
+                    "value": "Equity"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Rows": {
+                "Row": [
+                  {
+                    "ColData": [
+                      {
+                        "value": "Opening Balance Equity",
+                        "id": "34"
+                      },
+                      {
+                        "value": "5000.00"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "Retained Earnings",
+                        "id": "2"
+                      },
+                      {
+                        "value": ""
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "Net Income"
+                      },
+                      {
+                        "value": ""
+                      }
+                    ],
+                    "type": "Data",
+                    "group": "NetIncome"
+                  }
+                ]
+              },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Equity"
+                  },
+                  {
+                    "value": "5000.00"
+                  }
+                ]
+              },
+              "type": "Section",
+              "group": "Equity"
+            }
+          ]
+        },
+        "Summary": {
+          "ColData": [
+            {
+              "value": "TOTAL LIABILITIES AND EQUITY"
+            },
+            {
+              "value": "5000.00"
+            }
+          ]
+        },
+        "type": "Section",
+        "group": "TotalLiabilitiesAndEquity"
+      }
+    ]
+  }
+}

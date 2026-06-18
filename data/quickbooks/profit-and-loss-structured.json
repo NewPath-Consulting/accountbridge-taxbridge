@@ -1,0 +1,839 @@
+[
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Total Income",
+        "id": null
+      },
+      "total": {
+        "value": 10200.77,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Design income",
+        "id": "82"
+      },
+      "total": {
+        "value": 2250.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Discounts given",
+        "id": "86"
+      },
+      "total": {
+        "value": -89.5,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services"
+    ],
+    "hierarchy_path": "Income > Landscaping Services",
+    "values": {
+      "account": {
+        "value": "Total Landscaping Services",
+        "id": null
+      },
+      "total": {
+        "value": 6513.97,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Job Materials",
+    "values": {
+      "account": {
+        "value": "Total Job Materials",
+        "id": null
+      },
+      "total": {
+        "value": 4736.47,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Job Materials",
+    "values": {
+      "account": {
+        "value": "Fountains and Garden Lighting",
+        "id": "48"
+      },
+      "total": {
+        "value": 2246.5,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Job Materials",
+    "values": {
+      "account": {
+        "value": "Plants and Soil",
+        "id": "49"
+      },
+      "total": {
+        "value": 2351.97,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Job Materials",
+    "values": {
+      "account": {
+        "value": "Sprinklers and Drip Systems",
+        "id": "50"
+      },
+      "total": {
+        "value": 138.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Labor"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Labor",
+    "values": {
+      "account": {
+        "value": "Total Labor",
+        "id": null
+      },
+      "total": {
+        "value": 300.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Labor"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Labor",
+    "values": {
+      "account": {
+        "value": "Installation",
+        "id": "52"
+      },
+      "total": {
+        "value": 250.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income",
+      "Landscaping Services",
+      "Labor"
+    ],
+    "hierarchy_path": "Income > Landscaping Services > Labor",
+    "values": {
+      "account": {
+        "value": "Maintenance and Repair",
+        "id": "53"
+      },
+      "total": {
+        "value": 50.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Pest Control Services",
+        "id": "54"
+      },
+      "total": {
+        "value": 110.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Sales of Product Income",
+        "id": "79"
+      },
+      "total": {
+        "value": 912.75,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Income"
+    ],
+    "hierarchy_path": "Income",
+    "values": {
+      "account": {
+        "value": "Services",
+        "id": "1"
+      },
+      "total": {
+        "value": 503.55,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Cost of Goods Sold"
+    ],
+    "hierarchy_path": "Cost of Goods Sold",
+    "values": {
+      "account": {
+        "value": "Total Cost of Goods Sold",
+        "id": null
+      },
+      "total": {
+        "value": 405.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Cost of Goods Sold"
+    ],
+    "hierarchy_path": "Cost of Goods Sold",
+    "values": {
+      "account": {
+        "value": "Cost of Goods Sold",
+        "id": "80"
+      },
+      "total": {
+        "value": 405.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [],
+    "hierarchy_path": "",
+    "values": {
+      "account": {
+        "value": "Gross Profit",
+        "id": null
+      },
+      "total": {
+        "value": 9795.77,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Total Expenses",
+        "id": null
+      },
+      "total": {
+        "value": 5237.31,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Advertising",
+        "id": "7"
+      },
+      "total": {
+        "value": 74.86,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Automobile"
+    ],
+    "hierarchy_path": "Expenses > Automobile",
+    "values": {
+      "account": {
+        "value": "Total Automobile",
+        "id": null
+      },
+      "total": {
+        "value": 463.37,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Automobile"
+    ],
+    "hierarchy_path": "Expenses > Automobile",
+    "values": {
+      "account": {
+        "value": "Fuel",
+        "id": "56"
+      },
+      "total": {
+        "value": 349.41,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Equipment Rental",
+        "id": "29"
+      },
+      "total": {
+        "value": 112.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Insurance",
+        "id": "11"
+      },
+      "total": {
+        "value": 241.23,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Job Expenses"
+    ],
+    "hierarchy_path": "Expenses > Job Expenses",
+    "values": {
+      "account": {
+        "value": "Total Job Expenses",
+        "id": null
+      },
+      "total": {
+        "value": 957.89,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Job Expenses",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Expenses > Job Expenses > Job Materials",
+    "values": {
+      "account": {
+        "value": "Total Job Materials",
+        "id": null
+      },
+      "total": {
+        "value": 802.82,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Job Expenses",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Expenses > Job Expenses > Job Materials",
+    "values": {
+      "account": {
+        "value": "Decks and Patios",
+        "id": "64"
+      },
+      "total": {
+        "value": 234.04,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Job Expenses",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Expenses > Job Expenses > Job Materials",
+    "values": {
+      "account": {
+        "value": "Plants and Soil",
+        "id": "66"
+      },
+      "total": {
+        "value": 353.12,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Job Expenses",
+      "Job Materials"
+    ],
+    "hierarchy_path": "Expenses > Job Expenses > Job Materials",
+    "values": {
+      "account": {
+        "value": "Sprinklers and Drip Systems",
+        "id": "67"
+      },
+      "total": {
+        "value": 215.66,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Legal & Professional Fees"
+    ],
+    "hierarchy_path": "Expenses > Legal & Professional Fees",
+    "values": {
+      "account": {
+        "value": "Total Legal & Professional Fees",
+        "id": null
+      },
+      "total": {
+        "value": 1170.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Legal & Professional Fees"
+    ],
+    "hierarchy_path": "Expenses > Legal & Professional Fees",
+    "values": {
+      "account": {
+        "value": "Accounting",
+        "id": "69"
+      },
+      "total": {
+        "value": 640.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Legal & Professional Fees"
+    ],
+    "hierarchy_path": "Expenses > Legal & Professional Fees",
+    "values": {
+      "account": {
+        "value": "Bookkeeper",
+        "id": "70"
+      },
+      "total": {
+        "value": 55.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Legal & Professional Fees"
+    ],
+    "hierarchy_path": "Expenses > Legal & Professional Fees",
+    "values": {
+      "account": {
+        "value": "Lawyer",
+        "id": "71"
+      },
+      "total": {
+        "value": 400.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Maintenance and Repair"
+    ],
+    "hierarchy_path": "Expenses > Maintenance and Repair",
+    "values": {
+      "account": {
+        "value": "Total Maintenance and Repair",
+        "id": null
+      },
+      "total": {
+        "value": 940.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Maintenance and Repair"
+    ],
+    "hierarchy_path": "Expenses > Maintenance and Repair",
+    "values": {
+      "account": {
+        "value": "Equipment Repairs",
+        "id": "75"
+      },
+      "total": {
+        "value": 755.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Meals and Entertainment",
+        "id": "13"
+      },
+      "total": {
+        "value": 28.49,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Office Expenses",
+        "id": "15"
+      },
+      "total": {
+        "value": 18.08,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses"
+    ],
+    "hierarchy_path": "Expenses",
+    "values": {
+      "account": {
+        "value": "Rent or Lease",
+        "id": "17"
+      },
+      "total": {
+        "value": 900.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Expenses",
+      "Utilities"
+    ],
+    "hierarchy_path": "Expenses > Utilities",
+    "values": {
+      "account": {
+        "value": "Total Utilities",
+        "id": null
+      },
+      "total": {
+        "value": 331.39,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Utilities"
+    ],
+    "hierarchy_path": "Expenses > Utilities",
+    "values": {
+      "account": {
+        "value": "Gas and Electric",
+        "id": "76"
+      },
+      "total": {
+        "value": 200.53,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Expenses",
+      "Utilities"
+    ],
+    "hierarchy_path": "Expenses > Utilities",
+    "values": {
+      "account": {
+        "value": "Telephone",
+        "id": "77"
+      },
+      "total": {
+        "value": 130.86,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [],
+    "hierarchy_path": "",
+    "values": {
+      "account": {
+        "value": "Net Operating Income",
+        "id": null
+      },
+      "total": {
+        "value": 4558.46,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [
+      "Other Expenses"
+    ],
+    "hierarchy_path": "Other Expenses",
+    "values": {
+      "account": {
+        "value": "Total Other Expenses",
+        "id": null
+      },
+      "total": {
+        "value": 2916.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "data",
+    "hierarchy": [
+      "Other Expenses"
+    ],
+    "hierarchy_path": "Other Expenses",
+    "values": {
+      "account": {
+        "value": "Miscellaneous",
+        "id": "14"
+      },
+      "total": {
+        "value": 2916.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [],
+    "hierarchy_path": "",
+    "values": {
+      "account": {
+        "value": "Net Other Income",
+        "id": null
+      },
+      "total": {
+        "value": -2916.0,
+        "id": null
+      }
+    }
+  },
+  {
+    "report_name": "ProfitAndLoss",
+    "row_type": "summary",
+    "hierarchy": [],
+    "hierarchy_path": "",
+    "values": {
+      "account": {
+        "value": "Net Income",
+        "id": null
+      },
+      "total": {
+        "value": 1642.46,
+        "id": null
+      }
+    }
+  }
+]
