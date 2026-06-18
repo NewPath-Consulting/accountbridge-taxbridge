@@ -4,6 +4,14 @@ from typing import Dict, Any, Optional
 from app.config.settings import settings
 
 
+_MANDATORY_STRUCTURAL_LINE_ITEMS_RULE = """
+**MANDATORY STRUCTURAL LINE ITEMS:**
+Required balance sheet and Part X line items must never be omitted. When no source account
+exists, emit the line with amount `0.00` and a `dataQualityFlag` or source note — do not
+leave the field out entirely.
+"""
+
+
 def _reference_financials_block(reference_financials: Optional[Dict[str, Any]]) -> str:
     if not reference_financials:
         return ""
@@ -468,6 +476,7 @@ Each line item must include: `conceptId`, `label`, `amount`, `sourceSystem`, and
 
 **CRITICAL INSTRUCTIONS:**
 - Extract all relevant balance sheet information from both data sources
+{_MANDATORY_STRUCTURAL_LINE_ITEMS_RULE}
 - Ensure Assets = Liabilities + Net Assets (nonprofit accounting equation must balance)
 - Use `withoutDonorRestrictions` and `withDonorRestrictions` for net assets per ASC 958
 - Calculate totals and subtotals accurately
@@ -697,6 +706,8 @@ Use WildApricot prepaid memberships/events to validate deferred revenue where ap
 **VALIDATION:**
 - Net Assets = Assets - Liabilities
 - Beginning Net Assets + Current Year Change = Ending Net Assets
+
+{_MANDATORY_STRUCTURAL_LINE_ITEMS_RULE}
 
 {_tax_return_line_item_format()}
 

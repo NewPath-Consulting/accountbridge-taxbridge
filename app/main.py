@@ -113,8 +113,8 @@ class DrainMiddleware(BaseHTTPMiddleware):
 def create_app() -> FastAPI:
     """Create FastAPI app; use lifespan only when not running in Lambda."""
     app = FastAPI(
-        title="Structured Document Processing API",
-        description="Extract structured data from documents using AWS Textract and custom extractors",
+        title="AccountBridge Backend API",
+        description="AccountBridge Backend API",
         version="2.0.0",
         lifespan=lifespan if not IS_LAMBDA else None,
         swagger_ui_parameters={"persistAuthorization": True},

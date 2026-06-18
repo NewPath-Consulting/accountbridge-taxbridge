@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from app.utils.report_normalization import build_organization_summary
 from app.utils.tax_return_llm import summarize_tax_return_part
 
 
@@ -53,12 +54,7 @@ def compact_tax_return_report(report_entry: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "status": report_entry.get("status"),
         "processing_time": report_entry.get("processing_time"),
-        "organization_summary": (
-            content.get("organization_summary")
-            or content.get("organizationSummary")
-            or content.get("organizationInformation")
-            or {}
-        ),
+        "organization_summary": build_organization_summary(content),
         "generated_tax_return_draft": draft,
         "totals": {
             "total_revenue": content.get("partVIII_totalRevenue")
@@ -187,6 +183,44 @@ def _sum_concept_amounts(items: List[Any], *concept_ids: str) -> Optional[float]
     return total if found else None
 
 
+def _sum_ppe_amounts(items: List[Any]) -> Optional[float]:
+    """Sum property/plant/equipment lines including gross sub-concepts."""
+    total = 0.0
+    found = False
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        concept = str(item.get("conceptId") or "")
+        if concept == "AccumulatedDepreciation":
+            continue
+        if (
+            concept.startswith("PropertyPlantAndEquipment")
+            or concept == "FixedAssets"
+        ):
+            total += _to_amount(item.get("amount"))
+            found = True
+    return total if found else None
+
+
+def _resolve_total_liabilities(liabilities: Dict[str, Any]) -> Optional[float]:
+    total = liabilities.get("totalLiabilities")
+    if total is None:
+        total = liabilities.get("total_liabilities")
+    if total is not None:
+        return _to_amount(total)
+
+    current = liabilities.get("currentLiabilities") or []
+    non_current = liabilities.get("nonCurrentLiabilities") or []
+    if not current and not non_current:
+        return None
+
+    current_total = liabilities.get("totalCurrentLiabilities")
+    non_current_total = liabilities.get("totalNonCurrentLiabilities")
+    if current_total is not None or non_current_total is not None:
+        return _to_amount(current_total) + _to_amount(non_current_total)
+    return 0.0
+
+
 def compact_balance_sheet_report(report_entry: Dict[str, Any]) -> Dict[str, Any]:
     """Compact a balance_sheet ReportData entry for benchmark LLM input."""
     content = report_entry.get("content") or {}
@@ -222,11 +256,14 @@ def compact_balance_sheet_report(report_entry: Dict[str, Any]) -> Dict[str, Any]
             "prepaids": _sum_concept_amounts(
                 current_assets, "PrepaidExpenses", "PrepaidExpense"
             ),
-            "fixed_assets": _sum_concept_amounts(
-                non_current_assets + current_assets,
-                "PropertyPlantAndEquipmentNet",
-                "PropertyPlantAndEquipmentGross",
-                "FixedAssets",
+            "fixed_assets": (
+                _sum_concept_amounts(
+                    non_current_assets + current_assets,
+                    "PropertyPlantAndEquipmentNet",
+                    "PropertyPlantAndEquipmentGross",
+                    "FixedAssets",
+                )
+                or _sum_ppe_amounts(non_current_assets + current_assets)
             ),
             "total_assets": assets.get("totalAssets") or assets.get("total_assets"),
             "current_assets": _compact_line_items(current_assets),
@@ -248,8 +285,7 @@ def compact_balance_sheet_report(report_entry: Dict[str, Any]) -> Dict[str, Any]
                 "NotesPayable",
                 "LongTermDebt",
             ),
-            "total_liabilities": liabilities.get("totalLiabilities")
-            or liabilities.get("total_liabilities"),
+            "total_liabilities": _resolve_total_liabilities(liabilities),
             "current_liabilities": _compact_line_items(current_liabilities),
         },
         "net_assets": {

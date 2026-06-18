@@ -360,6 +360,21 @@ def assess_qb_data_quality(
             "QB_DATA_SUSPECT: QuickBooks Balance Sheet has no usable totals for this period."
         )
 
+    bs_rows = bs.get("top_rows") or []
+    row_labels = " ".join(
+        str((row or {}).get("account") or "").lower() for row in bs_rows
+    )
+    if (
+        "opening balance equity" in row_labels
+        and bs_totals.get("total_assets") not in (None, 0)
+        and (bs_totals.get("total_assets") or 0) <= 10000
+        and row_count == 0
+    ):
+        warnings.append(
+            "QB_DATA_SUSPECT: QuickBooks balance sheet looks like a sandbox/reset company "
+            "(Opening Balance Equity with minimal assets and no P&L activity)."
+        )
+
     return warnings
 
 

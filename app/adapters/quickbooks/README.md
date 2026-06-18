@@ -139,6 +139,17 @@ Fetches the Balance Sheet report.
 
 ## API Details
 
+### Supported Report Endpoints
+
+The client uses **only** these QuickBooks report APIs:
+
+| Report | HTTP |
+|--------|------|
+| Balance Sheet | `GET /v3/company/{realmId}/reports/BalanceSheet` |
+| Profit and Loss | `GET /v3/company/{realmId}/reports/ProfitAndLoss` |
+
+No other report types (Cash Flow, Trial Balance, etc.) are called by the reports pipeline.
+
 ### Endpoint Format
 
 ```
@@ -151,6 +162,8 @@ GET https://sandbox-quickbooks.api.intuit.com/v3/company/{realmId}/reports/{Repo
 - `end_date`: End date (YYYY-MM-DD)
 - `accounting_method`: Accrual
 - `minorversion`: 75
+
+The optional `customer` filter shown in some Intuit examples is **not** used by this client.
 
 ### Headers
 

@@ -27,6 +27,11 @@ from app.adapters.quickbooks.exceptions import (
 from app.utils.postprocess_quickbooks import postprocess_quickbooks_data
 from app.utils.postprocess_wildapricot import postprocess_wildapricot_data
 from app.utils.llm_source_summary import build_llm_inputs, assess_qb_data_quality
+from app.utils.report_normalization import (
+    build_organization_summary,
+    ensure_balance_sheet_mandatory_fields,
+    ensure_part_x_mandatory_fields,
+)
 from app.core.prompts.report_prompts import (
     build_cash_flow_report_prompt,
     build_balance_sheet_report_prompt,
@@ -447,6 +452,9 @@ class ReportsService:
         )
         content, error_message, truncated = await self._call_report_llm(prompt_body)
 
+        if content and not content.get("_parse_error"):
+            content = ensure_balance_sheet_mandatory_fields(content)
+
         processing_time = time.time() - start_time
         logger.info(
             "Balance Sheet Report generated in %.2fs status=%s",
@@ -470,6 +478,9 @@ class ReportsService:
         parts_i_vii_xi_xii: Dict[str, Any],
         reconciliation: Dict[str, Any],
         filed_organization_information: Optional[Dict[str, Any]] = None,
+        *,
+        start_date: str = "",
+        end_date: str = "",
     ) -> Dict[str, Any]:
         """Combine split tax-return LLM outputs into a complete Form 990 (Parts I-XII)."""
         non_financial = parts_i_vii_xi_xii or {}
@@ -482,7 +493,11 @@ class ReportsService:
             filed_organization_information or {},
         )
 
-        return {
+        part_x_balance_sheet = ensure_part_x_mandatory_fields(
+            part_x.get("partX_balanceSheet") or {}
+        )
+
+        merged: Dict[str, Any] = {
             "statement": statement,
             "organizationInformation": organization_information,
             "partI_summary": non_financial.get("partI_summary") or {},
@@ -507,7 +522,7 @@ class ReportsService:
                 "totalManagementAndGeneral": part_ix.get("totalManagementAndGeneral") or 0.0,
                 "totalFundraising": part_ix.get("totalFundraising") or 0.0,
             },
-            "partX_balanceSheet": part_x.get("partX_balanceSheet") or {},
+            "partX_balanceSheet": part_x_balance_sheet,
             "partXI_reconciliationOfNetAssets": (
                 non_financial.get("partXI_reconciliationOfNetAssets") or {}
             ),
@@ -520,6 +535,10 @@ class ReportsService:
             "validationErrors": reconciliation.get("validationErrors") or [],
             "generatedTaxReturnDraft": reconciliation.get("generatedTaxReturnDraft") or {},
         }
+        merged["organization_summary"] = build_organization_summary(
+            merged, start_date, end_date
+        )
+        return merged
 
 
     async def _generate_tax_return_report(
@@ -660,6 +679,8 @@ class ReportsService:
             step_results.get("parts_i_vii_xi_xii", {}),
             recon_content,
             filed_organization_information=filed_org_info,
+            start_date=start_date,
+            end_date=end_date,
         )
         error_message = "; ".join(error_messages) if error_messages else None
 
