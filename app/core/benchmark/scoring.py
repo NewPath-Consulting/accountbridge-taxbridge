@@ -186,7 +186,7 @@ def _line_items_match_keywords(
 
 def _part_x_match_keywords(ai_report: Dict[str, Any], keywords: Tuple[str, ...]) -> Tuple[bool, Optional[float]]:
     part_x = _part_x(ai_report)
-    for section_key in ("assets", "liabilities"):
+    for section_key in ("assets", "liabilities", "liabilitiesAndNetAssets"):
         present, amount = _line_items_match_keywords(part_x.get(section_key), keywords)
         if present:
             return True, amount

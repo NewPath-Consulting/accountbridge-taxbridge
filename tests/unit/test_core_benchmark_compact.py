@@ -1,6 +1,7 @@
 """Unit tests for benchmark report compaction."""
 
 from app.core.benchmark.compact import (
+    compact_balance_sheet_report,
     compact_cash_flow_report,
     compact_manual_extraction,
     compact_tax_return_report,
@@ -89,3 +90,33 @@ def test_compact_cash_flow_report_reads_camel_case_gaap_output():
     assert compact["operating_activities"]["net_cash_from_operations"] == {"amount": 80000}
     assert compact["cash_reconciliation"]["ending_cash"] == {"amount": 80000}
     assert compact["report_metadata"]["type"] == "CashFlowStatement"
+
+
+def test_compact_balance_sheet_report_sums_gross_ppe_concepts():
+    report = {
+        "status": "completed",
+        "content": {
+            "assets": {
+                "currentAssets": [],
+                "nonCurrentAssets": [
+                    {
+                        "conceptId": "PropertyPlantAndEquipmentGross_Equipment",
+                        "amount": 0.0,
+                    },
+                    {
+                        "conceptId": "AccumulatedDepreciation",
+                        "amount": 0.0,
+                    },
+                ],
+                "totalAssets": 5000.0,
+            },
+            "liabilities": {
+                "currentLiabilities": [{"conceptId": "AccountsPayable", "amount": 0.0}],
+                "nonCurrentLiabilities": [],
+            },
+            "netAssets": {"totalNetAssets": 5000.0},
+        },
+    }
+    compact = compact_balance_sheet_report(report)
+    assert compact["assets"]["fixed_assets"] == 0.0
+    assert compact["liabilities"]["total_liabilities"] == 0.0

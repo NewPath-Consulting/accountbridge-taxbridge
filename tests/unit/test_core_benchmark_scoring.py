@@ -6,6 +6,7 @@ from app.core.benchmark.scoring import (
     build_financial_position_scorecard,
     blend_year_composite,
     _score_reconciliation,
+    _ai_balance_sheet_field,
 )
 
 
@@ -206,3 +207,22 @@ def test_build_cash_flow_scorecard_missing_fields():
         reports_raw={"cash_flow": {"content": {"statement": {}}}},
     )
     assert scorecard["dimensions"]["accuracy"]["score"] < 50
+
+
+def test_part_x_accounts_payable_detected_in_liabilities_and_net_assets():
+    ai_report = {
+        "part_x_balance_sheet": {
+            "partX_balanceSheet": {
+                "liabilitiesAndNetAssets": [
+                    {
+                        "lineNumber": "17",
+                        "label": "Accounts payable and accrued expenses",
+                        "endOfYear": 0.0,
+                    }
+                ],
+            }
+        }
+    }
+    present, amount = _ai_balance_sheet_field(ai_report, "accounts_payable")
+    assert present is True
+    assert amount == 0.0
