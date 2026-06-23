@@ -1,6 +1,7 @@
 aiofiles
 boto3
 botocore
+urllib3
 fastapi
 pymupdf
 mangum
