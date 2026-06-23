@@ -7,6 +7,7 @@ import logging
 # from app.core.bedrock import BedrockInvoker
 from app.config.settings import settings
 from app.api.schemas.document import ExtractionResponse
+from app.core.prompts.loader import get_prompt_builder
 from app.core.model_gateway.aim_main import acompletion
 
 logger = logging.getLogger(__name__)
