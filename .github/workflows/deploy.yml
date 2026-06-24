@@ -1,4 +1,3 @@
-
 name: Deploy to EC2
 
 on:
@@ -8,20 +7,15 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  BACKEND_ECR_REPO: accountbridge-goml-api
-  FRONTEND_ECR_REPO: accountbridge-goml-frontend
-  EC2_HOST: ${{ secrets.EC2_HOST }}
   EC2_USER: ubuntu
-  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-and-push:
     name: Build & Push to ECR
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # required for OIDC token
-      contents: read    # required for checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -38,21 +32,31 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # ── Backend ──────────────────────────────────────────────────────────────
-      # Build context: repo root (Dockerfile copies app/ and requirements.txt)
-      - name: Build & push backend image
+      - name: Set up Docker builder
         run: |
-          docker build -f Dockerfile -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api:${{ github.sha }} -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api:latest .
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api:${{ github.sha }}
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api:latest
+          docker context use default
+          docker buildx use default
+
+      # ── Backend ──────────────────────────────────────────────────────────────
+      - name: Build & push backend image
+        env:
+          BACKEND_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api
+          SHA_TAG: ${{ github.sha }}
+        run: |
+          docker build --no-cache -f Dockerfile -t "${BACKEND_IMAGE}:${SHA_TAG}" -t "${BACKEND_IMAGE}:latest" .
+          docker push "${BACKEND_IMAGE}:${SHA_TAG}"
+          docker push "${BACKEND_IMAGE}:latest"
 
       # ── Frontend ─────────────────────────────────────────────────────────────
-      # Build context: ui/ (ui/Dockerfile copies app.py and requirements.txt from ui/)
+      # Build context is ./ui because ui/Dockerfile uses COPY . .
       - name: Build & push frontend image
+        env:
+          FRONTEND_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend
+          SHA_TAG: ${{ github.sha }}
         run: |
-          docker build -f ui/Dockerfile -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend:${{ github.sha }} -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend:latest ./ui
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend:${{ github.sha }}
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend:latest
+          docker build --no-cache -f ui/Dockerfile -t "${FRONTEND_IMAGE}:${SHA_TAG}" -t "${FRONTEND_IMAGE}:latest" ./ui
+          docker push "${FRONTEND_IMAGE}:${SHA_TAG}"
+          docker push "${FRONTEND_IMAGE}:latest"
 
   deploy:
     name: Deploy on EC2
@@ -108,7 +112,6 @@ jobs:
             set -e
 
             mkdir -p /home/ubuntu/accountbridge/data
-
             cd /home/ubuntu/accountbridge
 
             # Login to ECR using EC2 instance role
@@ -125,10 +128,10 @@ jobs:
             docker compose up -d --remove-orphans
 
             # ── Cleanup unused images ────────────────────────────────────────
-            # Remove dangling images (untagged layers from old builds)
+            # Remove dangling images
             docker image prune -f
 
-            # Remove old tagged images keeping only the last 3 per repo
+            # Keep only 3 most recent images per repo, delete the rest
             for REPO in accountbridge-goml-api accountbridge-goml-frontend; do
               echo "Cleaning old images for $REPO..."
               docker images --format "{{.ID}} {{.Repository}} {{.Tag}} {{.CreatedAt}}" | \
@@ -139,7 +142,7 @@ jobs:
                 xargs -r docker rmi -f || true
             done
 
-            echo "Deploy complete"
+            echo "=== Deploy complete ==="
             docker compose ps
           ENDSSH
 
