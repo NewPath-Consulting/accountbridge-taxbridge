@@ -37,23 +37,20 @@ jobs:
           docker context use default
           docker buildx use default
 
-      # ── Backend ──────────────────────────────────────────────────────────────
       - name: Build & push backend image
-        env:
-          BACKEND_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api
-          SHA_TAG: ${{ github.sha }}
         run: |
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          SHA_TAG=$(echo "${{ github.sha }}" | tr -d '[:space:]')
+          BACKEND_IMAGE="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api"
           docker build --no-cache -f Dockerfile -t "${BACKEND_IMAGE}:${SHA_TAG}" -t "${BACKEND_IMAGE}:latest" .
           docker push "${BACKEND_IMAGE}:${SHA_TAG}"
           docker push "${BACKEND_IMAGE}:latest"
 
-      # ── Frontend ─────────────────────────────────────────────────────────────
-      # Build context is ./ui because ui/Dockerfile uses COPY . .
       - name: Build & push frontend image
-        env:
-          FRONTEND_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend
-          SHA_TAG: ${{ github.sha }}
         run: |
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          SHA_TAG=$(echo "${{ github.sha }}" | tr -d '[:space:]')
+          FRONTEND_IMAGE="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend"
           docker build --no-cache -f ui/Dockerfile -t "${FRONTEND_IMAGE}:${SHA_TAG}" -t "${FRONTEND_IMAGE}:latest" ./ui
           docker push "${FRONTEND_IMAGE}:${SHA_TAG}"
           docker push "${FRONTEND_IMAGE}:latest"
@@ -76,39 +73,44 @@ jobs:
 
       - name: Write backend .env to EC2
         run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
           ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=30 \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ubuntu@${EC2_HOST} \
             "mkdir -p /home/ubuntu/accountbridge"
-          echo "${{ secrets.BACKEND_ENV }}" | ssh -i /tmp/deploy_key \
+          printf '%s' "${{ secrets.BACKEND_ENV }}" | ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ubuntu@${EC2_HOST} \
             "cat > /home/ubuntu/accountbridge/.env"
 
       - name: Write frontend .env to EC2
         run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
           ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ubuntu@${EC2_HOST} \
             "mkdir -p /home/ubuntu/accountbridge/ui"
-          echo "${{ secrets.UI_ENV }}" | ssh -i /tmp/deploy_key \
+          printf '%s' "${{ secrets.UI_ENV }}" | ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ubuntu@${EC2_HOST} \
             "cat > /home/ubuntu/accountbridge/ui/.env"
 
       - name: Copy docker-compose.yml to EC2
         run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
           scp -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
             docker-compose.yml \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/accountbridge/docker-compose.yml
+            ubuntu@${EC2_HOST}:/home/ubuntu/accountbridge/docker-compose.yml
 
       - name: Deploy on EC2
         run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
           ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
+            ubuntu@${EC2_HOST} bash << ENDSSH
             set -e
 
             mkdir -p /home/ubuntu/accountbridge/data
@@ -117,7 +119,7 @@ jobs:
             # Login to ECR using EC2 instance role
             aws ecr get-login-password --region us-east-1 | \
               docker login --username AWS --password-stdin \
-              893616968164.dkr.ecr.us-east-1.amazonaws.com
+              ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
             export IMAGE_TAG=latest
 
@@ -127,18 +129,17 @@ jobs:
             # Restart containers with new images
             docker compose up -d --remove-orphans
 
-            # ── Cleanup unused images ────────────────────────────────────────
             # Remove dangling images
             docker image prune -f
 
-            # Keep only 3 most recent images per repo, delete the rest
+            # Keep only 3 most recent images per repo
             for REPO in accountbridge-goml-api accountbridge-goml-frontend; do
-              echo "Cleaning old images for $REPO..."
+              echo "Cleaning old images for \$REPO..."
               docker images --format "{{.ID}} {{.Repository}} {{.Tag}} {{.CreatedAt}}" | \
-                grep "893616968164.dkr.ecr.us-east-1.amazonaws.com/$REPO" | \
+                grep "${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/\$REPO" | \
                 grep -v "latest" | \
                 sort -k4 -r | \
-                awk 'NR>3 {print $1}' | \
+                awk 'NR>3 {print \$1}' | \
                 xargs -r docker rmi -f || true
             done
 
@@ -152,12 +153,13 @@ jobs:
 
       - name: Health check
         run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
           sleep 20
           ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=no \
-            ${{ env.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ubuntu@${EC2_HOST} \
             "curl -sf http://localhost:8000/api/health && echo 'Backend healthy' || echo 'Backend health check failed'"
           rm -f /tmp/deploy_key
         continue-on-error: true
