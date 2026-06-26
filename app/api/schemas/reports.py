@@ -21,6 +21,26 @@ def _reject_placeholder(value: str, field_name: str) -> str:
     return cleaned
 
 
+class QuickBooksCredentialsInline(BaseModel):
+    """Optional QuickBooks OAuth credentials supplied per request (e.g. from Streamlit)."""
+
+    client_id: str = Field(..., min_length=5, description="QuickBooks app Client ID")
+    client_secret: str = Field(..., min_length=5, description="QuickBooks app Client Secret")
+    refresh_token: str = Field(
+        ...,
+        min_length=10,
+        description="Refresh token (RT1-...) from the OAuth playground",
+    )
+    access_token: Optional[str] = Field(
+        None,
+        description="Optional access token from the playground (used until refresh is needed)",
+    )
+    realm_id: Optional[str] = Field(
+        None,
+        description="Optional QuickBooks company / realm ID override",
+    )
+
+
 class ReportsRequest(BaseModel):
     """Request model for generating reports."""
 
@@ -32,6 +52,7 @@ class ReportsRequest(BaseModel):
                     "quickbooks_realm_id": "9341457191103538",
                     "start_date": "2026-01-01",
                     "end_date": "2026-06-08",
+                    "user_prompt": "Emphasize deferred membership revenue in the cash flow report.",
                 }
             ]
         }
@@ -46,6 +67,20 @@ class ReportsRequest(BaseModel):
         description=(
             "Optional cached WildApricot extraction payload. When provided, "
             "WildApricot is not re-fetched (used after a QuickBooks token retry)."
+        ),
+    )
+    quickbooks_credentials: Optional[QuickBooksCredentialsInline] = Field(
+        None,
+        description=(
+            "Optional QuickBooks credentials for this request only. When provided, "
+            "these values are used instead of QUICKBOOKS_* settings in .env."
+        ),
+    )
+    user_prompt: Optional[str] = Field(
+        None,
+        description=(
+            "Optional user instructions for this report run. When provided, the LLM "
+            "prioritizes this guidance across cash flow, balance sheet, and tax return generation."
         ),
     )
 

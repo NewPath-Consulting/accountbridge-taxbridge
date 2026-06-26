@@ -26,10 +26,21 @@ logger = logging.getLogger(__name__)
 class QuickBooksClient:
     """Client for interacting with QuickBooks Sandbox API."""
 
-    def __init__(self, app_settings: Settings | None = None) -> None:
-        """Initialize QuickBooks client with credentials from settings."""
+    def __init__(
+        self,
+        app_settings: Settings | None = None,
+        *,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        refresh_token: str | None = None,
+        access_token: str | None = None,
+        realm_id: str | None = None,
+    ) -> None:
+        """Initialize QuickBooks client from inline credentials or settings."""
+        from app.adapters.quickbooks.auth import _sanitize_oauth_token
+
         cfg = app_settings or settings
-        self.realm_id = cfg.QUICKBOOKS_REALM_ID
+        self.realm_id = realm_id or cfg.QUICKBOOKS_REALM_ID
         self.base_url = cfg.QUICKBOOKS_SANDBOX_BASE_URL.rstrip("/")
         self.output_dir = cfg.QUICKBOOKS_OUTPUT_DIR
         self._timeout = cfg.QUICKBOOKS_HTTP_TIMEOUT_SECONDS
@@ -37,13 +48,24 @@ class QuickBooksClient:
         self._retry_429_delay = cfg.QUICKBOOKS_RETRY_429_DELAY_SECONDS
         self._retry_429_max_delay = cfg.QUICKBOOKS_RETRY_429_MAX_DELAY_SECONDS
 
+        effective_client_id = _sanitize_oauth_token(client_id or cfg.QUICKBOOKS_CLIENT_ID)
+        effective_client_secret = _sanitize_oauth_token(
+            client_secret or cfg.QUICKBOOKS_CLIENT_SECRET
+        )
+        effective_refresh_token = _sanitize_oauth_token(
+            refresh_token or cfg.QUICKBOOKS_REFRESH_TOKEN or ""
+        ) or None
+        effective_access_token = _sanitize_oauth_token(
+            access_token or cfg.QUICKBOOKS_ACCESS_TOKEN or ""
+        ) or None
+
         self._token_manager = TokenManager(
-            client_id=cfg.QUICKBOOKS_CLIENT_ID,
-            client_secret=cfg.QUICKBOOKS_CLIENT_SECRET,
+            client_id=effective_client_id,
+            client_secret=effective_client_secret,
             oauth_url=cfg.QUICKBOOKS_OAUTH_URL,
-            access_token=cfg.QUICKBOOKS_ACCESS_TOKEN or None,
-            refresh_token=cfg.QUICKBOOKS_REFRESH_TOKEN or None,
-            auth_code=cfg.QUICKBOOKS_AUTH_CODE or None,
+            access_token=effective_access_token,
+            refresh_token=effective_refresh_token,
+            auth_code=None if (client_id or refresh_token or access_token) else (cfg.QUICKBOOKS_AUTH_CODE or None),
             redirect_uri=cfg.QUICKBOOKS_REDIRECT_URI or None,
             refresh_buffer_seconds=cfg.QUICKBOOKS_TOKEN_REFRESH_BUFFER_SECONDS,
             timeout_seconds=self._timeout,

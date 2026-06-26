@@ -139,3 +139,9 @@ def stop_token_refresh_service():
     """Stop the global token refresh service."""
     service = get_token_refresh_service()
     service.stop()
+
+
+def reset_token_refresh_manager() -> None:
+    """Drop cached TokenManager so the next refresh reads updated .env credentials."""
+    service = get_token_refresh_service()
+    service._token_manager = None

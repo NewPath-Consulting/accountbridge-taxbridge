@@ -137,6 +137,7 @@ def _init_state():
         "selected_report_files": [],
         "pending_wildapricot_data": None,
         "show_qb_refresh_prompt": False,
+        "user_prompt": "",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -307,6 +308,8 @@ def call_reports(
     end_date: str,
     *,
     wildapricot_data: Optional[dict] = None,
+    quickbooks_credentials: Optional[dict] = None,
+    user_prompt: Optional[str] = None,
 ) -> dict:
     url = f"{base_url.rstrip('/')}/api/reports"
     headers = build_api_headers()
@@ -318,6 +321,10 @@ def call_reports(
     }
     if wildapricot_data is not None:
         payload["wildapricot_data"] = wildapricot_data
+    if quickbooks_credentials is not None:
+        payload["quickbooks_credentials"] = quickbooks_credentials
+    if user_prompt and user_prompt.strip():
+        payload["user_prompt"] = user_prompt.strip()
     resp = requests.post(url, json=payload, headers=headers, timeout=REPORTS_HTTP_TIMEOUT_SEC)
     if resp.status_code == 401:
         detail = parse_http_error_detail(resp)
@@ -694,7 +701,6 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    # Pipeline step indicator
     st.markdown("### 🔄 Pipeline Status")
     render_step(1, "Generate Reports", st.session_state.step)
     render_step(2, "Store Reports slice", st.session_state.step)
@@ -783,6 +789,24 @@ with tab_pipeline:
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as e:
             st.error(str(e))
 
+    st.markdown("#### ✍️ Report Instructions")
+    user_prompt = st.text_area(
+        "User prompt (optional)",
+        value=st.session_state.get("user_prompt", ""),
+        height=120,
+        key="user_prompt_input",
+        placeholder=(
+            "e.g. Emphasize program service revenue breakdown, use accrual basis, "
+            "or highlight deferred membership dues in the cash flow report."
+        ),
+        help=(
+            "Optional guidance sent to the LLM for all three reports (cash flow, "
+            "balance sheet, and tax return). When provided, it takes priority over "
+            "the default report structuring instructions."
+        ),
+    )
+    st.session_state.user_prompt = user_prompt
+
     if run_reports:
         with st.spinner("Calling /api/reports …"):
             t0 = time.time()
@@ -790,6 +814,7 @@ with tab_pipeline:
                 resp = call_reports(
                     base_url, wa_id, qb_id,
                     start_date.isoformat(), end_date.isoformat(),
+                    user_prompt=user_prompt,
                 )
                 store_reports_success(resp, time.time() - t0)
                 st.rerun()
@@ -868,17 +893,17 @@ with tab_pipeline:
             if missing:
                 st.error(f"Required: {', '.join(missing)}")
             else:
-                with st.spinner("Saving QuickBooks credentials and retrying reports …"):
+                with st.spinner("Retrying reports with your QuickBooks credentials …"):
                     t0 = time.time()
+                    qb_creds_payload = {
+                        "client_id": qb_client_id.strip(),
+                        "client_secret": qb_client_secret.strip(),
+                        "refresh_token": qb_refresh_token.strip(),
+                        "realm_id": qb_id.strip() or None,
+                    }
+                    if qb_access_token.strip():
+                        qb_creds_payload["access_token"] = qb_access_token.strip()
                     try:
-                        submit_quickbooks_credentials(
-                            base_url,
-                            client_id=qb_client_id,
-                            client_secret=qb_client_secret,
-                            refresh_token=qb_refresh_token,
-                            access_token=qb_access_token,
-                            realm_id=qb_id,
-                        )
                         resp = call_reports(
                             base_url,
                             wa_id,
@@ -886,19 +911,33 @@ with tab_pipeline:
                             start_date.isoformat(),
                             end_date.isoformat(),
                             wildapricot_data=st.session_state.get("pending_wildapricot_data"),
+                            quickbooks_credentials=qb_creds_payload,
+                            user_prompt=user_prompt,
                         )
+                        try:
+                            submit_quickbooks_credentials(
+                                base_url,
+                                client_id=qb_client_id,
+                                client_secret=qb_client_secret,
+                                refresh_token=qb_refresh_token,
+                                access_token=qb_access_token,
+                                realm_id=qb_id,
+                            )
+                        except requests.RequestException:
+                            pass
                         store_reports_success(resp, time.time() - t0)
                         st.rerun()
                     except QuickBooksRefreshTokenRequired as e:
                         if e.detail.get("wildapricot_data"):
                             st.session_state.pending_wildapricot_data = e.detail["wildapricot_data"]
-                        st.error("Credentials were rejected. Double-check all four values from the playground.")
+                        message = e.detail.get("message", "QuickBooks rejected the credentials.")
+                        st.error(f"QuickBooks credentials rejected: {message}")
                     except requests.HTTPError as e:
                         detail = parse_http_error_detail(e.response)
                         message = detail.get("message", detail) if isinstance(detail, dict) else detail
                         st.error(f"QuickBooks credentials update failed: {message}")
                     except requests.RequestException as e:
-                        st.error(format_api_request_error(e, base_url, "/api/quickbooks/credentials"))
+                        st.error(format_api_request_error(e, base_url, "/api/reports"))
                     except Exception as e:
                         st.error(str(e))
         st.markdown("</div>", unsafe_allow_html=True)

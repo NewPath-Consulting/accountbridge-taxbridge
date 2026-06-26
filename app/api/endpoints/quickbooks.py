@@ -21,6 +21,7 @@ from app.adapters.quickbooks.exceptions import (
     QUICKBOOKS_REFRESH_TOKEN_NOTIFY_MESSAGE,
 )
 from app.config.settings import get_settings
+from app.services.token_refresh_service import reset_token_refresh_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -78,6 +79,7 @@ def _register_quickbooks_credentials(
         realm_id=realm_id,
     )
     get_settings.cache_clear()
+    reset_token_refresh_manager()
 
     manager = TokenManager(
         client_id=client_id,
@@ -96,6 +98,7 @@ def _register_quickbooks_credentials(
         manager.exchange_authorization_code(refresh_token)
 
     get_settings.cache_clear()
+    reset_token_refresh_manager()
 
 
 @router.post(

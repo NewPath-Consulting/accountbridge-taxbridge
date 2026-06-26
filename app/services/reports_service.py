@@ -3,7 +3,10 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, Any, Tuple, Callable, Awaitable, Optional
+from typing import Dict, Any, Tuple, Callable, Awaitable, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.api.schemas.reports import QuickBooksCredentialsInline
 import uuid
 
 from app.adapters.llm.llm import _extract_json_from_llm_response
@@ -68,6 +71,8 @@ class ReportsService:
         end_date: str,
         request_id: str = None,
         wildapricot_data: Optional[Dict[str, Any]] = None,
+        quickbooks_credentials: Optional["QuickBooksCredentialsInline"] = None,
+        user_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Generate all three reports sequentially from WildApricot and QuickBooks data.
@@ -88,6 +93,7 @@ class ReportsService:
                 start_date,
                 end_date,
                 wildapricot_data=wildapricot_data,
+                quickbooks_credentials=quickbooks_credentials,
             )
 
             logger.info(f"Postprocessing source data request_id={request_id}")
@@ -111,15 +117,17 @@ class ReportsService:
             logger.info(f"Successfully fetched source data request_id={request_id}")
 
             logger.info(
-                "Generating reports sequentially request_id=%s "
+                "Generating reports sequentially request_id=%s user_prompt=%s "
                 "(filed PDF Textract: Form 990 pages 1-2 only, during tax return)",
                 request_id,
+                "yes" if user_prompt and user_prompt.strip() else "no",
             )
             reports = await self._generate_reports_sequential(
                 llm_inputs["wildapricot"],
                 llm_inputs["quickbooks"],
                 start_date,
                 end_date,
+                user_prompt=user_prompt,
             )
 
             total_time = time.time() - start_time
@@ -166,9 +174,19 @@ class ReportsService:
         start_date: str,
         end_date: str,
         wildapricot_data: Optional[Dict[str, Any]] = None,
+        quickbooks_credentials: Optional["QuickBooksCredentialsInline"] = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Fetch QuickBooks first, then WildApricot (or reuse cached WA on QB retry)."""
-        qb_client = QuickBooksClient()
+        qb_client_kwargs: Dict[str, Any] = {}
+        if quickbooks_credentials is not None:
+            qb_client_kwargs = {
+                "client_id": quickbooks_credentials.client_id,
+                "client_secret": quickbooks_credentials.client_secret,
+                "refresh_token": quickbooks_credentials.refresh_token,
+                "access_token": quickbooks_credentials.access_token,
+                "realm_id": quickbooks_credentials.realm_id or quickbooks_realm_id,
+            }
+        qb_client = QuickBooksClient(**qb_client_kwargs)
 
         async def fetch_wildapricot() -> Dict[str, Any]:
             return await asyncio.to_thread(
@@ -228,6 +246,7 @@ class ReportsService:
         quickbooks_summary: Dict[str, Any],
         start_date: str,
         end_date: str,
+        user_prompt: Optional[str] = None,
     ) -> Dict[str, Dict[str, Any]]:
         """Generate reports one at a time to reduce Bedrock load and timeouts."""
         generators: list[tuple[str, Callable[..., Awaitable[Dict[str, Any]]]]] = [
@@ -244,6 +263,7 @@ class ReportsService:
                     quickbooks_summary,
                     start_date,
                     end_date,
+                    user_prompt,
                 )
             except Exception as exc:
                 logger.error(f"Report generation failed for {report_type}: {exc}")
@@ -405,6 +425,7 @@ class ReportsService:
         quickbooks_data: Dict[str, Any],
         start_date: str,
         end_date: str,
+        user_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate Cash Flow Report using LLM."""
         start_time = time.time()
@@ -415,6 +436,7 @@ class ReportsService:
             quickbooks_data,
             start_date,
             end_date,
+            user_prompt=user_prompt,
         )
         content, error_message, truncated = await self._call_report_llm(prompt_body)
 
@@ -439,6 +461,7 @@ class ReportsService:
         quickbooks_data: Dict[str, Any],
         start_date: str,
         end_date: str,
+        user_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate Balance Sheet Report using LLM."""
         start_time = time.time()
@@ -449,6 +472,7 @@ class ReportsService:
             quickbooks_data,
             start_date,
             end_date,
+            user_prompt=user_prompt,
         )
         content, error_message, truncated = await self._call_report_llm(prompt_body)
 
@@ -546,7 +570,8 @@ class ReportsService:
         wildapricot_data: Dict[str, Any],
         quickbooks_data: Dict[str, Any],
         start_date: str,
-        end_date: str
+        end_date: str,
+        user_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate Tax Return Document Report using sequential split LLM calls."""
         start_time = time.time()
@@ -571,6 +596,7 @@ class ReportsService:
                 quickbooks_data,
                 start_date,
                 end_date,
+                user_prompt,
             )
             content, error_message, step_truncated = await self._call_tax_return_llm(
                 prompt_body,
@@ -611,6 +637,7 @@ class ReportsService:
             start_date,
             end_date,
             financial_parts,
+            user_prompt,
         )
         parts_content, parts_error, parts_truncated = await self._call_tax_return_llm(
             parts_prompt,
@@ -656,6 +683,7 @@ class ReportsService:
                 "part_x_balance_sheet": financial_summary.get("partX_balanceSheet") or {},
             },
             quickbooks_summary=compact_quickbooks_for_reconciliation(quickbooks_data),
+            user_prompt=user_prompt,
         )
         recon_content, recon_error, recon_truncated = await self._call_tax_return_llm(
             recon_prompt,

@@ -12,6 +12,31 @@ leave the field out entirely.
 """
 
 
+def _user_prompt_priority_block(user_prompt: Optional[str]) -> str:
+    """When provided, prepend user instructions with highest priority for all report LLM calls."""
+    if not user_prompt or not user_prompt.strip():
+        return ""
+    cleaned = user_prompt.strip()
+    return f"""## USER INSTRUCTIONS (HIGHEST PRIORITY)
+
+The user provided the following guidance for this report run. When it conflicts with
+instructions below, follow the user instructions first — except you must still:
+- Return valid JSON matching the required schema for this report section
+- Never fabricate amounts; every figure must remain traceable to source data
+- Preserve mandatory structural line items and compliance rules when the user does not override them
+
+\"\"\"{cleaned}\"\"\"
+
+---
+
+"""
+
+
+def _apply_user_prompt(instruction: str, user_prompt: Optional[str] = None) -> str:
+    block = _user_prompt_priority_block(user_prompt)
+    return f"{block}{instruction}" if block else instruction
+
+
 def _reference_financials_block(reference_financials: Optional[Dict[str, Any]]) -> str:
     if not reference_financials:
         return ""
@@ -31,6 +56,7 @@ def build_cash_flow_report_prompt(
     start_date: str,
     end_date: str,
     reference_financials: Optional[Dict[str, Any]] = None,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for generating Cash Flow Report using GAAP indirect method."""
     
@@ -316,7 +342,7 @@ Each line item must include: `conceptId`, `label`, `amount`, `direction`, and `s
 
     return {
         "messages": [
-            {"role": "user", "content": instruction}
+            {"role": "user", "content": _apply_user_prompt(instruction, user_prompt)}
         ],
         "max_tokens": settings.REPORTS_MAX_TOKENS,
         "temperature": settings.TEMPERATURE
@@ -329,6 +355,7 @@ def build_balance_sheet_report_prompt(
     start_date: str,
     end_date: str,
     reference_financials: Optional[Dict[str, Any]] = None,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for generating Balance Sheet Report (Statement of Financial Position)."""
     
@@ -489,16 +516,20 @@ Each line item must include: `conceptId`, `label`, `amount`, `sourceSystem`, and
 
     return {
         "messages": [
-            {"role": "user", "content": instruction}
+            {"role": "user", "content": _apply_user_prompt(instruction, user_prompt)}
         ],
         "max_tokens": settings.REPORTS_MAX_TOKENS,
         "temperature": settings.TEMPERATURE
     }
 
 
-def _tax_return_prompt_body(instruction: str, max_tokens: int) -> Dict[str, Any]:
+def _tax_return_prompt_body(
+    instruction: str,
+    max_tokens: int,
+    user_prompt: Optional[str] = None,
+) -> Dict[str, Any]:
     return {
-        "messages": [{"role": "user", "content": instruction}],
+        "messages": [{"role": "user", "content": _apply_user_prompt(instruction, user_prompt)}],
         "max_tokens": max_tokens,
         "temperature": settings.TEMPERATURE,
     }
@@ -558,6 +589,7 @@ def build_tax_return_part_viii_prompt(
     quickbooks_data: Dict[str, Any],
     start_date: str,
     end_date: str,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part VIII (Statement of Revenue) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part VIII only.
@@ -617,7 +649,7 @@ Each revenue line item must include: `lineNumber`, `category`, `label`, `totalRe
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS, user_prompt
     )
 
 
@@ -626,6 +658,7 @@ def build_tax_return_part_ix_prompt(
     quickbooks_data: Dict[str, Any],
     start_date: str,
     end_date: str,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part IX (Functional Expenses) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part IX only.
@@ -681,7 +714,7 @@ Each expense line item must include: `lineNumber`, `label`, `totalExpenses`, `pr
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS, user_prompt
     )
 
 
@@ -690,6 +723,7 @@ def build_tax_return_part_x_prompt(
     quickbooks_data: Dict[str, Any],
     start_date: str,
     end_date: str,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part X (Balance Sheet) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part X only.
@@ -757,7 +791,7 @@ Each balance sheet line item must include: `lineNumber`, `label`, `beginningOfYe
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS, user_prompt
     )
 
 
@@ -768,6 +802,7 @@ def build_tax_return_parts_i_vii_xi_xii_prompt(
     start_date: str,
     end_date: str,
     financial_parts: Dict[str, Any],
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Parts I-VII, XI, XII, Schedule A, and Schedule O.
 
@@ -1029,7 +1064,7 @@ Return JSON only. Include every section below. Do not include Part VIII, IX, or 
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS, user_prompt
     )
 
 
@@ -1040,6 +1075,7 @@ def build_tax_return_reconciliation_prompt(
     part_ix_summary: Dict[str, Any],
     part_x_summary: Dict[str, Any],
     quickbooks_summary: Dict[str, Any],
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt to reconcile Part VIII/IX/X and assemble the Form 990 draft summary."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine finalizing an IRS Form 990 draft.
@@ -1097,7 +1133,7 @@ Return JSON only. Do not fabricate values. Keep `generatedTaxReturnDraft` compac
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS, user_prompt
     )
 
 
@@ -1107,6 +1143,7 @@ def build_tax_return_full_form990_prompt(
     organization_details: Dict[str, Any],
     start_date: str,
     end_date: str,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build prompt for generating a COMPLETE IRS Form 990 (Parts I-XII) plus
     Schedule A Part I/II/III and Schedule O narrative responses, in a single
@@ -1742,7 +1779,7 @@ Every numeric line item must include `sourceSystem` for traceability.
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS
+        instruction, settings.REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS, user_prompt
     )
 
 
@@ -1751,8 +1788,9 @@ def build_tax_return_report_prompt(
     quickbooks_data: Dict[str, Any],
     start_date: str,
     end_date: str,
+    user_prompt: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Backward-compatible alias; reports service uses split Part VIII/IX/X prompts."""
     return build_tax_return_part_viii_prompt(
-        wildapricot_data, quickbooks_data, start_date, end_date
+        wildapricot_data, quickbooks_data, start_date, end_date, user_prompt
     )

@@ -104,6 +104,8 @@ async def generate_reports(
             start_date=reports_request.start_date,
             end_date=reports_request.end_date,
             wildapricot_data=reports_request.wildapricot_data,
+            quickbooks_credentials=reports_request.quickbooks_credentials,
+            user_prompt=reports_request.user_prompt,
         )
 
         logger.info(f"Reports generation completed successfully for request_id={result['request_id']}")
