@@ -806,7 +806,12 @@ for fiscal year {fiscal_year}.
 """ + _BENCHMARK_RULES + """
 
 INPUT includes deterministic_scorecard, manual_financial_position_extraction (from S3 PDF),
+prior_year_financial_position_extraction (filed prior-year reference PDF when available),
+prior_year_quickbooks_balance_sheet (QuickBooks closing balances from /api/reports),
 and ai_balance_sheet_report (AI-generated balance sheet JSON from /api/reports).
+
+Use prior-year sources to explain beginning-balance and roll-forward confounds — do not treat
+missing prior-year data as an AI field omission when confound_flags already flag it.
 
 Compare FIELD PRESENCE only — assets, liabilities, net assets line items and totals.
 Do NOT recalculate scores or emphasize dollar variances.
@@ -971,6 +976,8 @@ def build_benchmark_financial_position_prompt(
     manual_extraction: dict,
     generated_report: dict,
     *,
+    prior_year_extraction: dict | None = None,
+    prior_year_balance_sheet: dict | None = None,
     deterministic_scorecard: dict | None = None,
 ) -> dict:
     instructions = benchmark_financial_position_instructions.format(fiscal_year=fiscal_year)
@@ -978,6 +985,8 @@ def build_benchmark_financial_position_prompt(
         "fiscal_year": fiscal_year,
         "deterministic_scorecard": deterministic_scorecard or {},
         "manual_financial_position_extraction": manual_extraction,
+        "prior_year_financial_position_extraction": prior_year_extraction or {},
+        "prior_year_quickbooks_balance_sheet": prior_year_balance_sheet or {},
         "ai_balance_sheet_report": generated_report,
     }
     return _benchmark_prompt_body(

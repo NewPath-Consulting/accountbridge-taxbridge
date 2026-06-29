@@ -89,6 +89,7 @@ _CONFOUND_PATTERNS = (
     (r"missing prior.?period|no prior|beginning balance.*not|not determinable", "DATA_INTEGRITY_MISSING_PRIOR_PERIOD"),
     (r"period mismatch|outside the.*period|wrong tax year", "DATA_INTEGRITY_PERIOD_MISMATCH"),
     (r"currency symbol|₹ vs|inr vs usd", "DATA_INTEGRITY_CURRENCY"),
+    (r"wildapricot.*empty|no wildapricot|wa_period_empty|quickbooks only", "DATA_INTEGRITY_WA_EMPTY"),
 )
 
 # Lenient similarity threshold for confound detection only (not scoring)
@@ -222,6 +223,11 @@ def _ai_has_total(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional
 
 
 def _ai_revenue_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    revenue = ai_report.get("revenue") or {}
+    if isinstance(revenue, dict):
+        val = _num(revenue.get(field))
+        if val is not None:
+            return True, val
     if field == "total_revenue":
         return _ai_has_total(ai_report, "total_revenue")
     keywords = _REVENUE_FIELD_KEYWORDS.get(field, (field.replace("_", " "),))
@@ -230,6 +236,11 @@ def _ai_revenue_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Opti
 
 
 def _ai_expense_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    expenses = ai_report.get("expenses") or {}
+    if isinstance(expenses, dict):
+        val = _num(expenses.get(field))
+        if val is not None:
+            return True, val
     if field == "total_expenses":
         return _ai_has_total(ai_report, "total_expenses")
     keywords = _EXPENSE_FIELD_KEYWORDS.get(field, (field.replace("_", " "),))
@@ -237,22 +248,25 @@ def _ai_expense_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Opti
     present, amount = _line_items_match_keywords(items, keywords)
     if present:
         return True, amount
-    # Part IX totals fallback
-    part_ix = ai_report.get("part_ix_expenses")
-    if isinstance(part_ix, dict):
-        camel_map = {
-            "program_services": "totalProgramServices",
-            "management_general": "totalManagementAndGeneral",
-            "fundraising": "totalFundraising",
-        }
-        if field in camel_map:
-            val = _num(part_ix.get(camel_map[field]))
-            if val is not None:
-                return True, val
+    part_ix_totals = ai_report.get("partIX_totals") or ai_report.get("part_ix_totals") or {}
+    camel_map = {
+        "program_services": "totalProgramServices",
+        "management_general": "totalManagementAndGeneral",
+        "fundraising": "totalFundraising",
+    }
+    if field in camel_map:
+        val = _num(part_ix_totals.get(camel_map[field]))
+        if val is not None:
+            return True, val
     return False, None
 
 
 def _ai_balance_sheet_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    balance_sheet = ai_report.get("balance_sheet") or {}
+    if isinstance(balance_sheet, dict):
+        val = _num(balance_sheet.get(field))
+        if val is not None:
+            return True, val
     if field in ("total_assets", "total_liabilities", "net_assets"):
         return _ai_has_total(ai_report, field)
     keywords = _BALANCE_SHEET_FIELD_KEYWORDS.get(field, (field.replace("_", " "),))
@@ -269,17 +283,28 @@ def _ai_field_present(
     if section == "balance_sheet":
         return _ai_balance_sheet_field(ai_report, field)
     if section == "reconciliation":
-        # Reconciliation fields map to totals or organization draft
-        recon_map = {
-            "total_revenue": ("totals", "total_revenue"),
-            "total_expenses": ("totals", "total_expenses"),
-            "ending_net_assets": ("totals", "net_assets"),
-            "change_in_net_assets": None,
-            "beginning_net_assets": None,
+        recon = ai_report.get("reconciliation") or {}
+        if isinstance(recon, dict):
+            val = _num(recon.get(field))
+            if val is not None:
+                return True, val
+        totals = ai_report.get("totals") or {}
+        totals_map = {
+            "total_revenue": "total_revenue",
+            "total_expenses": "total_expenses",
+            "ending_net_assets": ("ending_net_assets", "net_assets"),
+            "beginning_net_assets": "beginning_net_assets",
+            "change_in_net_assets": "change_in_net_assets",
         }
-        mapping = recon_map.get(field)
+        mapping = totals_map.get(field)
+        if isinstance(mapping, tuple):
+            for key in mapping:
+                val = _num(totals.get(key))
+                if val is not None:
+                    return True, val
+            return False, None
         if mapping:
-            val = _num((ai_report.get(mapping[0]) or {}).get(mapping[1]))
+            val = _num(totals.get(mapping))
             return val is not None, val
         return False, None
     if section == "organization_summary":
@@ -515,8 +540,13 @@ def _detect_confound_flags(
         flags.append({"code": code, "severity": severity, "message": message})
 
     for warning in reports_raw.get("data_quality_warnings") or []:
-        if "QB_DATA_SUSPECT" in str(warning):
-            _add("DATA_INTEGRITY_QB", str(warning))
+        warning_text = str(warning)
+        if "QB_DATA_SUSPECT" in warning_text:
+            _add("DATA_INTEGRITY_QB", warning_text)
+        if "QB_PRIOR_YEAR_MISSING" in warning_text:
+            _add("DATA_INTEGRITY_MISSING_PRIOR_PERIOD", warning_text)
+        if "WA_PERIOD_EMPTY" in warning_text:
+            _add("DATA_INTEGRITY_WA_EMPTY", warning_text)
 
     for text in _collect_audit_text(ai_report, cash_flow_report, reports_raw):
         for pattern, code in _CONFOUND_PATTERNS:
@@ -806,6 +836,7 @@ def build_financial_position_scorecard(
     manual_extraction: Dict[str, Any],
     ai_report: Dict[str, Any],
     reports_raw: Dict[str, Any],
+    prior_year_extraction: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Compare AI balance sheet JSON vs manual Financial Position PDF extraction."""
     field_rows: List[Dict[str, Any]] = []

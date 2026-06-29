@@ -50,6 +50,26 @@ Prefer `filed_financial_position` line items over inferred QuickBooks sandbox ro
 """
 
 
+def _wildapricot_empty_block(wa_period_empty: bool) -> str:
+    if not wa_period_empty:
+        return ""
+    return """
+**WILDAPRICOT PERIOD EMPTY:**
+No WildApricot invoices/payments fall in this reporting period. Do NOT infer membership,
+deferred revenue, or contribution splits from WildApricot. Use QuickBooks only and add
+`dataQualityFlag` on ambiguous Part VIII / Part X lines.
+"""
+
+
+def _qb_mapping_hints_block(qb_mapping_hints: Optional[Dict[str, Any]]) -> str:
+    if not qb_mapping_hints:
+        return ""
+    return f"""
+**QUICKBOOKS → FORM 990 MAPPING HINTS (use when classifying accounts):**
+{json.dumps(qb_mapping_hints, indent=2)}
+"""
+
+
 def build_cash_flow_report_prompt(
     wildapricot_data: Dict[str, Any],
     quickbooks_data: Dict[str, Any],
@@ -251,6 +271,8 @@ Use aggregates for totals and samples for line-item detail.
 
 **QUICKBOOKS DATA (Financial Records):**
 Use `totals` for headline figures; use `formatted_report` and `top_rows` for detail.
+When `prior_year_balance_sheet` is present, use its closing balances for beginning cash,
+working-capital opening balances, and investing/financing anchors (do not default to $0).
 
 {json.dumps(quickbooks_data, indent=2)}
 {_reference_financials_block(reference_financials)}
@@ -428,6 +450,8 @@ Use aggregates for totals and samples for line-item detail.
 
 **QUICKBOOKS DATA (Financial Records):**
 Use `totals` for headline figures; use `formatted_report` and `top_rows` for detail.
+When `prior_year_balance_sheet` is present, use its closing balances for beginning-of-period
+anchors where applicable.
 
 {json.dumps(quickbooks_data, indent=2)}
 {_reference_financials_block(reference_financials)}
@@ -556,7 +580,18 @@ def _tax_return_compact_output_rules() -> str:
     return """## OUTPUT SIZE RULES (CRITICAL)
 
 - Return ONLY valid JSON. No markdown fences, comments, or trailing commas.
-- One object per distinct Form 990 line or QuickBooks account."""
+- Emit one object per official IRS Form 990 line in the requested section — NOT one object per QuickBooks account.
+- Keep labels short (under 80 characters). Omit sourceAccounts, source_records, and narrative fields.
+- Part IX must contain at most 25 objects in `partIX_expenses` (IRS lines 1-25); aggregate QuickBooks accounts into those lines."""
+
+
+def _tax_return_part_ix_output_rules() -> str:
+    return """## PART IX OUTPUT RULES (CRITICAL)
+
+- `partIX_expenses` must have AT MOST 25 entries — one per IRS Form 990 Part IX line (lines 1-25).
+- Aggregate all QuickBooks expense accounts into the matching IRS line; never emit one JSON object per QB account.
+- Include `totalExpenses`, `totalProgramServices`, `totalManagementAndGeneral`, and `totalFundraising` at the root.
+- Return complete, valid JSON that closes all arrays and objects."""
 
 
 def _tax_return_input_data_block(
@@ -564,12 +599,18 @@ def _tax_return_input_data_block(
     quickbooks_data: Dict[str, Any],
     start_date: str,
     end_date: str,
+    reference_financials: Optional[Dict[str, Any]] = None,
+    *,
+    wa_period_empty: bool = False,
+    qb_mapping_hints: Optional[Dict[str, Any]] = None,
 ) -> str:
     return f"""## INPUT DATA
 
 **TAX YEAR:**
 Start Date: {start_date}
 End Date: {end_date}
+{_wildapricot_empty_block(wa_period_empty)}
+{_qb_mapping_hints_block(qb_mapping_hints)}
 
 **WILDAPRICOT DATA:**
 Each entity includes `aggregates` computed from ALL records (totals, by_month, by_order_type)
@@ -580,8 +621,11 @@ Use aggregates for totals and samples for line-item detail.
 
 **QUICKBOOKS DATA:**
 Use `totals` for headline figures; use `formatted_report` and `top_rows` for detail.
+When `prior_year_balance_sheet` is present, use its closing balances for all beginning-of-year
+columns in Part X and Part XI (do not default to $0).
 
-{json.dumps(quickbooks_data, indent=2)}"""
+{json.dumps(quickbooks_data, indent=2)}
+{_reference_financials_block(reference_financials)}"""
 
 
 def build_tax_return_part_viii_prompt(
@@ -590,6 +634,10 @@ def build_tax_return_part_viii_prompt(
     start_date: str,
     end_date: str,
     user_prompt: Optional[str] = None,
+    reference_financials: Optional[Dict[str, Any]] = None,
+    *,
+    wa_period_empty: bool = False,
+    qb_mapping_hints: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part VIII (Statement of Revenue) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part VIII only.
@@ -620,7 +668,7 @@ Classify all incoming revenue into exactly one category.
 
 {_tax_return_compact_output_rules()}
 
-{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date)}
+{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date, reference_financials, wa_period_empty=wa_period_empty, qb_mapping_hints=qb_mapping_hints)}
 
 ---
 
@@ -659,6 +707,10 @@ def build_tax_return_part_ix_prompt(
     start_date: str,
     end_date: str,
     user_prompt: Optional[str] = None,
+    reference_financials: Optional[Dict[str, Any]] = None,
+    *,
+    wa_period_empty: bool = False,
+    qb_mapping_hints: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part IX (Functional Expenses) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part IX only.
@@ -683,7 +735,9 @@ Classify every QuickBooks expense into exactly one functional bucket:
 
 {_tax_return_compact_output_rules()}
 
-{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date)}
+{_tax_return_part_ix_output_rules()}
+
+{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date, reference_financials, wa_period_empty=wa_period_empty, qb_mapping_hints=qb_mapping_hints)}
 
 ---
 
@@ -714,7 +768,9 @@ Each expense line item must include: `lineNumber`, `label`, `totalExpenses`, `pr
 ```
 """
     return _tax_return_prompt_body(
-        instruction, settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS, user_prompt
+        instruction,
+        settings.REPORTS_TAX_RETURN_PART_IX_MAX_TOKENS,
+        user_prompt,
     )
 
 
@@ -724,6 +780,10 @@ def build_tax_return_part_x_prompt(
     start_date: str,
     end_date: str,
     user_prompt: Optional[str] = None,
+    reference_financials: Optional[Dict[str, Any]] = None,
+    *,
+    wa_period_empty: bool = False,
+    qb_mapping_hints: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Part X (Balance Sheet) only."""
     instruction = f"""You are an expert US Nonprofit Tax Compliance engine generating IRS Form 990 Part X only.
@@ -740,6 +800,8 @@ Use WildApricot prepaid memberships/events to validate deferred revenue where ap
 **VALIDATION:**
 - Net Assets = Assets - Liabilities
 - Beginning Net Assets + Current Year Change = Ending Net Assets
+- Populate all `beginningOfYear` columns from `prior_year_balance_sheet` closing balances
+  (or `prior_financial_position` in reference financials). Do not default to $0 when prior data exists.
 
 {_MANDATORY_STRUCTURAL_LINE_ITEMS_RULE}
 
@@ -747,7 +809,7 @@ Use WildApricot prepaid memberships/events to validate deferred revenue where ap
 
 {_tax_return_compact_output_rules()}
 
-{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date)}
+{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date, reference_financials, wa_period_empty=wa_period_empty, qb_mapping_hints=qb_mapping_hints)}
 
 ---
 
@@ -803,6 +865,10 @@ def build_tax_return_parts_i_vii_xi_xii_prompt(
     end_date: str,
     financial_parts: Dict[str, Any],
     user_prompt: Optional[str] = None,
+    reference_financials: Optional[Dict[str, Any]] = None,
+    *,
+    wa_period_empty: bool = False,
+    qb_mapping_hints: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build prompt for Form 990 Parts I-VII, XI, XII, Schedule A, and Schedule O.
 
@@ -894,7 +960,7 @@ fields from QuickBooks company info or other `organization_details` keys.
 
 {json.dumps(organization_details, indent=2)}
 
-{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date)}
+{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date, reference_financials, wa_period_empty=wa_period_empty, qb_mapping_hints=qb_mapping_hints)}
 
 {_tax_return_compact_output_rules()}
 
@@ -1089,6 +1155,7 @@ The Part VIII, IX, and X sections were already generated. Your job is to:
 - Check 1: QuickBooks Revenue = Part VIII Total Revenue
 - Check 2: QuickBooks Expenses = Part IX Total Expenses
 - Check 3: Beginning Net Assets + Change = Ending Net Assets
+  (use `prior_year_balance_sheet` closing net assets for beginning when present)
 - Check 4: Assets = Liabilities + Net Assets
 
 **ACCOUNTING METHOD:** Use QuickBooks reported method if present; else infer Cash or Accrual.
@@ -1126,6 +1193,13 @@ Return JSON only. Do not fabricate values. Keep `generatedTaxReturnDraft` compac
     "name": "",
     "taxYear": "{start_date} to {end_date}"
   }},
+  "reconciliation": {{
+    "total_revenue": 0.00,
+    "total_expenses": 0.00,
+    "beginning_net_assets": 0.00,
+    "change_in_net_assets": 0.00,
+    "ending_net_assets": 0.00
+  }},
   "reconciliationResults": [],
   "validationErrors": [],
   "generatedTaxReturnDraft": {{}}
@@ -1144,6 +1218,7 @@ def build_tax_return_full_form990_prompt(
     start_date: str,
     end_date: str,
     user_prompt: Optional[str] = None,
+    reference_financials: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build prompt for generating a COMPLETE IRS Form 990 (Parts I-XII) plus
     Schedule A Part I/II/III and Schedule O narrative responses, in a single
@@ -1568,7 +1643,7 @@ Each entry: {{ "partAndLine": "Part VI Line 19", "narrative": "..." }}
 
 {json.dumps(organization_details, indent=2)}
 
-{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date)}
+{_tax_return_input_data_block(wildapricot_data, quickbooks_data, start_date, end_date, reference_financials)}
 
 ---
 

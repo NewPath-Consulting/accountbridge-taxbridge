@@ -315,9 +315,32 @@ def prepare_quickbooks_for_llm(quickbooks_data: dict[str, Any]) -> dict[str, Any
     """Pass postprocessed QuickBooks reports with totals and row samples for LLM prompts."""
     pl = quickbooks_data.get("profit_and_loss") or {}
     bs = quickbooks_data.get("balance_sheet") or {}
-    return {
+    prepared: dict[str, Any] = {
         "profit_and_loss": _prepare_quickbooks_report_block(pl),
         "balance_sheet": _prepare_quickbooks_report_block(bs),
+    }
+    prior_year_bs = quickbooks_data.get("prior_year_balance_sheet")
+    if prior_year_bs:
+        prepared["prior_year_balance_sheet"] = _prepare_quickbooks_report_block(
+            prior_year_bs
+        )
+    return prepared
+
+
+def build_reference_financials_from_qb(
+    quickbooks_for_llm: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Map prior-year QuickBooks balance sheet into reference_financials prompt shape."""
+    prior_year = quickbooks_for_llm.get("prior_year_balance_sheet")
+    if not prior_year:
+        return None
+    metadata = prior_year.get("metadata") or {}
+    return {
+        "prior_financial_position": {
+            "source": "QuickBooks",
+            "as_of_date": metadata.get("end_period") or metadata.get("end_date"),
+            **prior_year,
+        }
     }
 
 
@@ -375,6 +398,69 @@ def assess_qb_data_quality(
             "(Opening Balance Equity with minimal assets and no P&L activity)."
         )
 
+    if not quickbooks_data.get("prior_year_balance_sheet"):
+        warnings.append(
+            "QB_PRIOR_YEAR_MISSING: No prior-year QuickBooks balance sheet was retrieved. "
+            "Beginning balances in cash flow and Form 990 Part X may default to $0."
+        )
+
+    return warnings
+
+
+def wildapricot_period_empty(
+    wildapricot_data: dict[str, Any],
+    start_date: str,
+    end_date: str,
+) -> bool:
+    """True when WildApricot has no financial records in the reporting period."""
+    entities = wildapricot_data.get("entities") or wildapricot_data.get("data") or {}
+    if not entities:
+        return True
+
+    start = str(start_date)[:10] if start_date else ""
+    end = str(end_date)[:10] if end_date else ""
+    financial_activity = 0.0
+
+    for entity_name, block in entities.items():
+        if entity_name not in _WA_FINANCIAL_ENTITIES:
+            continue
+        if not isinstance(block, dict):
+            continue
+        aggregates = block.get("aggregates") or {}
+        for key in ("total_value", "total_amount"):
+            value = aggregates.get(key)
+            if isinstance(value, (int, float)) and value:
+                financial_activity += float(value)
+        for record in block.get("sample_records") or block.get("records") or []:
+            if not isinstance(record, dict):
+                continue
+            attrs = record.get("attributes") or record
+            for date_key in ("DocumentDate", "documentdate", "CreatedDate", "createddate"):
+                date_val = attrs.get(date_key) if isinstance(attrs, dict) else None
+                if not date_val:
+                    continue
+                date_str = str(date_val)[:10]
+                if start and end and start <= date_str <= end:
+                    financial_activity += 1.0
+                    break
+
+    return financial_activity == 0.0
+
+
+def assess_data_quality_warnings(
+    wildapricot_data: dict[str, Any],
+    quickbooks_data: dict[str, Any],
+    *,
+    start_date: str = "",
+    end_date: str = "",
+) -> list[str]:
+    """Combined QB + WildApricot pre-flight warnings for report generation."""
+    warnings = assess_qb_data_quality(wildapricot_data, quickbooks_data)
+    if wildapricot_period_empty(wildapricot_data, start_date, end_date):
+        warnings.append(
+            "WA_PERIOD_EMPTY: No WildApricot financial activity in the reporting period. "
+            "Part VIII revenue disaggregation and deferred revenue validation rely on QuickBooks only."
+        )
     return warnings
 
 

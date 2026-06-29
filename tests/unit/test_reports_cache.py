@@ -57,6 +57,20 @@ def test_save_and_load_cached_reports(tmp_path, monkeypatch):
     assert set(reports.keys()) == {"cash_flow", "tax_return", "balance_sheet"}
 
 
+def test_extract_benchmark_reports_slice_includes_prior_year_balance_sheet():
+    response = {
+        **SAMPLE_RESPONSE,
+        "quickbooks_source": {
+            "prior_year_balance_sheet": {
+                "metadata": {"end_period": "2023-12-31"},
+                "totals": {"total_assets": 5000.0},
+            }
+        },
+    }
+    _, reports = extract_benchmark_reports_slice(response)
+    assert reports["prior_year_balance_sheet"]["metadata"]["end_period"] == "2023-12-31"
+
+
 def test_extract_benchmark_reports_slice_missing_key():
     bad = {**SAMPLE_RESPONSE, "reports": {"cash_flow": SAMPLE_RESPONSE["reports"]["cash_flow"]}}
     with pytest.raises(ValueError, match="tax_return"):

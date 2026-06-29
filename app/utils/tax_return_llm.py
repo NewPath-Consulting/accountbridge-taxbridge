@@ -99,10 +99,50 @@ def compact_quickbooks_for_reconciliation(
 ) -> dict[str, Any]:
     """Pass formatted QuickBooks reports to the reconciliation prompt."""
     compact: dict[str, Any] = {}
-    for report_key in ("profit_and_loss", "balance_sheet"):
+    for report_key in ("profit_and_loss", "balance_sheet", "prior_year_balance_sheet"):
         report = quickbooks_data.get(report_key) or {}
+        if not report:
+            continue
         compact[report_key] = {
             "metadata": report.get("metadata"),
             "formatted_report": report.get("formatted_report") or "",
         }
     return compact
+
+
+def compact_source_data_for_tax_return(
+    wildapricot_data: dict[str, Any],
+    quickbooks_data: dict[str, Any],
+    *,
+    max_qb_rows: int = 40,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Shrink WA/QB payloads for tax-return LLM steps to reduce input tokens."""
+    wa_compact: dict[str, Any] = {
+        "account_id": wildapricot_data.get("account_id"),
+        "fetched_at": wildapricot_data.get("fetched_at"),
+        "entities": {},
+    }
+    for entity_name, entity_block in (wildapricot_data.get("entities") or {}).items():
+        if not isinstance(entity_block, dict):
+            continue
+        wa_compact["entities"][entity_name] = {
+            key: value
+            for key, value in entity_block.items()
+            if key not in ("formatted_report",)
+        }
+
+    qb_compact: dict[str, Any] = {}
+    for report_key, report in quickbooks_data.items():
+        if not isinstance(report, dict):
+            continue
+        slim: dict[str, Any] = {
+            "metadata": report.get("metadata"),
+            "totals": report.get("totals"),
+            "row_count": report.get("row_count"),
+            "top_rows": (report.get("top_rows") or [])[:max_qb_rows],
+        }
+        if report.get("error"):
+            slim["error"] = report["error"]
+        qb_compact[report_key] = slim
+
+    return wa_compact, qb_compact

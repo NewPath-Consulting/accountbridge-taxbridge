@@ -13,6 +13,7 @@ from app.adapters.llm.llm import _extract_json_from_llm_response
 from app.utils.llm_json import salvage_json_object
 from app.utils.tax_return_llm import (
     compact_quickbooks_for_reconciliation,
+    compact_source_data_for_tax_return,
     compact_tax_return_financial_parts_for_reconciliation,
     derive_organization_details,
 )
@@ -29,11 +30,20 @@ from app.adapters.quickbooks.exceptions import (
 )
 from app.utils.postprocess_quickbooks import postprocess_quickbooks_data
 from app.utils.postprocess_wildapricot import postprocess_wildapricot_data
-from app.utils.llm_source_summary import build_llm_inputs, assess_qb_data_quality
+from app.utils.llm_source_summary import (
+    assess_data_quality_warnings,
+    build_llm_inputs,
+    build_reference_financials_from_qb,
+    wildapricot_period_empty,
+)
+from app.utils.form_990_mapping import build_qb_mapping_hints
+from app.utils.quickbooks_periods import prior_year_balance_sheet_period
 from app.utils.report_normalization import (
     build_organization_summary,
     ensure_balance_sheet_mandatory_fields,
+    ensure_part_ix_minimum_fields,
     ensure_part_x_mandatory_fields,
+    normalize_tax_return_content,
 )
 from app.core.prompts.report_prompts import (
     build_cash_flow_report_prompt,
@@ -54,6 +64,13 @@ logger = logging.getLogger(__name__)
 _TAX_RETURN_COMPACT_RETRY = (
     "Your previous response was invalid or truncated JSON. "
     "Return ONLY valid, complete JSON matching the required schema."
+)
+
+_TAX_RETURN_TRUNCATION_RETRY = (
+    "Your previous response was truncated before the JSON completed. "
+    "Return ONLY valid, complete JSON. For Part IX: emit AT MOST 25 objects in "
+    "partIX_expenses (IRS lines 1-25), aggregating QuickBooks accounts into those "
+    "lines — never one object per QuickBooks account. Omit long labels and optional fields."
 )
 
 
@@ -106,9 +123,14 @@ class ReportsService:
                 max_wa_records_per_entity=settings.REPORTS_WA_MAX_RECORDS_PER_ENTITY,
                 max_wa_financial_records_per_entity=settings.REPORTS_WA_FINANCIAL_RECORDS_PER_ENTITY,
             )
-            data_quality_warnings = assess_qb_data_quality(
+            data_quality_warnings = assess_data_quality_warnings(
                 llm_inputs["wildapricot"],
                 llm_inputs["quickbooks"],
+                start_date=start_date,
+                end_date=end_date,
+            )
+            reference_financials = build_reference_financials_from_qb(
+                llm_inputs["quickbooks"]
             )
             if data_quality_warnings:
                 for warning in data_quality_warnings:
@@ -128,6 +150,7 @@ class ReportsService:
                 start_date,
                 end_date,
                 user_prompt=user_prompt,
+                reference_financials=reference_financials,
             )
 
             total_time = time.time() - start_time
@@ -153,6 +176,11 @@ class ReportsService:
                 "end_date": end_date,
                 "reports": reports,
                 "data_quality_warnings": data_quality_warnings,
+                "quickbooks_source": {
+                    "prior_year_balance_sheet": llm_inputs["quickbooks"].get(
+                        "prior_year_balance_sheet"
+                    ),
+                },
                 "total_processing_time": total_time,
                 "status": overall_status,
             }
@@ -211,10 +239,29 @@ class ReportsService:
                 end_date=end_date,
             )
 
-            return {
+            prior_year_balance_sheet = None
+            prior_period = prior_year_balance_sheet_period(start_date)
+            if prior_period:
+                prior_start, prior_end = prior_period
+                logger.info(
+                    "Fetching prior-year QuickBooks balance sheet %s to %s",
+                    prior_start,
+                    prior_end,
+                )
+                prior_year_balance_sheet = await qb_client.get_balance_sheet(
+                    realm_id=quickbooks_realm_id,
+                    start_date=prior_start,
+                    end_date=prior_end,
+                    output_filename="prior-year-balance-sheet.json",
+                )
+
+            qb_payload: Dict[str, Any] = {
                 "profit_and_loss": profit_loss_data,
                 "balance_sheet": balance_sheet_data,
             }
+            if prior_year_balance_sheet is not None:
+                qb_payload["prior_year_balance_sheet"] = prior_year_balance_sheet
+            return qb_payload
 
         try:
             await asyncio.to_thread(qb_client._token_manager.get_valid_token)
@@ -247,6 +294,7 @@ class ReportsService:
         start_date: str,
         end_date: str,
         user_prompt: Optional[str] = None,
+        reference_financials: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Dict[str, Any]]:
         """Generate reports one at a time to reduce Bedrock load and timeouts."""
         generators: list[tuple[str, Callable[..., Awaitable[Dict[str, Any]]]]] = [
@@ -264,6 +312,7 @@ class ReportsService:
                     start_date,
                     end_date,
                     user_prompt,
+                    reference_financials=reference_financials,
                 )
             except Exception as exc:
                 logger.error(f"Report generation failed for {report_type}: {exc}")
@@ -305,7 +354,11 @@ class ReportsService:
         usage = raw_response.get("usage") or {}
         completion_tokens = usage.get("completion_tokens")
         token_limit = int(max_tokens or settings.REPORTS_MAX_TOKENS)
-        truncated = (
+        choices = raw_response.get("choices") or []
+        finish_reason = (
+            (choices[0] or {}).get("finish_reason") if choices else None
+        )
+        truncated = finish_reason == "length" or (
             completion_tokens is not None
             and int(completion_tokens) >= max(1, token_limit - 32)
         )
@@ -364,37 +417,56 @@ class ReportsService:
         prompt_body: Dict[str, Any],
         step_name: str,
     ) -> Tuple[Dict[str, Any], Optional[str], bool]:
-        """Call the LLM for a tax-return step; retry once with compact instructions on parse failure."""
-        token_limit = int(
+        """Call the LLM for a tax-return step with parse/truncation retries."""
+        base_limit = int(
             prompt_body.get("max_tokens") or settings.REPORTS_TAX_RETURN_SECTION_MAX_TOKENS
         )
-        content, error_message, truncated = await self._call_report_llm(
-            prompt_body,
-            max_tokens=token_limit,
-        )
+        token_limits: list[int] = []
+        for limit in (base_limit, settings.REPORTS_MAX_TOKENS):
+            if limit not in token_limits:
+                token_limits.append(limit)
 
-        if not error_message or not content.get("_parse_error"):
-            return content, error_message, truncated
+        messages = list(prompt_body.get("messages") or [])
+        retry_messages = [
+            {"role": "user", "content": _TAX_RETURN_COMPACT_RETRY},
+            {"role": "user", "content": _TAX_RETURN_TRUNCATION_RETRY},
+        ]
 
-        logger.warning(
-            "Tax Return %s: JSON parse failed, retrying with compact instructions",
-            step_name,
-        )
-        retry_body = {
-            **prompt_body,
-            "messages": [
-                *prompt_body["messages"],
-                {"role": "user", "content": _TAX_RETURN_COMPACT_RETRY},
-            ],
-        }
-        retry_content, retry_error, retry_truncated = await self._call_report_llm(
-            retry_body,
-            max_tokens=token_limit,
-        )
-        if not retry_error or not retry_content.get("_parse_error"):
-            return retry_content, retry_error, retry_truncated
+        last_content: Dict[str, Any] = {}
+        last_error: Optional[str] = None
+        last_truncated = False
 
-        return content, error_message, truncated or retry_truncated
+        for attempt, token_limit in enumerate(token_limits):
+            suffix = retry_messages[:attempt]
+            body = {
+                **prompt_body,
+                "messages": messages + suffix,
+                "max_tokens": token_limit,
+            }
+            content, error_message, truncated = await self._call_report_llm(
+                body,
+                max_tokens=token_limit,
+            )
+            last_content, last_error, last_truncated = content, error_message, truncated
+
+            incomplete = (
+                truncated
+                or content.get("_parse_error")
+                or content.get("_truncated")
+                or error_message
+            )
+            if not incomplete:
+                return content, None, False
+
+            logger.warning(
+                "Tax Return %s: attempt %s incomplete (truncated=%s parse_error=%s)",
+                step_name,
+                attempt + 1,
+                truncated,
+                bool(content.get("_parse_error")),
+            )
+
+        return last_content, last_error, last_truncated
 
     def _build_report_result(
         self,
@@ -426,6 +498,8 @@ class ReportsService:
         start_date: str,
         end_date: str,
         user_prompt: Optional[str] = None,
+        *,
+        reference_financials: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate Cash Flow Report using LLM."""
         start_time = time.time()
@@ -436,6 +510,7 @@ class ReportsService:
             quickbooks_data,
             start_date,
             end_date,
+            reference_financials=reference_financials,
             user_prompt=user_prompt,
         )
         content, error_message, truncated = await self._call_report_llm(prompt_body)
@@ -462,6 +537,8 @@ class ReportsService:
         start_date: str,
         end_date: str,
         user_prompt: Optional[str] = None,
+        *,
+        reference_financials: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate Balance Sheet Report using LLM."""
         start_time = time.time()
@@ -472,6 +549,7 @@ class ReportsService:
             quickbooks_data,
             start_date,
             end_date,
+            reference_financials=reference_financials,
             user_prompt=user_prompt,
         )
         content, error_message, truncated = await self._call_report_llm(prompt_body)
@@ -556,6 +634,7 @@ class ReportsService:
             "scheduleA": non_financial.get("scheduleA") or {},
             "scheduleO": non_financial.get("scheduleO") or [],
             "reconciliationResults": reconciliation.get("reconciliationResults") or [],
+            "reconciliation": reconciliation.get("reconciliation") or {},
             "validationErrors": reconciliation.get("validationErrors") or [],
             "generatedTaxReturnDraft": reconciliation.get("generatedTaxReturnDraft") or {},
         }
@@ -572,10 +651,23 @@ class ReportsService:
         start_date: str,
         end_date: str,
         user_prompt: Optional[str] = None,
+        *,
+        reference_financials: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Generate Tax Return Document Report using sequential split LLM calls."""
         start_time = time.time()
         logger.info("Generating Tax Return Document Report")
+
+        wa_for_tax, qb_for_tax = compact_source_data_for_tax_return(
+            wildapricot_data,
+            quickbooks_data,
+        )
+        tax_ctx = {
+            "wa_period_empty": wildapricot_period_empty(
+                wildapricot_data, start_date, end_date
+            ),
+            "qb_mapping_hints": build_qb_mapping_hints(quickbooks_data),
+        }
 
         section_steps: list[tuple[str, Callable[..., Dict[str, Any]]]] = [
             ("part_viii", build_tax_return_part_viii_prompt),
@@ -592,16 +684,20 @@ class ReportsService:
             logger.info("Tax Return: generating %s", step_name)
 
             prompt_body = prompt_builder(
-                wildapricot_data,
-                quickbooks_data,
+                wa_for_tax,
+                qb_for_tax,
                 start_date,
                 end_date,
                 user_prompt,
+                reference_financials=reference_financials,
+                **tax_ctx,
             )
             content, error_message, step_truncated = await self._call_tax_return_llm(
                 prompt_body,
                 step_name,
             )
+            if step_name == "part_ix" and content and not content.get("_parse_error"):
+                content = ensure_part_ix_minimum_fields(content, quickbooks_data)
             step_results[step_name] = content
 
             if error_message:
@@ -631,13 +727,15 @@ class ReportsService:
             "filed_organization_information": filed_org_info,
         }
         parts_prompt = build_tax_return_parts_i_vii_xi_xii_prompt(
-            wildapricot_data,
-            quickbooks_data,
+            wa_for_tax,
+            qb_for_tax,
             organization_details,
             start_date,
             end_date,
             financial_parts,
             user_prompt,
+            reference_financials=reference_financials,
+            **tax_ctx,
         )
         parts_content, parts_error, parts_truncated = await self._call_tax_return_llm(
             parts_prompt,
@@ -709,6 +807,9 @@ class ReportsService:
             filed_organization_information=filed_org_info,
             start_date=start_date,
             end_date=end_date,
+        )
+        content = normalize_tax_return_content(
+            content, quickbooks_data=quickbooks_data
         )
         error_message = "; ".join(error_messages) if error_messages else None
 

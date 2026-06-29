@@ -173,7 +173,11 @@ def bedrock_chat_completion(
         "choices": [
             {
                 "message": {"role": "assistant", "content": out_text},
-                "finish_reason": "stop",
+                "finish_reason": (
+                    "length"
+                    if str(resp.get("stopReason") or "").lower() == "max_tokens"
+                    else "stop"
+                ),
                 "index": 0,
             }
         ],

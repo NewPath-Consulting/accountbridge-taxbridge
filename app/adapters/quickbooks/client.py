@@ -284,6 +284,8 @@ class QuickBooksClient:
         realm_id: str,
         start_date: str,
         end_date: str,
+        *,
+        output_filename: str = "balance-sheet.json",
     ) -> dict[str, Any]:
         """
         Fetch Balance Sheet report from QuickBooks.
@@ -292,6 +294,7 @@ class QuickBooksClient:
             realm_id: QuickBooks company/realm ID
             start_date: Start date in YYYY-MM-DD format
             end_date: End date in YYYY-MM-DD format
+            output_filename: Local cache filename under QUICKBOOKS_OUTPUT_DIR
 
         Returns:
             Parsed JSON response containing Balance Sheet data
@@ -301,7 +304,7 @@ class QuickBooksClient:
             report_name="BalanceSheet",
             start_date=start_date,
             end_date=end_date,
-            output_filename="balance-sheet.json",
+            output_filename=output_filename,
         )
 
     async def authenticate(self) -> None:

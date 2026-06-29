@@ -4,7 +4,46 @@ from app.utils.report_normalization import (
     build_organization_summary,
     ensure_balance_sheet_mandatory_fields,
     ensure_part_x_mandatory_fields,
+    normalize_tax_return_content,
 )
+
+
+def test_normalize_tax_return_content_builds_benchmark_sections():
+    content = {
+        "partVIII_totalRevenue": 100000.0,
+        "partIX_totals": {
+            "totalExpenses": 80000.0,
+            "totalProgramServices": 50000.0,
+            "totalManagementAndGeneral": 25000.0,
+            "totalFundraising": 5000.0,
+        },
+        "partX_balanceSheet": {
+            "totalAssets": 200000.0,
+            "totalLiabilities": 50000.0,
+            "netAssets": {"totalNetAssets": 150000.0},
+        },
+        "partXI_reconciliationOfNetAssets": {
+            "line4_netAssetsBeginningOfYear": 140000.0,
+            "line9_otherChangesInNetAssets": 10000.0,
+        },
+        "reconciliation": {
+            "total_revenue": 100000.0,
+            "total_expenses": 80000.0,
+            "beginning_net_assets": 140000.0,
+            "change_in_net_assets": 10000.0,
+            "ending_net_assets": 150000.0,
+        },
+    }
+
+    result = normalize_tax_return_content(content)
+
+    assert result["revenue"]["total_revenue"] == 100000.0
+    assert result["expenses"]["total_expenses"] == 80000.0
+    assert result["expenses"]["program_services"] == 50000.0
+    assert result["balance_sheet"]["total_assets"] == 200000.0
+    assert result["reconciliation"]["ending_net_assets"] == 150000.0
+    assert result["totals"]["beginning_net_assets"] == 140000.0
+    assert result["totals"]["change_in_net_assets"] == 10000.0
 
 
 def test_build_organization_summary_maps_tax_year_and_gross_receipts():

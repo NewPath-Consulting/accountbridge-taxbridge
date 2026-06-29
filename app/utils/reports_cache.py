@@ -77,6 +77,11 @@ def extract_benchmark_reports_slice(
             "data_quality_warnings"
         ]
 
+    quickbooks_source = reports_response.get("quickbooks_source") or {}
+    prior_year_bs = quickbooks_source.get("prior_year_balance_sheet")
+    if prior_year_bs:
+        benchmark_slice["prior_year_balance_sheet"] = prior_year_bs
+
     context = {
         "request_id": reports_response.get("request_id"),
         "start_date": reports_response.get("start_date"),

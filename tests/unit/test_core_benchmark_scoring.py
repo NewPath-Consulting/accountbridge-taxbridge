@@ -7,6 +7,8 @@ from app.core.benchmark.scoring import (
     blend_year_composite,
     _score_reconciliation,
     _ai_balance_sheet_field,
+    _ai_expense_field,
+    _ai_field_present,
 )
 
 
@@ -226,3 +228,72 @@ def test_part_x_accounts_payable_detected_in_liabilities_and_net_assets():
     present, amount = _ai_balance_sheet_field(ai_report, "accounts_payable")
     assert present is True
     assert amount == 0.0
+
+
+def test_expense_functional_rollups_from_normalized_section():
+    ai_report = {
+        "expenses": {
+            "total_expenses": 80000.0,
+            "program_services": 50000.0,
+            "management_general": 25000.0,
+            "fundraising": 5000.0,
+        },
+        "partIX_totals": {
+            "totalProgramServices": 50000.0,
+            "totalManagementAndGeneral": 25000.0,
+            "totalFundraising": 5000.0,
+        },
+    }
+    present, amount = _ai_expense_field(ai_report, "program_services")
+    assert present is True
+    assert amount == 50000.0
+
+
+def test_reconciliation_fields_from_normalized_section():
+    ai_report = {
+        "reconciliation": {
+            "beginning_net_assets": 140000.0,
+            "change_in_net_assets": 10000.0,
+            "ending_net_assets": 150000.0,
+        },
+        "totals": {
+            "beginning_net_assets": 140000.0,
+            "change_in_net_assets": 10000.0,
+            "ending_net_assets": 150000.0,
+        },
+    }
+    for field in ("beginning_net_assets", "change_in_net_assets", "ending_net_assets"):
+        present, amount = _ai_field_present(ai_report, "reconciliation", field)
+        assert present is True
+        assert amount is not None
+
+
+def test_confound_flag_from_wa_period_empty():
+    manual = {
+        "revenue": {"total_revenue": 100000, "membership_dues": 50000},
+        "expenses": {"total_expenses": 80000},
+        "balance_sheet": {"total_assets": 200000, "net_assets": 150000},
+    }
+    ai_report = {
+        "totals": {"total_revenue": 100000, "total_expenses": 80000, "net_assets": 150000},
+        "reconciliation_results": [],
+        "validation_errors": [],
+        "warnings": [],
+        "audit_flags": [],
+    }
+    scorecard = build_form_990_scorecard(
+        fiscal_year=2025,
+        manual_extraction=manual,
+        prior_year_extraction=None,
+        ai_report=ai_report,
+        cash_flow_report={},
+        reports_raw={
+            "data_quality_warnings": [
+                "WA_PERIOD_EMPTY: No WildApricot financial activity in the reporting period."
+            ],
+            "tax_return": {},
+            "cash_flow": {},
+        },
+    )
+    codes = {f["code"] for f in scorecard["confound_flags"]}
+    assert "DATA_INTEGRITY_WA_EMPTY" in codes

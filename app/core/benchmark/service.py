@@ -350,6 +350,28 @@ class BenchmarkService:
             except Exception as exc:
                 logger.warning("Prior-year Form 990 extraction failed for %s: %s", year, exc)
 
+        prior_year_fp: Dict[str, Any] = {}
+        if "financial_position" in prior_year_docs:
+            try:
+                from app.core.benchmark.extraction import extract_reference_document
+
+                file_bytes, file_name = await self.document_source.read_bytes(
+                    prior_year_docs["financial_position"]
+                )
+                extraction = await extract_reference_document(
+                    file_bytes=file_bytes,
+                    file_name=file_name,
+                    doc_type="financial_position",
+                )
+                prior_year_fp = compact_manual_extraction(extraction.llm_output or {})
+                reference_extractions["prior_year_financial_position"] = prior_year_fp
+            except Exception as exc:
+                logger.warning(
+                    "Prior-year financial position extraction failed for %s: %s",
+                    year,
+                    exc,
+                )
+
         manual_990: Dict[str, Any] = {}
         if "form_990" in year_docs:
             try:
@@ -539,6 +561,7 @@ class BenchmarkService:
                     financial_position_scorecard = build_financial_position_scorecard(
                         fiscal_year=year,
                         manual_extraction=manual_fp,
+                        prior_year_extraction=prior_year_fp or None,
                         ai_report=balance_sheet_report,
                         reports_raw=reports_context,
                     )
@@ -547,6 +570,10 @@ class BenchmarkService:
                         year,
                         manual_fp,
                         balance_sheet_report,
+                        prior_year_extraction=prior_year_fp or None,
+                        prior_year_balance_sheet=reports_raw.get(
+                            "prior_year_balance_sheet"
+                        ),
                         deterministic_scorecard=financial_position_scorecard,
                     )
                     from app.core.benchmark.llm import run_benchmark_llm

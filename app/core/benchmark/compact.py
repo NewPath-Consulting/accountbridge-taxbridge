@@ -51,20 +51,41 @@ def compact_tax_return_report(report_entry: Dict[str, Any]) -> Dict[str, Any]:
     draft = content.get("generated_tax_return_draft") or content.get("generatedTaxReturnDraft") or {}
     part_ix_totals = content.get("partIX_totals") or content.get("part_ix_totals") or {}
     part_x = content.get("partX_balanceSheet") or content.get("part_x_balance_sheet") or {}
+    revenue = content.get("revenue") or {}
+    expenses = content.get("expenses") or {}
+    balance_sheet = content.get("balance_sheet") or {}
+    reconciliation = content.get("reconciliation") or {}
+    enriched_totals = content.get("totals") or {}
     return {
         "status": report_entry.get("status"),
         "processing_time": report_entry.get("processing_time"),
         "organization_summary": build_organization_summary(content),
         "generated_tax_return_draft": draft,
+        "revenue": revenue if isinstance(revenue, dict) else {},
+        "expenses": expenses if isinstance(expenses, dict) else {},
+        "balance_sheet": balance_sheet if isinstance(balance_sheet, dict) else {},
+        "reconciliation": reconciliation if isinstance(reconciliation, dict) else {},
         "totals": {
-            "total_revenue": content.get("partVIII_totalRevenue")
+            "total_revenue": enriched_totals.get("total_revenue")
+            or content.get("partVIII_totalRevenue")
             or content.get("part_viii_total_revenue"),
-            "total_expenses": part_ix_totals.get("totalExpenses")
+            "total_expenses": enriched_totals.get("total_expenses")
+            or part_ix_totals.get("totalExpenses")
             or part_ix_totals.get("total_expenses"),
-            "total_assets": part_x.get("total_assets") or part_x.get("totalAssets"),
-            "total_liabilities": part_x.get("total_liabilities")
+            "total_assets": enriched_totals.get("total_assets")
+            or part_x.get("total_assets")
+            or part_x.get("totalAssets"),
+            "total_liabilities": enriched_totals.get("total_liabilities")
+            or part_x.get("total_liabilities")
             or part_x.get("totalLiabilities"),
-            "net_assets": part_x.get("net_assets") or part_x.get("netAssets"),
+            "net_assets": enriched_totals.get("net_assets")
+            or enriched_totals.get("ending_net_assets")
+            or part_x.get("net_assets")
+            or part_x.get("netAssets"),
+            "beginning_net_assets": enriched_totals.get("beginning_net_assets"),
+            "change_in_net_assets": enriched_totals.get("change_in_net_assets"),
+            "ending_net_assets": enriched_totals.get("ending_net_assets")
+            or enriched_totals.get("net_assets"),
         },
         "part_viii_revenue": summarize_tax_return_part(
             content, "part_viii_revenue"

@@ -545,7 +545,7 @@ def postprocess_quickbooks_report(report_json: Dict[str, Any]) -> Dict[str, Any]
 
 def postprocess_quickbooks_data(quickbooks_data: Dict[str, Any]) -> Dict[str, Any]:
     """Clean Profit & Loss and Balance Sheet reports for downstream LLM use."""
-    processed = {
+    processed: Dict[str, Any] = {
         "profit_and_loss": postprocess_quickbooks_report(
             quickbooks_data.get("profit_and_loss") or {}
         ),
@@ -553,6 +553,11 @@ def postprocess_quickbooks_data(quickbooks_data: Dict[str, Any]) -> Dict[str, An
             quickbooks_data.get("balance_sheet") or {}
         ),
     }
+    prior_year_raw = quickbooks_data.get("prior_year_balance_sheet")
+    if prior_year_raw:
+        processed["prior_year_balance_sheet"] = postprocess_quickbooks_report(
+            prior_year_raw
+        )
     for report_key, report in processed.items():
         row_count = len(report.get("rows") or [])
         formatted_len = len(report.get("formatted_report") or "")
