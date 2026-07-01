@@ -14,8 +14,6 @@ except ImportError:
     load_dotenv = None
 
 BENCHMARK_REPORT_KEYS = ("cash_flow", "tax_return", "balance_sheet")
-REPORTS_HTTP_TIMEOUT_SEC = 900   # 15 minutes
-BENCHMARK_HTTP_TIMEOUT_SEC = 900  # 15 minutes
 DEFAULT_API_BASE_URL = "http://localhost:8000"
 UI_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = UI_DIR.parent
@@ -291,8 +289,7 @@ def format_api_request_error(exc: Exception, base_url: str, endpoint: str) -> st
         )
     if isinstance(exc, requests.Timeout):
         return (
-            f"Request to `{target}` timed out after "
-            f"{REPORTS_HTTP_TIMEOUT_SEC // 60} minutes. "
+            f"Request to `{target}` timed out. "
             "Report generation can take a long time; retry if the API is still running."
         )
     if isinstance(exc, requests.RequestException):
@@ -325,7 +322,7 @@ def call_reports(
         payload["quickbooks_credentials"] = quickbooks_credentials
     if user_prompt and user_prompt.strip():
         payload["user_prompt"] = user_prompt.strip()
-    resp = requests.post(url, json=payload, headers=headers, timeout=REPORTS_HTTP_TIMEOUT_SEC)
+    resp = requests.post(url, json=payload, headers=headers, timeout=None)
     if resp.status_code == 401:
         detail = parse_http_error_detail(resp)
         if is_quickbooks_refresh_token_error(detail):
@@ -605,7 +602,7 @@ def call_benchmark(
         payload["years"] = years
     if selected_document_files:
         payload["selected_document_files"] = selected_document_files
-    resp = requests.post(url, json=payload, headers=headers, timeout=BENCHMARK_HTTP_TIMEOUT_SEC)
+    resp = requests.post(url, json=payload, headers=headers, timeout=None)
     resp.raise_for_status()
     return resp.json()
 
