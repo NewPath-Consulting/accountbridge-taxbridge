@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     # Timeouts (seconds)
     TEXTRACT_TIMEOUT: int = 300
     LLM_TIMEOUT: int = 60
-    REPORTS_LLM_TIMEOUT: int = 600
+    REPORTS_LLM_TIMEOUT: int = 86400  # no practical limit for long report generation
     FILE_UPLOAD_TIMEOUT: int = 120
     SHUTDOWN_DRAIN_SECONDS: int = 30
 

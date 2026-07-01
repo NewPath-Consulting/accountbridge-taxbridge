@@ -1,10 +1,10 @@
 {
   "Header": {
-    "Time": "2026-06-29T08:43:50-07:00",
+    "Time": "2026-06-30T21:19:14-07:00",
     "ReportName": "BalanceSheet",
     "ReportBasis": "Accrual",
-    "StartPeriod": "2024-01-01",
-    "EndPeriod": "2024-12-31",
+    "StartPeriod": "2025-01-01",
+    "EndPeriod": "2025-12-31",
     "SummarizeColumnsBy": "Total",
     "Currency": "USD",
     "Option": [
@@ -90,7 +90,7 @@
                               "id": "102"
                             },
                             {
-                              "value": "26350.76"
+                              "value": "33437.92"
                             }
                           ],
                           "type": "Data"
@@ -102,7 +102,7 @@
                               "id": "103"
                             },
                             {
-                              "value": "1147.44"
+                              "value": "10192.15"
                             }
                           ],
                           "type": "Data"
@@ -114,7 +114,7 @@
                               "id": "1150040001"
                             },
                             {
-                              "value": "293097.73"
+                              "value": "317374.28"
                             }
                           ],
                           "type": "Data"
@@ -124,6 +124,18 @@
                             {
                               "value": "1003 Cash",
                               "id": "16"
+                            },
+                            {
+                              "value": "57.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "Amazon Credit",
+                              "id": "182"
                             },
                             {
                               "value": "0.00"
@@ -138,7 +150,7 @@
                               "id": "158"
                             },
                             {
-                              "value": "2285.59"
+                              "value": "5064.37"
                             }
                           ],
                           "type": "Data"
@@ -150,7 +162,19 @@
                               "id": "163"
                             },
                             {
-                              "value": "37.50"
+                              "value": "47.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "Stripe BNPL Bank Account",
+                              "id": "1150040004"
+                            },
+                            {
+                              "value": "0.00"
                             }
                           ],
                           "type": "Data"
@@ -163,7 +187,7 @@
                           "value": "Total Bank Accounts"
                         },
                         {
-                          "value": "322919.02"
+                          "value": "366172.72"
                         }
                       ]
                     },
@@ -190,7 +214,7 @@
                               "id": "10"
                             },
                             {
-                              "value": "29793.00"
+                              "value": "21900.00"
                             }
                           ],
                           "type": "Data"
@@ -203,7 +227,7 @@
                           "value": "Total Accounts Receivable"
                         },
                         {
-                          "value": "29793.00"
+                          "value": "21900.00"
                         }
                       ]
                     },
@@ -254,7 +278,7 @@
                               "id": "166"
                             },
                             {
-                              "value": "1080.00"
+                              "value": "300.00"
                             }
                           ],
                           "type": "Data"
@@ -266,7 +290,7 @@
                               "id": "167"
                             },
                             {
-                              "value": "3684.56"
+                              "value": "4135.37"
                             }
                           ],
                           "type": "Data"
@@ -278,7 +302,7 @@
                               "id": "32"
                             },
                             {
-                              "value": "650.00"
+                              "value": "1170.00"
                             }
                           ],
                           "type": "Data"
@@ -291,7 +315,7 @@
                           "value": "Total Other Current Assets"
                         },
                         {
-                          "value": "30414.56"
+                          "value": "30605.37"
                         }
                       ]
                     },
@@ -306,7 +330,7 @@
                     "value": "Total Current Assets"
                   },
                   {
-                    "value": "383126.58"
+                    "value": "418678.09"
                   }
                 ]
               },
@@ -333,7 +357,7 @@
                         "id": "21"
                       },
                       {
-                        "value": "147121.15"
+                        "value": "183956.52"
                       }
                     ],
                     "type": "Data"
@@ -357,7 +381,7 @@
                         "id": "174"
                       },
                       {
-                        "value": "-111522.61"
+                        "value": "-160065.84"
                       }
                     ],
                     "type": "Data"
@@ -369,7 +393,7 @@
                         "id": "177"
                       },
                       {
-                        "value": "-15784.09"
+                        "value": "-33308.29"
                       }
                     ],
                     "type": "Data"
@@ -382,7 +406,7 @@
                     "value": "Total Fixed Assets"
                   },
                   {
-                    "value": "142204.43"
+                    "value": "112972.37"
                   }
                 ]
               },
@@ -397,7 +421,7 @@
               "value": "TOTAL ASSETS"
             },
             {
-              "value": "525331.01"
+              "value": "531650.46"
             }
           ]
         },
@@ -463,7 +487,7 @@
                                     "id": "9"
                                   },
                                   {
-                                    "value": "1329.62"
+                                    "value": "3092.28"
                                   }
                                 ],
                                 "type": "Data"
@@ -476,7 +500,7 @@
                                 "value": "Total Accounts Payable"
                               },
                               {
-                                "value": "1329.62"
+                                "value": "3092.28"
                               }
                             ]
                           },
@@ -503,7 +527,7 @@
                                     "id": "152"
                                   },
                                   {
-                                    "value": "2474.05"
+                                    "value": "348.25"
                                   }
                                 ],
                                 "type": "Data"
@@ -515,7 +539,7 @@
                                     "id": "151"
                                   },
                                   {
-                                    "value": "521.41"
+                                    "value": "59.81"
                                   }
                                 ],
                                 "type": "Data"
@@ -527,7 +551,7 @@
                                     "id": "150"
                                   },
                                   {
-                                    "value": "301.08"
+                                    "value": "433.58"
                                   }
                                 ],
                                 "type": "Data"
@@ -539,7 +563,7 @@
                                     "id": "1150040000"
                                   },
                                   {
-                                    "value": "396.47"
+                                    "value": "0.00"
                                   }
                                 ],
                                 "type": "Data"
@@ -552,7 +576,7 @@
                                 "value": "Total Credit Cards"
                               },
                               {
-                                "value": "3693.01"
+                                "value": "841.64"
                               }
                             ]
                           },
@@ -579,7 +603,7 @@
                                     "id": "139"
                                   },
                                   {
-                                    "value": "2821.88"
+                                    "value": "2197.36"
                                   }
                                 ],
                                 "type": "Data"
@@ -603,7 +627,7 @@
                                     "id": "168"
                                   },
                                   {
-                                    "value": "5005.00"
+                                    "value": "8219.00"
                                   }
                                 ],
                                 "type": "Data"
@@ -615,7 +639,7 @@
                                     "id": "169"
                                   },
                                   {
-                                    "value": "3788.07"
+                                    "value": "3366.25"
                                   }
                                 ],
                                 "type": "Data"
@@ -627,7 +651,7 @@
                                     "id": "171"
                                   },
                                   {
-                                    "value": "72015.00"
+                                    "value": "59130.00"
                                   }
                                 ],
                                 "type": "Data"
@@ -651,7 +675,7 @@
                                     "id": "1150040002"
                                   },
                                   {
-                                    "value": "27783.50"
+                                    "value": "0.00"
                                   }
                                 ],
                                 "type": "Data"
@@ -663,7 +687,7 @@
                                     "id": "1150040003"
                                   },
                                   {
-                                    "value": "0.00"
+                                    "value": "950.00"
                                   }
                                 ],
                                 "type": "Data"
@@ -676,7 +700,7 @@
                                 "value": "Total Other Current Liabilities"
                               },
                               {
-                                "value": "112913.45"
+                                "value": "75362.61"
                               }
                             ]
                           },
@@ -691,7 +715,7 @@
                           "value": "Total Current Liabilities"
                         },
                         {
-                          "value": "117936.08"
+                          "value": "79296.53"
                         }
                       ]
                     },
@@ -706,7 +730,7 @@
                     "value": "Total Liabilities"
                   },
                   {
-                    "value": "117936.08"
+                    "value": "79296.53"
                   }
                 ]
               },
@@ -745,7 +769,7 @@
                         "id": "4"
                       },
                       {
-                        "value": "74504.47"
+                        "value": "95091.80"
                       }
                     ],
                     "type": "Data"
@@ -756,7 +780,7 @@
                         "value": "Net Revenue"
                       },
                       {
-                        "value": "20587.33"
+                        "value": "44959.00"
                       }
                     ],
                     "type": "Data",
@@ -770,7 +794,7 @@
                     "value": "Total Equity"
                   },
                   {
-                    "value": "407394.93"
+                    "value": "452353.93"
                   }
                 ]
               },
@@ -785,7 +809,7 @@
               "value": "TOTAL LIABILITIES AND EQUITY"
             },
             {
-              "value": "525331.01"
+              "value": "531650.46"
             }
           ]
         },

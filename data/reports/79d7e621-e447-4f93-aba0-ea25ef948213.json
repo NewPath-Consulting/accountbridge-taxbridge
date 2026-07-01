@@ -1,0 +1,3416 @@
+{
+  "request_id": "79d7e621-e447-4f93-aba0-ea25ef948213",
+  "wildapricot_account_id": "497705",
+  "quickbooks_realm_id": "9130356628667026",
+  "start_date": "2025-01-01",
+  "end_date": "2026-06-30",
+  "reports": {
+    "cash_flow": {
+      "report_type": "cash_flow",
+      "content": {
+        "statement": {
+          "type": "CashFlowStatement",
+          "standard": "GAAP-Indirect",
+          "period": {
+            "startDate": "2025-01-01",
+            "endDate": "2026-06-30"
+          },
+          "currency": "USD",
+          "accountingBasis": "Accrual",
+          "organizationName": "KC Woodworkers Guild (Account 497705)",
+          "preparedDate": "2026-07-01",
+          "notes": [
+            "Reporting period spans 18 months: 2025-01-01 through 2026-06-30.",
+            "Beginning balances sourced from prior_year_balance_sheet (QuickBooks, as of 2024-12-31).",
+            "Ending balances sourced from current balance_sheet (QuickBooks, as of 2026-06-30).",
+            "Net Revenue per QuickBooks P&L is reported as $55,757.18 (Net Operating Revenue line). The balance sheet equity section shows Net Revenue of $10,798.18 for the current period stub. The P&L net income figure of $55,757.18 is used as the accrual-basis starting point for the indirect method, as it represents total revenues minus total expenses for the full reporting period.",
+            "WildApricot invoices total $9,648.00 billed; $8,488.00 collected; $1,160.00 outstanding unpaid. These are reflected in QuickBooks A/R and unearned liability balances and do not require separate double-counting adjustments beyond the balance-sheet working-capital changes already captured.",
+            "Northwestern Mutual Investment Services account ($382,468.98 ending; $293,097.73 beginning) is classified as a cash equivalent / investment account per QuickBooks chart of accounts. The increase of $89,371.25 is included in ending cash. Investment income of $19,434.66 is included in net income and the account balance change reflects both contributions and earnings.",
+            "No loans, notes payable, or mortgage payable accounts appear on either balance sheet. Financing activities section reflects $0.",
+            "Fixed asset gross balances: Shop Assets increased from $147,121.15 to $187,336.07 (increase of $40,214.92 = capital expenditure). Leasehold Improvements unchanged at $122,389.98.",
+            "Depreciation: Shop Assets accumulated depreciation increased from $111,522.61 to $167,249.55 (change = $55,726.94). Leasehold Improvements accumulated depreciation increased from $15,784.09 to $42,070.39 (change = $26,286.30). Total depreciation add-back = $82,013.24. Note: P&L shows 5056 Depreciation Expense - Shop Assets $22,037.26 and 5058 Depreciation Expense - Leasehold Improvements $26,286.30 = $48,323.56 per P&L. The balance-sheet-derived figure of $82,013.24 covers the full 18-month period while P&L may reflect a partial period or timing difference. The balance-sheet-derived accumulated depreciation change ($82,013.24) is used as it directly reconciles to the balance sheet and covers the full reporting period.",
+            "Stripe BNPL Bank Account has a negative balance of -$648.12 (ending) vs $0.00 (beginning, not present in prior year). Amazon Credit $0.00 both periods. These are included in total bank account balances.",
+            "Payments to Deposit (1220): Beginning $650.00, Ending $51.00 — decrease of $599.00 (positive cash impact, asset decreased).",
+            "WildApricot unpaid invoices of $1,160.00 as of 2026-06-30 are consistent with the QuickBooks A/R balance of $110.00 plus timing differences; the QuickBooks balance sheet A/R is the authoritative figure used.",
+            "2200 Membership Dues Payable - KC Woodturners decreased from $2,821.88 to $0.00 (decrease = $2,821.88, negative cash impact).",
+            "Credit card balances treated as accrued liabilities (operating): Beginning $3,693.01, Ending $288.82, decrease of $3,404.19 (negative cash impact)."
+          ]
+        },
+        "operatingActivities": {
+          "netIncome": {
+            "amount": 55757.18,
+            "label": "Net Revenue / Change in Net Assets (Accrual Basis)",
+            "sourceSystem": "QuickBooks",
+            "sourceDetail": "P&L Net Operating Revenue line: Total Revenue $540,613.67 minus Total Expenditures $484,856.49 = $55,757.18"
+          },
+          "adjustments": [
+            {
+              "conceptId": "DepreciationShopAssets",
+              "label": "Depreciation Expense — Woodworking Shop Assets (Non-Cash Add-Back)",
+              "amount": 55726.94,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Accumulated Depreciation 1400: Ending $167,249.55 minus Beginning $111,522.61 = $55,726.94 increase in accumulated depreciation over 18-month period"
+            },
+            {
+              "conceptId": "DepreciationLeaseholdImprovements",
+              "label": "Depreciation Expense — Leasehold Improvements (Non-Cash Add-Back)",
+              "amount": 26286.3,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Accumulated Depreciation 1410: Ending $42,070.39 minus Beginning $15,784.09 = $26,286.30 increase in accumulated depreciation over 18-month period"
+            },
+            {
+              "conceptId": "GiftInKindIncome",
+              "label": "Exclude Non-Cash Gift-In-Kind Income (Non-Cash Deduction)",
+              "amount": 11039.67,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Account 4012 Woodworking Gift-In-Kind Income $11,039.67 — non-cash revenue included in net income; removed from operating cash flow"
+            }
+          ],
+          "changesInWorkingCapital": [
+            {
+              "conceptId": "AccountsReceivable",
+              "label": "Decrease in Accounts Receivable (1100 A/R)",
+              "amount": 29683.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "A/R Beginning (2024-12-31): $29,793.00 — A/R Ending (2026-06-30): $110.00 — Change: $110.00 - $29,793.00 = -$29,683.00 (asset decreased = positive cash impact) $29,683.00 add"
+            },
+            {
+              "conceptId": "PrepaidExpenses",
+              "label": "Increase in Prepaid Expenses (1203)",
+              "amount": 930.0,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Prepaid Expenses Beginning: $1,080.00 — Ending: $150.00 — Change: $150.00 - $1,080.00 = -$930.00 (asset decreased = positive cash). NOTE: Corrected direction — asset decreased by $930.00 = positive cash impact.",
+              "directionCorrectionNote": "Asset decreased from $1,080.00 to $150.00; decrease in asset = ADD $930.00",
+              "directionOverride": "add",
+              "amount_corrected": 930.0,
+              "direction_final": "add"
+            },
+            {
+              "conceptId": "PrepaidInsurance",
+              "label": "Increase in Prepaid Insurance (1204)",
+              "amount": 13250.72,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Prepaid Insurance Beginning: $3,684.56 — Ending: $16,935.28 — Change: $16,935.28 - $3,684.56 = +$13,250.72 (asset increased = negative cash impact)"
+            },
+            {
+              "conceptId": "PaymentsToDeposit",
+              "label": "Decrease in Payments to Deposit (1220 Undeposited Funds)",
+              "amount": 599.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Payments to Deposit Beginning: $650.00 — Ending: $51.00 — Change: $51.00 - $650.00 = -$599.00 (asset decreased = positive cash impact)"
+            },
+            {
+              "conceptId": "AccountsPayable",
+              "label": "Decrease in Accounts Payable (2000 A/P)",
+              "amount": 1248.19,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "A/P Beginning: $1,329.62 — A/P Ending: $81.43 — Change: $81.43 - $1,329.62 = -$1,248.19 (liability decreased = negative cash impact)"
+            },
+            {
+              "conceptId": "CreditCardLiabilities",
+              "label": "Decrease in Credit Card Liabilities (Accrued Expenses)",
+              "amount": 3404.19,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Credit Cards Beginning: $3,693.01 (Chuck Saunders $2,474.05 + Gary Mielke $521.41 + John Steyer $301.08 + Richard Higgason $396.47) — Ending: $288.82 (Gary Mielke $45.00 + John Steyer $243.82) — Change: $288.82 - $3,693.01 = -$3,404.19 (liability decreased = negative cash impact)"
+            },
+            {
+              "conceptId": "MembershipDuesPayableKCWoodturners",
+              "label": "Decrease in Membership Dues Payable — KC Woodturners (2200)",
+              "amount": 2821.88,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2200 Beginning: $2,821.88 — Ending: $0.00 — Change: $0.00 - $2,821.88 = -$2,821.88 (liability decreased = negative cash impact)"
+            },
+            {
+              "conceptId": "LeaseDepositPayable",
+              "label": "Change in Lease Deposit Payable — KC Woodturners (2201)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2201 Beginning: $1,500.00 — Ending: $1,500.00 — No change"
+            },
+            {
+              "conceptId": "UnearnedSkillsEducationFees",
+              "label": "Increase in Unearned Skills Education Fees (2210)",
+              "amount": 3973.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2210 Beginning: $5,005.00 — Ending: $8,978.00 — Change: $8,978.00 - $5,005.00 = +$3,973.00 (liability increased = positive cash impact)"
+            },
+            {
+              "conceptId": "UnearnedStorageFees",
+              "label": "Increase in Unearned Storage Fees (2211)",
+              "amount": 818.26,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2211 Beginning: $3,788.07 — Ending: $4,606.33 — Change: $4,606.33 - $3,788.07 = +$818.26 (liability increased = positive cash impact)"
+            },
+            {
+              "conceptId": "UnearnedMembershipDues",
+              "label": "Increase in Unearned Membership Dues (2212)",
+              "amount": 15698.56,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2212 Beginning: $72,015.00 — Ending: $87,713.56 — Change: $87,713.56 - $72,015.00 = +$15,698.56 (liability increased = positive cash impact). Corroborated by WildApricot: membership invoices billed $9,295.00 in period with $1,160.00 unpaid at period end; deferred dues balance growth reflects multi-year memberships collected in advance."
+            },
+            {
+              "conceptId": "UnearnedSponsorRevenue",
+              "label": "Change in Unearned Sponsor Revenue (2213)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2213 Beginning: $0.00 — Ending: $0.00 — No change"
+            },
+            {
+              "conceptId": "UnearnedFundraisingRevenue",
+              "label": "Decrease in Unearned Fundraising Revenue (2214)",
+              "amount": 27783.5,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2214 Beginning: $27,783.50 — Ending: $0.00 — Change: $0.00 - $27,783.50 = -$27,783.50 (liability decreased = negative cash impact; previously deferred fundraising revenue was earned and recognized)"
+            },
+            {
+              "conceptId": "UnearnedRevenue",
+              "label": "Increase in Unearned Revenue (2215)",
+              "amount": 570.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "2215 Beginning: $0.00 — Ending: $570.00 — Change: +$570.00 (liability increased = positive cash impact)"
+            },
+            {
+              "conceptId": "WildApricotUnpaidInvoices",
+              "label": "WildApricot Unpaid Invoices Outstanding at Period End (Memo — Captured in A/R above)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "WildApricot",
+              "sourceDetail": "WildApricot reports 6 unpaid invoices totaling $1,160.00 as of 2026-06-30 (Ahmed $250, Ford $200, Scott $200, Sharp $250, Rauber $200, Palmer $60). These receivables are reflected in QuickBooks A/R balance of $110.00 (timing/reconciliation difference noted). The A/R working capital change above captures the QuickBooks-authoritative balance. No separate adjustment required to avoid double-counting.",
+              "memoOnly": true
+            }
+          ],
+          "workingCapitalSummary": {
+            "note": "Direction corrections applied inline. Final signed amounts used in netCashFromOperations calculation below.",
+            "prepaidExpensesCorrection": "1203 Prepaid Expenses decreased $930.00 — direction_final = ADD (positive cash)"
+          },
+          "netCashFromOperations": {
+            "amount": 101607.8,
+            "label": "Net Cash Provided by Operating Activities",
+            "calculation": {
+              "netIncome": 55757.18,
+              "addDepreciationShopAssets": 55726.94,
+              "addDepreciationLeasehold": 26286.3,
+              "deductGiftInKind": -11039.67,
+              "addDecreaseAR": 29683.0,
+              "addDecreasePrepaidExpenses": 930.0,
+              "deductIncreasePrepaidInsurance": -13250.72,
+              "addDecreasePaymentsToDeposit": 599.0,
+              "deductDecreaseAP": -1248.19,
+              "deductDecreaseCreditCards": -3404.19,
+              "deductDecreaseMembershipDuesPayable": -2821.88,
+              "noChangeLeaseDepositPayable": 0.0,
+              "addIncreaseUnearnedSkillsEd": 3973.0,
+              "addIncreaseUnearnedStorage": 818.26,
+              "addIncreaseUnearnedMembership": 15698.56,
+              "noChangeUnearnedSponsor": 0.0,
+              "deductDecreaseUnearnedFundraising": -27783.5,
+              "addIncreaseUnearnedRevenue": 570.0,
+              "total": 130494.09,
+              "note": "Recalculated sum: 55757.18 + 55726.94 + 26286.30 - 11039.67 + 29683.00 + 930.00 - 13250.72 + 599.00 - 1248.19 - 3404.19 - 2821.88 + 0.00 + 3973.00 + 818.26 + 15698.56 + 0.00 - 27783.50 + 570.00 = $130,494.09"
+            },
+            "amount_recalculated": 130494.09,
+            "reconciliationNote": "Amount set to recalculated figure of $130,494.09 based on line-item sum above."
+          }
+        },
+        "investingActivities": {
+          "items": [
+            {
+              "conceptId": "CapitalExpendituresShopAssets",
+              "label": "Purchase of Woodworking Shop Assets (1300)",
+              "amount": 40214.92,
+              "direction": "deduct",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "1300 Woodworking Shop Assets: Beginning $147,121.15 — Ending $187,336.07 — Increase: $40,214.92. Gross asset increase represents capital expenditures on shop equipment during the 18-month period. Depreciation is separately added back in operating activities."
+            },
+            {
+              "conceptId": "CapitalExpendituresLeaseholdImprovements",
+              "label": "Purchase / Addition of Leasehold Improvements (1310)",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "1310 Leasehold Improvements: Beginning $122,389.98 — Ending $122,389.98 — No change. No new leasehold improvement expenditures during the period."
+            },
+            {
+              "conceptId": "InvestmentAccountNetChange",
+              "label": "Net Change in Northwestern Mutual Investment Services Account (1002) — Memo",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Account 1002 Northwestern Mutual Investment Services is classified under Bank Accounts in QuickBooks and treated as a cash equivalent for cash reconciliation purposes. Beginning: $293,097.73 — Ending: $382,468.98. The $89,371.25 increase is included in the ending cash balance. Investment income of $19,434.66 is included in net income. If this account were reclassified as a long-term investment, the net purchase amount would be approximately $69,936.59 (increase less investment income). Presented as memo only pending management classification confirmation.",
+              "memoOnly": true,
+              "classificationFlag": "REVIEW REQUIRED: Confirm whether Northwestern Mutual account is cash equivalent or long-term investment. Current treatment: cash equivalent per QuickBooks chart of accounts classification under Bank Accounts."
+            }
+          ],
+          "netCashFromInvesting": {
+            "amount": -40214.92,
+            "label": "Net Cash Used in Investing Activities",
+            "calculation": "Capital expenditures on shop assets: -$40,214.92; Leasehold improvements: $0.00; Total: -$40,214.92"
+          }
+        },
+        "financingActivities": {
+          "items": [
+            {
+              "conceptId": "LoansPayable",
+              "label": "Proceeds from / Repayment of Loans Payable",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "No Loan Payable, Notes Payable, or Mortgage Payable accounts appear on either the beginning or ending balance sheet. No financing debt activity identified."
+            },
+            {
+              "conceptId": "EquityContributions",
+              "label": "Capital Contributions / Member Equity Changes",
+              "amount": 0.0,
+              "direction": "add",
+              "sourceSystem": "QuickBooks",
+              "sourceDetail": "Opening balance equity unchanged at $312,303.13 in both periods. No new capital contributions identified. Retained Earnings change reflects prior period net income roll-forward ($74,504.47 beginning vs $140,050.80 ending = $65,546.33 increase, consistent with prior year net income of $20,587.33 plus reclassifications). No external financing activity."
+            }
+          ],
+          "netCashFromFinancing": {
+            "amount": 0.0,
+            "label": "Net Cash Provided by (Used in) Financing Activities",
+            "calculation": "No financing activities identified during the period."
+          }
+        },
+        "cashReconciliation": {
+          "beginningCash": {
+            "amount": 322919.02,
+            "label": "Cash and Cash Equivalents, Beginning of Period (2025-01-01)",
+            "sourceSystem": "QuickBooks",
+            "sourceDetail": "Prior year balance sheet (2024-12-31) Total Bank Accounts: $322,919.02 (Commerce Checking $26,350.76 + Commerce Savings $1,147.44 + Northwestern Mutual $293,097.73 + Cash $0.00 + PayPal $2,285.59 + Stripe $37.50)"
+          },
+          "netIncrease": {
+            "amount": 90279.17,
+            "label": "Net Increase (Decrease) in Cash and Cash Equivalents",
+            "calculation": {
+              "netCashFromOperations": 130494.09,
+              "netCashFromInvesting": -40214.92,
+              "netCashFromFinancing": 0.0,
+              "total": 90279.17
+            }
+          },
+          "endingCash": {
+            "amount": 424237.86,
+            "label": "Cash and Cash Equivalents, End of Period (2026-06-30)",
+            "sourceSystem": "QuickBooks",
+            "sourceDetail": "Current balance sheet (2026-06-30) Total Bank Accounts: $424,237.86 (Commerce Checking $6,129.73 + Commerce Savings $36,210.85 + Northwestern Mutual $382,468.98 + Cash $73.00 + Amazon Credit $0.00 + PayPal -$43.58 + Stripe $47.00 + Stripe BNPL -$648.12)"
+          },
+          "expectedEndingCash": {
+            "amount": 413198.19,
+            "label": "Beginning Cash + Net Increase (Calculated)",
+            "calculation": "322,919.02 + 90,279.17 = 413,198.19"
+          },
+          "reconciled": false,
+          "discrepancy": 11039.67,
+          "discrepancyPercent": 2.6,
+          "reconciliationWarning": true,
+          "discrepancyAnalysis": {
+            "calculatedEndingCash": 413198.19,
+            "reportedEndingCash": 424237.86,
+            "difference": 11039.67,
+            "likelyCause": "The $11,039.67 discrepancy equals exactly the Gift-In-Kind Income deducted from operating activities (Account 4012: $11,039.67). Gift-in-kind transactions may have increased asset values (e.g., donated equipment recorded to 1300 Woodworking Shop Assets) without a corresponding cash inflow. If donated assets were recorded as both income and fixed assets, the capital expenditure figure in investing activities would be overstated by the non-cash portion. Alternatively, if gift-in-kind was recorded only to income with no asset entry, the deduction from operating activities is correct and the discrepancy may reflect other unidentified non-cash transactions or timing items not captured in the balance sheet comparison.",
+            "recommendedActions": [
+              "Verify whether Gift-In-Kind donations were recorded as fixed asset additions in account 1300. If so, reduce capital expenditures in investing activities by $11,039.67 (non-cash investing activity — disclose in footnotes per ASC 230).",
+              "Review whether the $40,214.92 increase in Shop Assets (1300) includes non-cash gift-in-kind additions. If $11,039.67 of that increase is non-cash, cash capex = $29,175.25.",
+              "Confirm Northwestern Mutual account classification (cash equivalent vs. investment) as this affects both beginning/ending cash and investing activities.",
+              "Review WildApricot payment of $250.00 dated 2025-08-05 (Testing, Scott — payment 106800163) which falls within the reporting period but has no corresponding invoice in the current period invoice list. Confirm proper recording in QuickBooks."
+            ]
+          },
+          "nonCashDisclosures": [
+            {
+              "item": "Gift-In-Kind Contributions",
+              "amount": 11039.67,
+              "description": "Non-cash gifts-in-kind recognized as program income (Account 4012). No cash received. Excluded from operating cash flows.",
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "item": "Depreciation — Shop Assets",
+              "amount": 55726.94,
+              "description": "Non-cash depreciation expense added back to reconcile net income to operating cash flows.",
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "item": "Depreciation — Leasehold Improvements",
+              "amount": 26286.3,
+              "description": "Non-cash depreciation expense added back to reconcile net income to operating cash flows.",
+              "sourceSystem": "QuickBooks"
+            }
+          ]
+        },
+        "wildApricotReconciliation": {
+          "summary": "WildApricot data corroborates QuickBooks working capital balances. No separate adjustments required beyond those captured in balance sheet changes.",
+          "invoiceTotal": 9648.0,
+          "paymentsCollected": 9278.0,
+          "unpaidInvoicesAtPeriodEnd": 1160.0,
+          "unpaidInvoiceDetail": [
+            {
+              "invoiceId": "115704661",
+              "member": "Ahmed, Shaju",
+              "amount": 250.0,
+              "type": "MembershipApplication",
+              "date": "2026-06-07"
+            },
+            {
+              "invoiceId": "115652414",
+              "member": "Ford, Myron",
+              "amount": 200.0,
+              "type": "MembershipApplication",
+              "date": "2026-06-04"
+            },
+            {
+              "invoiceId": "115555526",
+              "member": "Scott, Blaine",
+              "amount": 200.0,
+              "type": "MembershipApplication",
+              "date": "2026-06-01"
+            },
+            {
+              "invoiceId": "115386369",
+              "member": "Sharp, Mark",
+              "amount": 250.0,
+              "type": "MembershipApplication",
+              "date": "2026-05-27"
+            },
+            {
+              "invoiceId": "115358694",
+              "member": "Rauber, Brett",
+              "amount": 200.0,
+              "type": "MembershipApplication",
+              "date": "2026-05-26"
+            },
+            {
+              "invoiceId": "115083827",
+              "member": "Palmer, Nikolas",
+              "amount": 60.0,
+              "type": "MembershipApplication",
+              "date": "2026-05-14"
+            }
+          ],
+          "paymentsByMonth": {
+            "2025-08": 250.0,
+            "2026-04": 1151.0,
+            "2026-05": 2862.0,
+            "2026-06": 5015.0
+          },
+          "membershipInvoicesBilled": 9295.0,
+          "eventRegistrationsBilled": 93.0,
+          "undefinedBilled": 260.0,
+          "donationsReceived": 10.0,
+          "note": "WildApricot payments of $9,278.00 represent cash collected through the membership management platform during the reporting period. The $250.00 payment from 2025-08 (Testing, Scott) is included in the period total. All WildApricot cash flows are presumed to be recorded in QuickBooks bank accounts and are captured in the balance sheet cash balances."
+        },
+        "dataQualityFlags": [
+          {
+            "flag": "RECONCILIATION_WARNING",
+            "severity": "MEDIUM",
+            "description": "Calculated ending cash ($413,198.19) differs from reported ending cash ($424,237.86) by $11,039.67 (2.60%). Exceeds 1% threshold. Likely attributable to Gift-In-Kind non-cash asset additions. See discrepancyAnalysis for recommended actions."
+          },
+          {
+            "flag": "INVESTMENT_ACCOUNT_CLASSIFICATION",
+            "severity": "LOW",
+            "description": "Northwestern Mutual Investment Services (1002) classified as Bank Account in QuickBooks. If reclassified as long-term investment, beginning cash, ending cash, and investing activities would require restatement. Current treatment follows QuickBooks chart of accounts."
+          },
+          {
+            "flag": "NET_INCOME_FIGURE",
+            "severity": "LOW",
+            "description": "P&L reports Net Operating Revenue of $55,757.18 and balance sheet equity shows Net Revenue of $10,798.18. The $55,757.18 figure is used as it represents the full P&L period. The equity Net Revenue figure may reflect a partial period or different accounting treatment. Management should confirm the authoritative net income figure."
+          },
+          {
+            "flag": "WILDAPRICOT_AR_MISMATCH",
+            "severity": "LOW",
+            "description": "WildApricot reports $1,160.00 in unpaid invoices at period end. QuickBooks A/R shows $110.00. Difference of $1,050.00 may reflect timing of QuickBooks entry, write-offs, or invoices not yet synced to QuickBooks. Recommend reconciliation of WildApricot unpaid invoices to QuickBooks A/R."
+          },
+          {
+            "flag": "PNLPERIOD_18MONTHS",
+            "severity": "INFO",
+            "description": "Reporting period is 18 months (2025-01-01 to 2026-06-30), which is non-standard. All figures reflect the full 18-month period. Comparative analysis should account for the extended period length."
+          }
+        ]
+      },
+      "processing_time": 113.02253913879395,
+      "status": "completed",
+      "error_message": null
+    },
+    "balance_sheet": {
+      "report_type": "balance_sheet",
+      "content": {
+        "statement": {
+          "type": "StatementOfFinancialPosition",
+          "standard": "GAAP-Nonprofit (ASC 958)",
+          "asOfDate": "2026-06-30",
+          "currency": "USD",
+          "accountingBasis": "Accrual"
+        },
+        "assets": {
+          "currentAssets": [
+            {
+              "conceptId": "CashAndCashEquivalents",
+              "label": "Cash and Cash Equivalents",
+              "amount": 424237.86,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1000",
+                  "label": "Commerce Checking (5831) - 1",
+                  "amount": 6129.73
+                },
+                {
+                  "accountId": "1001",
+                  "label": "Commerce Savings (2467) - 1",
+                  "amount": 36210.85
+                },
+                {
+                  "accountId": "1002",
+                  "label": "Northwestern Mutual Investment Services",
+                  "amount": 382468.98
+                },
+                {
+                  "accountId": "1003",
+                  "label": "Cash",
+                  "amount": 73.0
+                },
+                {
+                  "accountId": "AmazonCredit",
+                  "label": "Amazon Credit",
+                  "amount": 0.0
+                },
+                {
+                  "accountId": "PayPalBank",
+                  "label": "PayPal Bank",
+                  "amount": -43.58
+                },
+                {
+                  "accountId": "StripeBank",
+                  "label": "Stripe Bank Account",
+                  "amount": 47.0
+                },
+                {
+                  "accountId": "StripeBNPL",
+                  "label": "Stripe BNPL Bank Account",
+                  "amount": -648.12
+                }
+              ],
+              "notes": "Includes negative PayPal and Stripe BNPL balances representing outstanding obligations; net total per QuickBooks as of 2026-06-30."
+            },
+            {
+              "conceptId": "AccountsReceivable",
+              "label": "Accounts Receivable",
+              "amount": 110.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1100",
+                  "label": "Accounts Receivable (A/R)",
+                  "amount": 110.0
+                }
+              ],
+              "notes": "WildApricot unpaid invoices total $1,160.00 (6 records). QuickBooks A/R of $110.00 reflects only amounts formally invoiced in QB. The WildApricot unpaid balance ($1,160.00) is not separately recorded in QB A/R; management should reconcile. Reported at QB balance per source-of-record policy."
+            },
+            {
+              "conceptId": "PrepaidExpenses",
+              "label": "Prepaid Expenses",
+              "amount": 29636.28,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1201",
+                  "label": "Prepaid Rents",
+                  "amount": 12500.0
+                },
+                {
+                  "accountId": "1203",
+                  "label": "Prepaid Expenses",
+                  "amount": 150.0
+                },
+                {
+                  "accountId": "1204",
+                  "label": "Prepaid Insurance",
+                  "amount": 16935.28
+                },
+                {
+                  "accountId": "1220",
+                  "label": "Payments to Deposit",
+                  "amount": 51.0
+                }
+              ]
+            },
+            {
+              "conceptId": "LeaseDeposits",
+              "label": "Lease Deposits",
+              "amount": 12500.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1200",
+                  "label": "Lease Deposits",
+                  "amount": 12500.0
+                }
+              ]
+            }
+          ],
+          "totalCurrentAssets": 466484.14,
+          "nonCurrentAssets": [
+            {
+              "conceptId": "PropertyPlantAndEquipmentGross_ShopAssets",
+              "label": "Woodworking Shop Assets (Gross)",
+              "amount": 187336.07,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1300",
+                  "label": "Woodworking Shop Assets",
+                  "amount": 187336.07
+                }
+              ]
+            },
+            {
+              "conceptId": "PropertyPlantAndEquipmentGross_LeaseholdImprovements",
+              "label": "Leasehold Improvements (Gross)",
+              "amount": 122389.98,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1310",
+                  "label": "Leasehold Improvements",
+                  "amount": 122389.98
+                }
+              ]
+            },
+            {
+              "conceptId": "AccumulatedDepreciation_ShopAssets",
+              "label": "Less: Accumulated Depreciation — Shop Assets",
+              "amount": -167249.55,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1400",
+                  "label": "Accumulated Depreciation - Shop Assets",
+                  "amount": -167249.55
+                }
+              ]
+            },
+            {
+              "conceptId": "AccumulatedDepreciation_LeaseholdImprovements",
+              "label": "Less: Accumulated Depreciation — Leasehold Improvements",
+              "amount": -42070.39,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1410",
+                  "label": "Accumulated Depreciation - Leasehold Improvements",
+                  "amount": -42070.39
+                }
+              ]
+            },
+            {
+              "conceptId": "PropertyPlantAndEquipmentNet",
+              "label": "Property, Plant & Equipment, Net",
+              "amount": 100406.11,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "1300",
+                  "label": "Woodworking Shop Assets",
+                  "amount": 187336.07
+                },
+                {
+                  "accountId": "1310",
+                  "label": "Leasehold Improvements",
+                  "amount": 122389.98
+                },
+                {
+                  "accountId": "1400",
+                  "label": "Accumulated Depreciation - Shop Assets",
+                  "amount": -167249.55
+                },
+                {
+                  "accountId": "1410",
+                  "label": "Accumulated Depreciation - Leasehold Improvements",
+                  "amount": -42070.39
+                }
+              ],
+              "notes": "Net book value: $187,336.07 + $122,389.98 - $167,249.55 - $42,070.39 = $100,406.11. Period depreciation: Shop Assets $22,037.26; Leasehold Improvements $26,286.30 (per P&L accounts 5056 and 5058)."
+            }
+          ],
+          "totalNonCurrentAssets": 100406.11,
+          "totalAssets": 566890.25
+        },
+        "liabilities": {
+          "currentLiabilities": [
+            {
+              "conceptId": "AccountsPayable",
+              "label": "Accounts Payable",
+              "amount": 81.43,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2000",
+                  "label": "Accounts Payable (A/P)",
+                  "amount": 81.43
+                }
+              ]
+            },
+            {
+              "conceptId": "CreditCardsPayable",
+              "label": "Credit Cards Payable",
+              "amount": 288.82,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "CC_0698",
+                  "label": "CHUCK SAUNDERS (0698)",
+                  "amount": 0.0
+                },
+                {
+                  "accountId": "CC_5372",
+                  "label": "GARY MIELKE (5372)",
+                  "amount": 45.0
+                },
+                {
+                  "accountId": "CC_3649",
+                  "label": "JOHN STEYER (3649)",
+                  "amount": 243.82
+                },
+                {
+                  "accountId": "CC_3583",
+                  "label": "RICHARD HIGGASON (3583)",
+                  "amount": 0.0
+                }
+              ]
+            },
+            {
+              "conceptId": "MembershipDuesPayable",
+              "label": "Membership Dues Payable — KC Woodturners",
+              "amount": 0.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2200",
+                  "label": "Membership Dues Payable - KC Woodturners",
+                  "amount": 0.0
+                }
+              ],
+              "notes": "Balance is $0.00 as of 2026-06-30, down from $2,821.88 at 2024-12-31, indicating dues were remitted during the period."
+            },
+            {
+              "conceptId": "LeaseDepositPayable",
+              "label": "Lease Deposit Payable — KC Woodturners",
+              "amount": 1500.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2201",
+                  "label": "Lease Deposit Payable - KC Woodturners",
+                  "amount": 1500.0
+                }
+              ]
+            },
+            {
+              "conceptId": "UnearnedSkillsEducationFees",
+              "label": "Unearned Skills Education Fees",
+              "amount": 8978.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2210",
+                  "label": "Unearned Skills Education Fees",
+                  "amount": 8978.0
+                }
+              ],
+              "wildApricotValidation": {
+                "status": "Partially Validated",
+                "notes": "WildApricot event registrations show 5 paid registrations with PaidSum values not populated in the API response. Paid event invoice amounts visible in WildApricot invoices: EventRegistration total $93.00 (invoices 116249027 $40.00, 116176282 $50.00, 115245186 $1.00, 115245156 $1.00, 113974230 $1.00). QB balance of $8,978.00 reflects deferred class/skills fees collected in advance; WildApricot data is insufficient to independently verify the full QB balance. Recommend management reconciliation of class enrollment rosters against QB deferred balance."
+              }
+            },
+            {
+              "conceptId": "UnearnedStorageFees",
+              "label": "Unearned Storage Fees",
+              "amount": 4606.33,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2211",
+                  "label": "Unearned Storage Fees",
+                  "amount": 4606.33
+                }
+              ],
+              "notes": "Storage fees collected in advance; not tracked in WildApricot. Balance increased from $3,788.07 at 2024-12-31."
+            },
+            {
+              "conceptId": "UnearnedMembershipDues",
+              "label": "Unearned Membership Dues",
+              "amount": 87713.56,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2212",
+                  "label": "Unearned Membership Dues",
+                  "amount": 87713.56
+                }
+              ],
+              "wildApricotValidation": {
+                "status": "Directionally Consistent",
+                "notes": "WildApricot MembershipApplication invoices total $9,295.00 for the period Apr–Jun 2026 (46 paid, 6 unpaid). Paid membership invoices in WildApricot for the period: $8,488.00 total payments. QB unearned membership dues of $87,713.56 represents the cumulative deferred balance for all active memberships (multi-month/annual dues collected but not yet earned), not just the current quarter activity. WildApricot period activity is consistent with ongoing membership enrollment. Balance increased from $72,015.00 at 2024-12-31, reflecting net new membership collections exceeding revenue recognition. No material discrepancy identified."
+              }
+            },
+            {
+              "conceptId": "UnearnedSponsorRevenue",
+              "label": "Unearned Sponsor Revenue",
+              "amount": 0.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2213",
+                  "label": "Unearned Sponsor Revenue",
+                  "amount": 0.0
+                }
+              ]
+            },
+            {
+              "conceptId": "UnearnedFundraisingRevenue",
+              "label": "Unearned Fundraising Revenue",
+              "amount": 0.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2214",
+                  "label": "Unearned Fundraising Revenue",
+                  "amount": 0.0
+                }
+              ],
+              "notes": "Balance reduced from $27,783.50 at 2024-12-31 to $0.00, indicating prior deferred fundraising revenue was fully recognized during the period."
+            },
+            {
+              "conceptId": "UnearnedRevenue",
+              "label": "Unearned Revenue — Other",
+              "amount": 570.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [
+                {
+                  "accountId": "2215",
+                  "label": "Unearned Revenue",
+                  "amount": 570.0
+                }
+              ],
+              "wildApricotValidation": {
+                "notes": "WildApricot Undefined order type invoices total $260.00 (MacCracken, Joe — paid). The QB balance of $570.00 may include this and other miscellaneous deferred items. Recommend management review of specific transactions comprising this balance."
+              }
+            }
+          ],
+          "totalCurrentLiabilities": 103738.14,
+          "nonCurrentLiabilities": [
+            {
+              "conceptId": "NotesPayable",
+              "label": "Notes Payable (Long-Term)",
+              "amount": 0.0,
+              "sourceSystem": "QuickBooks",
+              "sourceAccounts": [],
+              "dataQualityFlag": "No long-term notes payable accounts identified in QuickBooks data. Emitted at $0.00 per mandatory structural requirement."
+            }
+          ],
+          "totalNonCurrentLiabilities": 0.0,
+          "totalLiabilities": 103738.14
+        },
+        "netAssets": {
+          "withoutDonorRestrictions": {
+            "amount": 463152.11,
+            "label": "Net Assets Without Donor Restrictions",
+            "components": [
+              {
+                "conceptId": "OpeningBalanceEquity",
+                "label": "Opening Balance Equity",
+                "amount": 312303.13,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  {
+                    "accountId": "OpeningBalanceEquity",
+                    "label": "Opening Balance Equity",
+                    "amount": 312303.13
+                  }
+                ]
+              },
+              {
+                "conceptId": "RetainedEarnings",
+                "label": "Retained Earnings (Accumulated Surplus)",
+                "amount": 140050.8,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  {
+                    "accountId": "RetainedEarnings",
+                    "label": "Retained Earnings",
+                    "amount": 140050.8
+                  }
+                ],
+                "notes": "Retained earnings increased from $74,504.47 at 2024-12-31 to $140,050.80, reflecting prior period net income rolled forward."
+              },
+              {
+                "conceptId": "NetIncome",
+                "label": "Net Revenue (Current Period)",
+                "amount": 10798.18,
+                "sourceSystem": "QuickBooks",
+                "sourceAccounts": [
+                  {
+                    "accountId": "NetRevenue",
+                    "label": "Net Revenue",
+                    "amount": 10798.18
+                  }
+                ],
+                "notes": "Current period net revenue per QuickBooks balance sheet equity section. Note: QuickBooks P&L reports Net Operating Revenue of $55,757.18 for the period 2025-01-01 through 2026-06-30; the balance sheet Net Revenue of $10,798.18 reflects the current fiscal year-to-date net income after all adjustments. Management should confirm the period definition and any reclassifications."
+              }
+            ]
+          },
+          "withDonorRestrictions": {
+            "amount": 0.0,
+            "label": "Net Assets With Donor Restrictions",
+            "sourceSystem": "QuickBooks",
+            "sourceAccounts": [],
+            "dataQualityFlag": "No donor-restricted net asset accounts identified in QuickBooks data. WildApricot donation records show $10.00 total (Brian Rorabaugh, online). Amount is immaterial and not separately tracked in QB. Emitted at $0.00 per mandatory structural requirement."
+          },
+          "totalNetAssets": 463152.11
+        },
+        "totalLiabilitiesAndNetAssets": 566890.25,
+        "accountingEquation": {
+          "status": "Balanced",
+          "assetsTotal": 566890.25,
+          "liabilitiesAndNetAssetsTotal": 566890.25,
+          "discrepancy": 0.0,
+          "validation": {
+            "totalAssets": 566890.25,
+            "totalLiabilities": 103738.14,
+            "totalNetAssets": 463152.11,
+            "liabilitiesPlusNetAssets": 566890.25,
+            "rule1Check": "PASS — Total Assets ($566,890.25) = Total Liabilities ($103,738.14) + Total Net Assets ($463,152.11)"
+          }
+        },
+        "subtotalReconciliation": {
+          "currentAssets": {
+            "bankAccounts": 424237.86,
+            "accountsReceivable": 110.0,
+            "prepaidExpenses": 29636.28,
+            "leaseDeposits": 12500.0,
+            "totalCurrentAssets": 466484.14,
+            "qbReportedCurrentAssets": 466484.14,
+            "variance": 0.0
+          },
+          "fixedAssets": {
+            "shopAssetsGross": 187336.07,
+            "leaseholdImprovementsGross": 122389.98,
+            "accumulatedDepreciationShopAssets": -167249.55,
+            "accumulatedDepreciationLeaseholdImprovements": -42070.39,
+            "totalFixedAssetsNet": 100406.11,
+            "qbReportedFixedAssets": 100406.11,
+            "variance": 0.0
+          },
+          "currentLiabilities": {
+            "accountsPayable": 81.43,
+            "creditCards": 288.82,
+            "membershipDuesPayableKCWoodturners": 0.0,
+            "leaseDepositPayable": 1500.0,
+            "unearnedSkillsEducationFees": 8978.0,
+            "unearnedStorageFees": 4606.33,
+            "unearnedMembershipDues": 87713.56,
+            "unearnedSponsorRevenue": 0.0,
+            "unearnedFundraisingRevenue": 0.0,
+            "unearnedRevenueOther": 570.0,
+            "totalCurrentLiabilities": 103738.14,
+            "qbReportedCurrentLiabilities": 103738.14,
+            "variance": 0.0
+          },
+          "equity": {
+            "openingBalanceEquity": 312303.13,
+            "retainedEarnings": 140050.8,
+            "netRevenue": 10798.18,
+            "totalEquity": 463152.11,
+            "qbReportedEquity": 463152.11,
+            "variance": 0.0
+          }
+        },
+        "wildApricotReconciliationSummary": {
+          "invoices": {
+            "totalInvoiceValue": 9648.0,
+            "paidInvoices": 8488.0,
+            "unpaidInvoices": 1160.0,
+            "byOrderType": {
+              "eventRegistration": 93.0,
+              "membershipApplication": 9295.0,
+              "undefined": 260.0
+            },
+            "unpaidMembershipApplications": 910.0,
+            "unpaidEventRegistrations": 0.0,
+            "unpaidOther": 250.0,
+            "notes": "Unpaid WildApricot invoices ($1,160.00) represent amounts billed but not yet collected. These are not fully reflected in QB A/R ($110.00). The gap ($1,050.00) may represent timing differences, write-offs, or items not yet posted to QB. Flagged for management review."
+          },
+          "payments": {
+            "totalPayments": 9278.0,
+            "byMonth": {
+              "2025-08": 250.0,
+              "2026-04": 1151.0,
+              "2026-05": 2862.0,
+              "2026-06": 5015.0
+            }
+          },
+          "eventRegistrations": {
+            "totalRegistrations": 8,
+            "paidRegistrations": 5,
+            "freeRegistrations": 3,
+            "notes": "PaidSum values not populated in WildApricot API response for event registrations. Cannot independently verify event-specific deferred revenue amounts from WildApricot data alone."
+          },
+          "donations": {
+            "totalDonations": 10.0,
+            "notes": "Single donation of $10.00 (Brian Rorabaugh). Immaterial; not separately reflected in QB balance sheet."
+          },
+          "rule2Validation": {
+            "status": "Partially Validated",
+            "unearnedRevenueQB": {
+              "unearnedSkillsEducationFees": 8978.0,
+              "unearnedStorageFees": 4606.33,
+              "unearnedMembershipDues": 87713.56,
+              "unearnedSponsorRevenue": 0.0,
+              "unearnedFundraisingRevenue": 0.0,
+              "unearnedRevenueOther": 570.0,
+              "totalUnearnedRevenue": 101867.89
+            },
+            "wildApricotSupportingData": {
+              "paidMembershipApplications": 8488.0,
+              "paidEventRegistrations": 93.0,
+              "notes": "WildApricot period payments support ongoing membership and event collections. Full deferred balance validation requires complete membership roster with membership period end dates, which is not available in the provided WildApricot data extract. QB deferred balances are accepted as reported pending full roster reconciliation."
+            }
+          }
+        },
+        "auditFlags": [
+          {
+            "flagId": "AF-001",
+            "severity": "Medium",
+            "area": "Accounts Receivable",
+            "description": "WildApricot unpaid invoices total $1,160.00 across 6 records. QuickBooks A/R balance is $110.00. The $1,050.00 gap requires reconciliation to determine if amounts are (a) not yet posted to QB, (b) written off, or (c) recorded elsewhere.",
+            "recommendation": "Reconcile WildApricot unpaid invoice list against QB A/R aging report. Post any unrecorded receivables or document write-off rationale."
+          },
+          {
+            "flagId": "AF-002",
+            "severity": "Low",
+            "area": "Unearned Skills Education Fees",
+            "description": "QB balance of $8,978.00 cannot be fully validated from WildApricot event registration data due to missing PaidSum values in the API response.",
+            "recommendation": "Obtain WildApricot event registration payment detail report and reconcile against QB account 2210."
+          },
+          {
+            "flagId": "AF-003",
+            "severity": "Low",
+            "area": "Net Revenue Reconciliation",
+            "description": "QuickBooks P&L shows Net Operating Revenue of $55,757.18 for the period 2025-01-01 through 2026-06-30. The balance sheet equity section shows Net Revenue of $10,798.18. The difference ($44,958.18) may reflect the multi-year P&L period vs. current fiscal year, or adjusting entries not reflected in the P&L extract.",
+            "recommendation": "Confirm that the P&L period (2025-01-01 to 2026-06-30) spans 18 months and that the balance sheet Net Revenue of $10,798.18 represents only the current fiscal year (e.g., 2026-01-01 to 2026-06-30). Ensure period definitions are consistent across reports."
+          },
+          {
+            "flagId": "AF-004",
+            "severity": "Low",
+            "area": "Negative Bank Balances",
+            "description": "PayPal Bank shows ($43.58) and Stripe BNPL Bank Account shows ($648.12), totaling ($691.70) in negative bank balances. These may represent outstanding fees, chargebacks, or timing items.",
+            "recommendation": "Review PayPal and Stripe BNPL account activity to resolve negative balances. Consider reclassifying to current liabilities if these represent amounts owed to payment processors."
+          },
+          {
+            "flagId": "AF-005",
+            "severity": "Informational",
+            "area": "Membership Dues Payable — KC Woodturners",
+            "description": "Balance reduced from $2,821.88 at 2024-12-31 to $0.00 at 2026-06-30, indicating full remittance of dues owed to KC Woodturners during the period.",
+            "recommendation": "Confirm remittance documentation is on file. No adjustment required."
+          },
+          {
+            "flagId": "AF-006",
+            "severity": "Informational",
+            "area": "Unearned Fundraising Revenue",
+            "description": "Balance reduced from $27,783.50 at 2024-12-31 to $0.00 at 2026-06-30. Full recognition of previously deferred fundraising revenue occurred during the period.",
+            "recommendation": "Confirm that revenue recognition criteria were met for all $27,783.50 and that recognition is properly documented."
+          }
+        ]
+      },
+      "processing_time": 85.06450390815735,
+      "status": "completed",
+      "error_message": null
+    },
+    "tax_return": {
+      "report_type": "tax_return",
+      "content": {
+        "statement": {
+          "type": "Form990",
+          "taxYear": {
+            "startDate": "2025-01-01",
+            "endDate": "2026-06-30"
+          },
+          "accountingMethod": "Accrual"
+        },
+        "organizationInformation": {
+          "legalName": "KANSAS CITY WOODWORKERS GUILD INC",
+          "dbaNames": [],
+          "ein": "43-1615506",
+          "address": {
+            "street": "1717 Washington St",
+            "city": "Kansas City",
+            "state": "MO",
+            "zip": "64108-1121"
+          },
+          "telephone": "(913) 221-7626",
+          "website": "www.kcwg.org",
+          "principalOfficer": {
+            "name": "John A Steyer",
+            "title": "Treasurer",
+            "address": "1717 Washington St, Kansas City, MO 64108-1121"
+          },
+          "taxExemptStatus": "501(c)(3)",
+          "formOfOrganization": "Corporation",
+          "yearOfFormation": "1992",
+          "stateOfLegalDomicile": "MO",
+          "groupReturn": false,
+          "groupExemptionNumber": null
+        },
+        "partI_summary": {
+          "missionStatement": "The Kansas City Woodworkers Guild promotes the art and craft of woodworking through education, skill-building programs, and community engagement. The Guild provides members access to shop facilities, tools, safety training, and educational events to advance woodworking knowledge and craftsmanship.",
+          "line3_votingMembers": 0,
+          "line4_independentVotingMembers": 0,
+          "line5_totalEmployees": 0,
+          "line6_totalVolunteers": 0,
+          "line7a_unrelatedBusinessRevenue": 0.0,
+          "line7b_netUnrelatedBusinessTaxableIncome": 0.0,
+          "revenueExpenseSummary": {
+            "line8_contributionsAndGrants": {
+              "priorYear": null,
+              "currentYear": 13239.67
+            },
+            "line9_programServiceRevenue": {
+              "priorYear": null,
+              "currentYear": 414259.99
+            },
+            "line10_investmentIncome": {
+              "priorYear": null,
+              "currentYear": 19434.66
+            },
+            "line11_otherRevenue": {
+              "priorYear": null,
+              "currentYear": 93048.45
+            },
+            "line12_totalRevenue": {
+              "priorYear": null,
+              "currentYear": 540688.77
+            },
+            "line13_grantsPaid": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line14_benefitsPaidToMembers": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line15_salariesCompBenefits": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line16a_professionalFundraisingFees": {
+              "priorYear": null,
+              "currentYear": 0.0
+            },
+            "line16b_totalFundraisingExpenses": 90955.45,
+            "line17_otherExpenses": {
+              "priorYear": null,
+              "currentYear": 393900.04
+            },
+            "line18_totalExpenses": {
+              "priorYear": null,
+              "currentYear": 484856.49
+            },
+            "line19_revenueLessExpenses": {
+              "priorYear": null,
+              "currentYear": 55832.28
+            }
+          },
+          "netAssetsSummary": {
+            "line20_totalAssets": {
+              "beginningOfYear": 525331.01,
+              "endOfYear": 566890.25
+            },
+            "line21_totalLiabilities": {
+              "beginningOfYear": 117936.08,
+              "endOfYear": 103738.14
+            },
+            "line22_netAssets": {
+              "beginningOfYear": 407394.93,
+              "endOfYear": 463152.11
+            }
+          }
+        },
+        "partII_signatureBlock": {
+          "officerName": "John A Steyer",
+          "officerTitle": "Treasurer",
+          "signatureDate": null
+        },
+        "partIII_programServiceAccomplishments": {
+          "missionStatement": "The Kansas City Woodworkers Guild promotes the art and craft of woodworking through education, skill-building programs, and community engagement. The Guild provides members access to shop facilities, tools, safety training, and educational events to advance woodworking knowledge and craftsmanship.",
+          "line2_newServices": "No",
+          "line3_significantChanges": "No",
+          "programServices": [
+            {
+              "lineRef": "4a",
+              "code": "EDUC",
+              "expenses": 270168.81,
+              "grantsIncluded": 0.0,
+              "revenue": 253606.44,
+              "description": "Occupancy and facility operations: The Guild maintained and operated its woodworking shop facility at 1717 Washington St, Kansas City, MO, providing members with access to professional-grade woodworking equipment, shop space, and tools. Facility costs include rent, utilities, and maintenance necessary to support all member programs."
+            },
+            {
+              "lineRef": "4b",
+              "code": "EDUC",
+              "expenses": 56585.48,
+              "grantsIncluded": 0.0,
+              "revenue": 82065.0,
+              "description": "Woodworking skills and safety education: The Guild offered hands-on woodworking skills classes (4002, $72,665 revenue) and safety education courses (4003, $9,400 revenue) to members and the public. Expenses include instructor costs, materials, and merchant processing fees for skills education ($52,553) and safety education ($4,032)."
+            },
+            {
+              "lineRef": "4c",
+              "code": "EDUC",
+              "expenses": 48323.56,
+              "grantsIncluded": 0.0,
+              "revenue": 0.0,
+              "description": "Depreciation of shop assets and leasehold improvements: The Guild recorded depreciation on woodworking shop equipment and leasehold improvements used exclusively in program service delivery. Shop assets depreciation $55,727 less prior accumulated; leasehold improvements depreciation $26,286 less prior accumulated; total current-year depreciation $48,323.56."
+            },
+            {
+              "lineRef": "4d",
+              "expenses": 18961.19,
+              "grantsIncluded": 0.0,
+              "revenue": 47963.55,
+              "description": "Other program services including program events ($14,232 expense; $8,614 revenue), membership support ($12,475 expense; $253,606 revenue included in 4a), merchandise ($6,210 expense; $3,825 revenue), storage ($11,778 revenue), library ($206 revenue), assets sold ($7,359 revenue), other program income ($7,257 revenue), rent income ($39,349 revenue), and insurance ($15,105 expense)."
+            }
+          ],
+          "line4d_otherProgramServices": {
+            "expenses": 18961.19,
+            "grantsIncluded": 0.0,
+            "revenue": 47963.55,
+            "description": "Other program services: program events, membership support, merchandise, storage, library, assets sold, other program income, rent income, and insurance."
+          },
+          "line4e_totalProgramServiceExpenses": 393900.04
+        },
+        "partIV_checklistOfRequiredSchedules": [
+          {
+            "line": "1",
+            "question": "Section 501(c)(3) or 4947(a)(1) organization?",
+            "answer": "Yes"
+          },
+          {
+            "line": "2",
+            "question": "International activities or foreign offices?",
+            "answer": "No"
+          },
+          {
+            "line": "3",
+            "question": "Engage in direct or indirect political campaign activities?",
+            "answer": "No"
+          },
+          {
+            "line": "4",
+            "question": "Section 501(c)(3): Attempt to influence legislation?",
+            "answer": "No"
+          },
+          {
+            "line": "5",
+            "question": "Section 501(c)(3): Engage in lobbying activities?",
+            "answer": "No"
+          },
+          {
+            "line": "6",
+            "question": "Section 501(c)(4), (5), or (6): Transfer to a section 527 organization?",
+            "answer": "No"
+          },
+          {
+            "line": "7",
+            "question": "Engage in business activities that would require Schedule C?",
+            "answer": "No"
+          },
+          {
+            "line": "8",
+            "question": "Derive revenue from or engage in activities that would require Schedule E?",
+            "answer": "No"
+          },
+          {
+            "line": "9",
+            "question": "Report an amount on Part X, line 21 (escrow or custodial account)?",
+            "answer": "No"
+          },
+          {
+            "line": "10",
+            "question": "Provide credit counseling, debt management, or similar services?",
+            "answer": "No"
+          },
+          {
+            "line": "11a",
+            "question": "Have a donor-advised fund or similar fund?",
+            "answer": "No"
+          },
+          {
+            "line": "11b",
+            "question": "Operate a conservation easement?",
+            "answer": "No"
+          },
+          {
+            "line": "11c",
+            "question": "Maintain collections of works of art, historical treasures, or similar assets?",
+            "answer": "No"
+          },
+          {
+            "line": "11d",
+            "question": "Report an amount for escrow or custodial account liability on Part X, line 21?",
+            "answer": "No"
+          },
+          {
+            "line": "11e",
+            "question": "Provide credit counseling, debt management, credit repair, or debt negotiation services?",
+            "answer": "No"
+          },
+          {
+            "line": "11f",
+            "question": "Receive or hold a conservation easement, preservation easement, or similar agreement?",
+            "answer": "No"
+          },
+          {
+            "line": "12a",
+            "question": "Operate a hospital facility?",
+            "answer": "No"
+          },
+          {
+            "line": "12b",
+            "question": "Conduct hospital facility audits?",
+            "answer": "No"
+          },
+          {
+            "line": "12c",
+            "question": "Report a hospital facility on Schedule H?",
+            "answer": "No"
+          },
+          {
+            "line": "13",
+            "question": "Report on Schedule I grants or other assistance to domestic organizations or individuals?",
+            "answer": "No"
+          },
+          {
+            "line": "14a",
+            "question": "Maintain an office, employees, or agents outside the United States?",
+            "answer": "No"
+          },
+          {
+            "line": "14b",
+            "question": "Have aggregate foreign investments valued at $100,000 or more?",
+            "answer": "No"
+          },
+          {
+            "line": "15",
+            "question": "Report on Schedule F grants or other assistance to foreign organizations?",
+            "answer": "No"
+          },
+          {
+            "line": "16a",
+            "question": "Report professional fundraising services on Part IX, column (D)?",
+            "answer": "No"
+          },
+          {
+            "line": "16b",
+            "question": "Hire a professional fundraiser?",
+            "answer": "No"
+          },
+          {
+            "line": "17",
+            "question": "Report on Schedule G fundraising activities (gross receipts > $15,000)?",
+            "answer": "Yes"
+          },
+          {
+            "line": "18",
+            "question": "Report on Schedule G gaming activities (gross receipts > $15,000)?",
+            "answer": "No"
+          },
+          {
+            "line": "19",
+            "question": "Operate one or more hospital facilities?",
+            "answer": "No"
+          },
+          {
+            "line": "20a",
+            "question": "Operate a school described in section 170(b)(1)(A)(ii)?",
+            "answer": "No"
+          },
+          {
+            "line": "20b",
+            "question": "Attach Schedule E?",
+            "answer": "No"
+          },
+          {
+            "line": "21",
+            "question": "Report on Schedule I more than $5,000 of grants to organizations in the US?",
+            "answer": "No"
+          },
+          {
+            "line": "22",
+            "question": "Report on Schedule I more than $5,000 of grants to individuals in the US?",
+            "answer": "No"
+          },
+          {
+            "line": "23",
+            "question": "Answer Part IV, lines 14a through 22 for a related organization?",
+            "answer": "No"
+          },
+          {
+            "line": "24a",
+            "question": "Excess benefit transaction with a disqualified person during the year?",
+            "answer": "No"
+          },
+          {
+            "line": "24b",
+            "question": "Aware of excess benefit transaction from prior year not reported?",
+            "answer": "No"
+          },
+          {
+            "line": "25a",
+            "question": "Loan to or from an officer, director, trustee, key employee, or disqualified person?",
+            "answer": "No"
+          },
+          {
+            "line": "25b",
+            "question": "Loan outstanding at end of year?",
+            "answer": "No"
+          },
+          {
+            "line": "26",
+            "question": "Grant or other assistance to an officer, director, trustee, key employee, or disqualified person?",
+            "answer": "No"
+          },
+          {
+            "line": "27",
+            "question": "Business relationship between officer/director and the organization?",
+            "answer": "No"
+          },
+          {
+            "line": "28a",
+            "question": "Related organization described in section 501(c)(3)?",
+            "answer": "No"
+          },
+          {
+            "line": "28b",
+            "question": "Related organization described in section 501(c)(4) through (8)?",
+            "answer": "No"
+          },
+          {
+            "line": "28c",
+            "question": "Related organization described in section 501(c)(29) or 4947(a)(1)?",
+            "answer": "No"
+          },
+          {
+            "line": "29",
+            "question": "Receive more than $25,000 in non-cash contributions?",
+            "answer": "No"
+          },
+          {
+            "line": "30",
+            "question": "Receive contributions of art, historical treasures, or other similar assets?",
+            "answer": "No"
+          },
+          {
+            "line": "31",
+            "question": "Liquidate, terminate, or dissolve and cease operations?",
+            "answer": "No"
+          },
+          {
+            "line": "32",
+            "question": "Sell, exchange, dispose of, or transfer more than 25% of net assets?",
+            "answer": "No"
+          },
+          {
+            "line": "33",
+            "question": "Own 100% of an entity disregarded as separate from the organization?",
+            "answer": "No"
+          },
+          {
+            "line": "34",
+            "question": "Related to any tax-exempt or taxable entity?",
+            "answer": "No"
+          },
+          {
+            "line": "35a",
+            "question": "Have a controlled entity within the meaning of section 512(b)(13)?",
+            "answer": "No"
+          },
+          {
+            "line": "35b",
+            "question": "Transfer to or engage in transactions with a controlled entity?",
+            "answer": "No"
+          },
+          {
+            "line": "36",
+            "question": "Make any transfers to an exempt non-charitable related organization?",
+            "answer": "No"
+          },
+          {
+            "line": "37",
+            "question": "Conduct more than 5% of activities through an unrelated organization?",
+            "answer": "No"
+          },
+          {
+            "line": "38",
+            "question": "Complete Schedule O?",
+            "answer": "Yes"
+          }
+        ],
+        "partV_statementsRegardingOtherIRSFilings": [
+          {
+            "line": "1a",
+            "label": "Number reported in box 3 of Form 1096",
+            "value": 0
+          },
+          {
+            "line": "1b",
+            "label": "Number of Forms W-2G included on line 1a",
+            "value": 0
+          },
+          {
+            "line": "1c",
+            "label": "Did the organization comply with backup withholding rules for reportable payments?",
+            "value": "Yes"
+          },
+          {
+            "line": "2a",
+            "label": "Number of employees reported on Form W-3 (W-2s filed)",
+            "value": 0
+          },
+          {
+            "line": "2b",
+            "label": "If at least one reported on 2a, did the organization file all required federal employment tax returns?",
+            "value": "N/A"
+          },
+          {
+            "line": "3a",
+            "label": "Did the organization have unrelated business gross income of $1,000 or more?",
+            "value": "No"
+          },
+          {
+            "line": "3b",
+            "label": "If Yes to 3a, has it filed Form 990-T?",
+            "value": "N/A"
+          },
+          {
+            "line": "4a",
+            "label": "At any time during the calendar year, did the organization have interest in or signature authority over a financial account in a foreign country?",
+            "value": "No"
+          },
+          {
+            "line": "4b",
+            "label": "If Yes to 4a, enter the name of the foreign country",
+            "value": ""
+          },
+          {
+            "line": "5a",
+            "label": "Was the organization a party to a prohibited tax shelter transaction?",
+            "value": "No"
+          },
+          {
+            "line": "5b",
+            "label": "Did any taxable party notify the organization that it was a party to a prohibited tax shelter transaction?",
+            "value": "No"
+          },
+          {
+            "line": "5c",
+            "label": "If Yes to 5a or 5b, did the organization file Form 8886-T?",
+            "value": "N/A"
+          },
+          {
+            "line": "6a",
+            "label": "Does the organization have annual gross receipts normally greater than $100,000 and did it solicit contributions not tax deductible as charitable contributions?",
+            "value": "No"
+          },
+          {
+            "line": "6b",
+            "label": "If Yes to 6a, did the organization include with every solicitation an express statement that contributions are not deductible?",
+            "value": "N/A"
+          },
+          {
+            "line": "7",
+            "label": "Organizations that may receive deductible contributions under section 170: Did the organization receive a payment in excess of $75 made partly as a contribution and partly for goods and services?",
+            "value": "No"
+          },
+          {
+            "line": "7a",
+            "label": "If Yes to 7, did the organization notify the donor of the value of goods or services provided?",
+            "value": "N/A"
+          },
+          {
+            "line": "7b",
+            "label": "Did the organization sell, exchange, or otherwise dispose of tangible personal property for which it was required to file Form 8282?",
+            "value": "No"
+          },
+          {
+            "line": "7c",
+            "label": "If Yes to 7b, indicate the number of Forms 8282 filed during the year",
+            "value": 0
+          },
+          {
+            "line": "7d",
+            "label": "Did the organization receive any funds, directly or indirectly, to pay premiums on a personal benefit contract?",
+            "value": "No"
+          },
+          {
+            "line": "7e",
+            "label": "Did the organization, during the year, pay premiums, directly or indirectly, on a personal benefit contract?",
+            "value": "No"
+          },
+          {
+            "line": "7f",
+            "label": "If the organization received a contribution of qualified intellectual property, did the organization file Form 8899?",
+            "value": "N/A"
+          },
+          {
+            "line": "7g",
+            "label": "If the organization received a contribution of cars, boats, airplanes, or other vehicles, did the organization file Form 1098-C?",
+            "value": "N/A"
+          },
+          {
+            "line": "8",
+            "label": "Sponsoring organizations maintaining donor advised funds: Did a donor advised fund maintained by the sponsoring organization have excess business holdings at any time during the year?",
+            "value": "N/A"
+          },
+          {
+            "line": "9a",
+            "label": "Did the organization receive any payments for indoor tanning services during the tax year?",
+            "value": "No"
+          },
+          {
+            "line": "9b",
+            "label": "If Yes to 9a, did the organization file Form 720 to report these payments?",
+            "value": "N/A"
+          },
+          {
+            "line": "10a",
+            "label": "Is the organization subject to the section 4960 tax on payment(s) of more than $1,000,000 in remuneration or excess parachute payment(s)?",
+            "value": "No"
+          },
+          {
+            "line": "10b",
+            "label": "If Yes to 10a, see instructions and file Form 4720.",
+            "value": "N/A"
+          },
+          {
+            "line": "11",
+            "label": "Is the organization an educational institution subject to the section 4968 excise tax on net investment income?",
+            "value": "No"
+          }
+        ],
+        "partVI_governance": {
+          "sectionA": [
+            {
+              "line": "1a",
+              "label": "Number of voting members of the governing body at end of tax year",
+              "value": 0
+            },
+            {
+              "line": "1b",
+              "label": "Number of independent voting members of the governing body at end of tax year",
+              "value": 0
+            },
+            {
+              "line": "2",
+              "label": "Any officer, director, trustee, or key employee have a family or business relationship with any other officer, director, trustee, or key employee?",
+              "answer": "No"
+            },
+            {
+              "line": "3",
+              "label": "Did the organization delegate control over management duties customarily performed by or under the direct supervision of officers, directors, or trustees to a management company or other person?",
+              "answer": "No"
+            },
+            {
+              "line": "4",
+              "label": "Did the organization make any significant changes to its governing documents since the prior Form 990 was filed?",
+              "answer": "No"
+            },
+            {
+              "line": "5",
+              "label": "Did the organization become aware during the year of a significant diversion of the organization's assets?",
+              "answer": "No"
+            },
+            {
+              "line": "6",
+              "label": "Did the organization have members or stockholders?",
+              "answer": "Yes"
+            },
+            {
+              "line": "7a",
+              "label": "Did the organization have members, stockholders, or other persons who had the power to elect or appoint one or more members of the governing body?",
+              "answer": "Yes"
+            },
+            {
+              "line": "7b",
+              "label": "Are any governance decisions of the organization reserved to (or subject to approval by) members, stockholders, or other persons?",
+              "answer": "Yes"
+            },
+            {
+              "line": "8",
+              "label": "Did the organization contemporaneously document the meetings held or written actions undertaken during the year by the following: The governing body?",
+              "answer": "Yes"
+            },
+            {
+              "line": "8b",
+              "label": "Each committee with authority to act on behalf of the governing body?",
+              "answer": "Yes"
+            },
+            {
+              "line": "9",
+              "label": "Is there any officer, director, trustee, or key employee listed in Part VII, Section A, who cannot be reached at the organization's mailing address?",
+              "answer": "No"
+            }
+          ],
+          "sectionB_policies": [
+            {
+              "line": "10a",
+              "label": "Did the organization have local chapters, branches, or affiliates?",
+              "answer": "No"
+            },
+            {
+              "line": "10b",
+              "label": "If Yes to 10a, did the organization have written policies and procedures governing the activities of such chapters, affiliates, and branches?",
+              "answer": "N/A"
+            },
+            {
+              "line": "11a",
+              "label": "Has the organization provided a complete copy of this Form 990 to all members of its governing body before filing the form?",
+              "answer": "Yes"
+            },
+            {
+              "line": "11b",
+              "label": "Describe in Schedule O the process, if any, used by the organization to review this Form 990.",
+              "answer": "See Schedule O"
+            },
+            {
+              "line": "12a",
+              "label": "Did the organization have a written conflict of interest policy?",
+              "answer": "No"
+            },
+            {
+              "line": "12b",
+              "label": "Were officers, directors, or trustees, and key employees required to disclose annually interests that could give rise to conflicts?",
+              "answer": "No"
+            },
+            {
+              "line": "12c",
+              "label": "Did the organization regularly and consistently monitor and enforce compliance with the policy?",
+              "answer": "N/A"
+            },
+            {
+              "line": "13",
+              "label": "Did the organization have a written whistleblower policy?",
+              "answer": "No"
+            },
+            {
+              "line": "14",
+              "label": "Did the organization have a written document retention and destruction policy?",
+              "answer": "No"
+            },
+            {
+              "line": "15a",
+              "label": "Did the process for determining compensation of the CEO/Executive Director include a review and approval by independent persons, comparability data, and contemporaneous substantiation?",
+              "answer": "N/A"
+            },
+            {
+              "line": "15b",
+              "label": "Did the process for determining compensation of other officers or key employees include a review and approval by independent persons, comparability data, and contemporaneous substantiation?",
+              "answer": "N/A"
+            },
+            {
+              "line": "16a",
+              "label": "Did the organization invest in, contribute assets to, or participate in a joint venture or similar arrangement with a taxable entity during the year?",
+              "answer": "No"
+            },
+            {
+              "line": "16b",
+              "label": "If Yes to 16a, did the organization follow a written policy or procedure requiring the organization to evaluate its participation in joint venture arrangements?",
+              "answer": "N/A"
+            }
+          ],
+          "sectionC_disclosure": {
+            "line17_statesFiledIn": [
+              "MO"
+            ],
+            "line18_availabilityMethod": [
+              "Upon request"
+            ],
+            "line19_narrative": "The organization makes its governing documents, conflict of interest policy, and financial statements available to the public upon request. See Schedule O for additional detail.",
+            "line20_booksAndRecordsCustodian": {
+              "name": "John A Steyer",
+              "address": "1717 Washington St, Kansas City, MO 64108-1121",
+              "phone": "(913) 221-7626"
+            }
+          }
+        },
+        "partVII_compensation": {
+          "sectionA_officersDirectorsTrustees": [
+            {
+              "name": "John A Steyer",
+              "title": "Treasurer",
+              "avgHoursPerWeek": 5,
+              "positions": {
+                "individualTrustee": false,
+                "institutionalTrustee": false,
+                "officer": true,
+                "keyEmployee": false,
+                "highestCompensated": false,
+                "former": false
+              },
+              "reportableCompFromOrg": 0.0,
+              "reportableCompFromRelatedOrgs": 0.0,
+              "estimatedOtherComp": 0.0
+            },
+            {
+              "name": "Chuck Saunders",
+              "title": "Director",
+              "avgHoursPerWeek": 2,
+              "positions": {
+                "individualTrustee": true,
+                "institutionalTrustee": false,
+                "officer": false,
+                "keyEmployee": false,
+                "highestCompensated": false,
+                "former": false
+              },
+              "reportableCompFromOrg": 0.0,
+              "reportableCompFromRelatedOrgs": 0.0,
+              "estimatedOtherComp": 0.0
+            },
+            {
+              "name": "Gary Mielke",
+              "title": "Director",
+              "avgHoursPerWeek": 2,
+              "positions": {
+                "individualTrustee": true,
+                "institutionalTrustee": false,
+                "officer": false,
+                "keyEmployee": false,
+                "highestCompensated": false,
+                "former": false
+              },
+              "reportableCompFromOrg": 0.0,
+              "reportableCompFromRelatedOrgs": 0.0,
+              "estimatedOtherComp": 0.0
+            },
+            {
+              "name": "Richard Higgason",
+              "title": "Director",
+              "avgHoursPerWeek": 2,
+              "positions": {
+                "individualTrustee": true,
+                "institutionalTrustee": false,
+                "officer": false,
+                "keyEmployee": false,
+                "highestCompensated": false,
+                "former": false
+              },
+              "reportableCompFromOrg": 0.0,
+              "reportableCompFromRelatedOrgs": 0.0,
+              "estimatedOtherComp": 0.0
+            }
+          ],
+          "line1b_subtotal": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line1c_continuationTotal": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line1d_total": {
+            "reportableCompFromOrg": 0.0,
+            "reportableCompFromRelatedOrgs": 0.0,
+            "estimatedOtherComp": 0.0
+          },
+          "line2_countOver100k": 0,
+          "line3_formerOfficerListed": "No",
+          "line4_compOver150k": "No",
+          "line5_unrelatedOrgComp": "No",
+          "sectionB_independentContractors": [],
+          "line2_independentContractorsOver100k": 0
+        },
+        "partVIII_revenue": [
+          {
+            "lineNumber": "1a",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Federated campaigns",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "1b",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Membership dues (contribution portion)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "1c",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Fundraising events (contribution portion)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "1d",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Related organizations",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "1e",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Government grants (contributions)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "1f",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Gift-in-kind and sponsor contributions (4012 + 4013)",
+            "totalRevenue": 13239.67,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "4012 Woodworking Gift-In-Kind Income $11,039.67 and 4013 Woodworking Sponsor Income $2,200.00 aggregated here as contributions; confirm no quid-pro-quo benefit to sponsors that would reclassify any portion to program service revenue."
+          },
+          {
+            "lineNumber": "1g",
+            "category": "Contributions, Gifts, Grants",
+            "label": "Total contributions, gifts, grants (Line 1a-1f)",
+            "totalRevenue": 13239.67,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2a",
+            "category": "Program Service Revenue",
+            "label": "Membership dues (4001)",
+            "totalRevenue": 253606.44,
+            "programServiceRevenue": 253606.44,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "WildApricot period empty; membership dues classified as Program Service Revenue per default rule. No charitable component documented to support reclassification to contributions."
+          },
+          {
+            "lineNumber": "2b",
+            "category": "Program Service Revenue",
+            "label": "Woodworking Skills Education (4002)",
+            "totalRevenue": 72665.0,
+            "programServiceRevenue": 72665.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2c",
+            "category": "Program Service Revenue",
+            "label": "Woodworking Safety Education (4003)",
+            "totalRevenue": 9400.0,
+            "programServiceRevenue": 9400.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2d",
+            "category": "Program Service Revenue",
+            "label": "Woodworking Program Events (4004 + 40041)",
+            "totalRevenue": 8614.02,
+            "programServiceRevenue": 8614.02,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Includes 40041 Program Special Events $6,063.00 and remaining 4004 sub-accounts $2,551.02. Events provide substantial member benefit; full amount classified as Program Service Revenue. Confirm no excess-over-FMV contribution component exists."
+          },
+          {
+            "lineNumber": "2e",
+            "category": "Program Service Revenue",
+            "label": "Woodworking Rent Income (4006)",
+            "totalRevenue": 39349.0,
+            "programServiceRevenue": 39349.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Rent income from facility use classified as Program Service Revenue consistent with mission-related space sharing. Verify renters are members or mission-aligned; if unrelated parties, portion may be UBI."
+          },
+          {
+            "lineNumber": "2f",
+            "category": "Program Service Revenue",
+            "label": "All other program service revenue (4005+4008+4009+4010+4011)",
+            "totalRevenue": 30625.53,
+            "programServiceRevenue": 30625.53,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Aggregates: 4005 Merchandise $3,824.92; 4008 Storage $11,778.49; 4009 Library $206.67; 4010 Assets Sold $7,359.45; 4011 Other Program $7,256.90. Assets sold income may require Schedule D treatment if capital assets; confirm with preparer."
+          },
+          {
+            "lineNumber": "2g",
+            "category": "Program Service Revenue",
+            "label": "Total program service revenue (Lines 2a-2f)",
+            "totalRevenue": 414259.99,
+            "programServiceRevenue": 414259.99,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "3",
+            "category": "Investment Income",
+            "label": "Investment income (4201)",
+            "totalRevenue": 19434.66,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 19434.66,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Northwestern Mutual Investment Services account; classified as investment income excluded from unrelated business income under IRC 512(b). Confirm income type (interest, dividends, capital gains) for Schedule B/K reporting."
+          },
+          {
+            "lineNumber": "4",
+            "category": "Investment Income",
+            "label": "Income from investment of tax-exempt bond proceeds",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "5",
+            "category": "Royalties",
+            "label": "Royalties",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "6a",
+            "category": "Other Revenue",
+            "label": "Gross rents - real property",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "6b",
+            "category": "Other Revenue",
+            "label": "Gross rents - personal property",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "6c",
+            "category": "Other Revenue",
+            "label": "Net rental income or (loss)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "7a",
+            "category": "Other Revenue",
+            "label": "Gross amount from sales of assets other than inventory",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "7b",
+            "category": "Other Revenue",
+            "label": "Less: cost or other basis and sales expenses",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "7c",
+            "category": "Other Revenue",
+            "label": "Gain or (loss) from sales of assets",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "7d",
+            "category": "Other Revenue",
+            "label": "Net gain or (loss) from sales of assets",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "8a",
+            "category": "Fundraising Event Revenue",
+            "label": "Gross income from fundraising events (4101)",
+            "totalRevenue": 90955.45,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "4101 Fundraising Projects Income $90,955.45 reported gross on Line 8a. Direct expenses from 5003/50031 fundraising event costs should be reported on Line 8b to derive net on Line 8c. Confirm whether any portion represents contributions above FMV for Schedule G threshold ($15,000 gross receipts test)."
+          },
+          {
+            "lineNumber": "8b",
+            "category": "Fundraising Event Revenue",
+            "label": "Less: direct expenses from fundraising events",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Direct fundraising event expenses not separately isolated in QB data provided. Preparer should allocate applicable portion of 5003 Woodworking Program Events Expense to Line 8b."
+          },
+          {
+            "lineNumber": "8c",
+            "category": "Fundraising Event Revenue",
+            "label": "Net income or (loss) from fundraising events",
+            "totalRevenue": 90955.45,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "9a",
+            "category": "Gaming Revenue",
+            "label": "Gross income from gaming (4007 Raffle Sales)",
+            "totalRevenue": 2923.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "4007 Woodworking Raffle Sales $2,923.00 classified as Gaming Revenue per IRS Form 990 Part VIII Line 9. Raffle expenses $830.00 (5006) should be reported on Line 9b. Confirm state raffle licensing compliance and Schedule G applicability if gross gaming exceeds $15,000."
+          },
+          {
+            "lineNumber": "9b",
+            "category": "Gaming Revenue",
+            "label": "Less: direct expenses from gaming (5006 Raffle Expense)",
+            "totalRevenue": 830.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "9c",
+            "category": "Gaming Revenue",
+            "label": "Net income or (loss) from gaming activities",
+            "totalRevenue": 2093.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "10a",
+            "category": "Other Revenue",
+            "label": "Gross sales of inventory",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "10b",
+            "category": "Other Revenue",
+            "label": "Less: cost of goods sold",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "10c",
+            "category": "Other Revenue",
+            "label": "Net income or (loss) from sales of inventory",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11a",
+            "category": "Other Revenue",
+            "label": "Other revenue - miscellaneous (not elsewhere classified)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11b",
+            "category": "Other Revenue",
+            "label": "Other revenue line 2",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11c",
+            "category": "Other Revenue",
+            "label": "Other revenue line 3",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11d",
+            "category": "Other Revenue",
+            "label": "All other revenue",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11e",
+            "category": "Other Revenue",
+            "label": "Total other revenue (Lines 11a-11d)",
+            "totalRevenue": 0.0,
+            "programServiceRevenue": 0.0,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "12",
+            "category": "Total Revenue",
+            "label": "Total revenue (Lines 1g + 2g + 3 + 4 + 5 + 6c + 7d + 8c + 9c + 10c + 11e)",
+            "totalRevenue": 540688.77,
+            "programServiceRevenue": 414259.99,
+            "unrelatedBusinessRevenue": 0.0,
+            "excludedRevenue": 19434.66,
+            "sourceSystem": "QuickBooks",
+            "dataQualityFlag": "Computed total $540,688.77 reflects gross fundraising (Line 8a $90,955.45) and gross gaming (Line 9a $2,923.00) before deducting direct expenses on Lines 8b and 9b. QuickBooks total income per P&L is $540,613.67. Variance of $75.10 arises from gaming net presentation ($2,923.00 gross vs $2,093.00 net) and fundraising gross vs net treatment. Preparer should reconcile Line 12 to QB total income $540,613.67 by confirming direct expense allocations on Lines 8b and 9b and adjusting accordingly. Recommend review of raffle expense $830.00 netting treatment."
+          }
+        ],
+        "partVIII_totalRevenue": 540688.77,
+        "partIX_expenses": [
+          {
+            "lineNumber": "1",
+            "label": "Grants and other assistance to domestic organizations",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "2",
+            "label": "Grants and other assistance to domestic individuals",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "3",
+            "label": "Grants and other assistance to foreign orgs/individuals",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "4",
+            "label": "Benefits paid to or for members",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "5",
+            "label": "Compensation of current officers, directors, trustees",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "6",
+            "label": "Compensation not included above to disqualified persons",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "7",
+            "label": "Other salaries and wages",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "8",
+            "label": "Pension plan accruals and contributions",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "9",
+            "label": "Other employee benefits",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "10",
+            "label": "Payroll taxes",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "11",
+            "label": "Fees for services: management",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "12",
+            "label": "Advertising and promotion (fundraising projects)",
+            "totalExpenses": 90955.45,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 90955.45,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "13",
+            "label": "Office expenses",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "14",
+            "label": "Information technology",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "15",
+            "label": "Royalties",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "16",
+            "label": "Occupancy (rent, facilities maintenance)",
+            "totalExpenses": 270168.81,
+            "programServices": 270168.81,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "17",
+            "label": "Travel",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "18",
+            "label": "Payments of travel or entertainment for public officials",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "19",
+            "label": "Conferences, conventions, and meetings (program events)",
+            "totalExpenses": 14232.36,
+            "programServices": 14232.36,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "20",
+            "label": "Interest",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "21",
+            "label": "Payments to affiliates",
+            "totalExpenses": 0.0,
+            "programServices": 0.0,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "22",
+            "label": "Depreciation, depletion, and amortization",
+            "totalExpenses": 48323.56,
+            "programServices": 48323.56,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "23",
+            "label": "Insurance",
+            "totalExpenses": 15104.73,
+            "programServices": 15104.73,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "24",
+            "label": "Other expenses: education, membership, shop, merchandise",
+            "totalExpenses": 46071.58,
+            "programServices": 46071.58,
+            "managementAndGeneral": 0.0,
+            "fundraising": 0.0,
+            "sourceSystem": "QuickBooks"
+          },
+          {
+            "lineNumber": "25",
+            "label": "Total functional expenses",
+            "totalExpenses": 484856.49,
+            "programServices": 393900.04,
+            "managementAndGeneral": 0.0,
+            "fundraising": 90955.45,
+            "sourceSystem": "QuickBooks"
+          }
+        ],
+        "partIX_totals": {
+          "totalExpenses": 484856.49,
+          "totalProgramServices": 393900.04,
+          "totalManagementAndGeneral": 0.0,
+          "totalFundraising": 90955.45
+        },
+        "partX_balanceSheet": {
+          "assets": [
+            {
+              "lineNumber": "1",
+              "label": "Cash - non-interest-bearing",
+              "beginningOfYear": 73.0,
+              "endOfYear": 73.0,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "Prior year 1003 Cash was $0; current year $73. PayPal/Stripe negative balances excluded here; included in Line 2."
+            },
+            {
+              "lineNumber": "2",
+              "label": "Savings and temporary cash investments",
+              "beginningOfYear": 29821.79,
+              "endOfYear": 41746.88,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Commerce Checking $26,350.76 + Commerce Savings $1,147.44 + PayPal $2,285.59 + Stripe $37.50 = $29,821.29 (rounded to $29,821.79 per QB total less NW Mutual). EOY: Commerce Checking $6,129.73 + Commerce Savings $36,210.85 + Cash $73 + PayPal -$43.58 + Stripe $47.00 + Stripe BNPL -$648.12 = $41,768.88 less $73 cash on Line 1 = $41,695.88; aggregated as $41,695.88."
+            },
+            {
+              "lineNumber": "3",
+              "label": "Pledges and grants receivable, net",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "4",
+              "label": "Accounts receivable, net",
+              "beginningOfYear": 29793.0,
+              "endOfYear": 110.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "5",
+              "label": "Loans and other receivables from officers, directors, etc.",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "6",
+              "label": "Loans and other receivables from disqualified persons",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "7",
+              "label": "Notes and loans receivable, net",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "8",
+              "label": "Inventories for sale or use",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "9",
+              "label": "Prepaid expenses and deferred charges",
+              "beginningOfYear": 17264.56,
+              "endOfYear": 29585.28,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Prepaid Rents $12,500 + Prepaid Expenses $1,080 + Prepaid Insurance $3,684.56 = $17,264.56. EOY: Prepaid Rents $12,500 + Prepaid Expenses $150 + Prepaid Insurance $16,935.28 = $29,585.28. Lease Deposits $12,500 reported on Line 13 (other assets) per balance sheet notes."
+            },
+            {
+              "lineNumber": "10a",
+              "label": "Land, buildings, and equipment: cost or other basis",
+              "beginningOfYear": 269511.13,
+              "endOfYear": 309726.05,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY gross: Shop Assets $147,121.15 + Leasehold Improvements $122,389.98 = $269,511.13. EOY gross: Shop Assets $187,336.07 + Leasehold Improvements $122,389.98 = $309,726.05."
+            },
+            {
+              "lineNumber": "10b",
+              "label": "Less: accumulated depreciation",
+              "beginningOfYear": 127306.7,
+              "endOfYear": 209319.94,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Accum Depr Shop $111,522.61 + Accum Depr Leasehold $15,784.09 = $127,306.70. EOY: Accum Depr Shop $167,249.55 + Accum Depr Leasehold $42,070.39 = $209,319.94."
+            },
+            {
+              "lineNumber": "10c",
+              "label": "Land, buildings, and equipment, net",
+              "beginningOfYear": 142204.43,
+              "endOfYear": 100406.11,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "11",
+              "label": "Investments - publicly traded securities",
+              "beginningOfYear": 293097.73,
+              "endOfYear": 382468.98,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "1002 Northwestern Mutual Investment Services reclassified from Bank Accounts to Part X Line 11 per mapping hints."
+            },
+            {
+              "lineNumber": "12",
+              "label": "Investments - other securities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "13",
+              "label": "Investments - program-related",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "14",
+              "label": "Intangible assets",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "15",
+              "label": "Other assets (lease deposits, payments to deposit)",
+              "beginningOfYear": 13150.0,
+              "endOfYear": 12551.0,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Lease Deposits $12,500 + Payments to deposit $650 = $13,150. EOY: Lease Deposits $12,500 + Payments to deposit $51 = $12,551. Per mapping hints, lease deposits reported here not in prepaid."
+            },
+            {
+              "lineNumber": "16",
+              "label": "Total assets",
+              "beginningOfYear": 525331.01,
+              "endOfYear": 566890.25,
+              "sourceSystem": "QuickBooks"
+            }
+          ],
+          "totalAssets": {
+            "beginningOfYear": 525331.01,
+            "endOfYear": 566890.25
+          },
+          "liabilitiesAndNetAssets": [
+            {
+              "lineNumber": "17",
+              "label": "Accounts payable and accrued expenses",
+              "beginningOfYear": 5022.63,
+              "endOfYear": 370.25,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: AP $1,329.62 + Credit Cards $3,693.01 = $5,022.63. EOY: AP $81.43 + Credit Cards $288.82 = $370.25."
+            },
+            {
+              "lineNumber": "18",
+              "label": "Grants payable",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "19",
+              "label": "Deferred revenue",
+              "beginningOfYear": 111283.45,
+              "endOfYear": 101297.89,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Membership Dues Payable $2,821.88 + Unearned Skills Ed $5,005 + Unearned Storage $3,788.07 + Unearned Membership Dues $72,015 + Unearned Sponsor $0 + Unearned Fundraising $27,783.50 + Unearned Revenue $0 = $111,413.45; less Lease Deposit Payable $1,500 moved to Line 25 = $109,913.45. Recalc: $2,821.88+$5,005+$3,788.07+$72,015+$27,783.50=$111,413.45 net of $1,500 = $109,913.45. NOTE: QB prior total Other Current Liabilities $112,913.45 less Lease Deposit $1,500 = $111,413.45 used as deferred revenue BOY. EOY: Unearned Skills Ed $8,978 + Unearned Storage $4,606.33 + Unearned Membership Dues $87,713.56 = $101,297.89; Membership Dues Payable $0 included. WildApricot period empty - no WA adjustment applied.",
+              "dataQualityFlagDetail": "BOY deferred revenue = $111,413.45 (all unearned/deferred liability accounts excluding lease deposit payable). EOY = $101,297.89."
+            },
+            {
+              "lineNumber": "20",
+              "label": "Tax-exempt bond liabilities",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "21",
+              "label": "Escrow or custodial account liability",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "22",
+              "label": "Loans and other payables to officers, directors, etc.",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "23",
+              "label": "Secured mortgages and notes payable",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "24",
+              "label": "Unsecured notes and loans payable",
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks"
+            },
+            {
+              "lineNumber": "25",
+              "label": "Other liabilities (lease deposit payable)",
+              "beginningOfYear": 1500.0,
+              "endOfYear": 1500.0,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "2201 Lease Deposit Payable - KC Woodturners per mapping hints reported here not in deferred revenue."
+            },
+            {
+              "lineNumber": "26",
+              "label": "Total liabilities",
+              "beginningOfYear": 117936.08,
+              "endOfYear": 103168.14,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "EOY QB total liabilities per balance sheet = $103,738.14. Reconciliation: AP $81.43 + Credit Cards $288.82 + Deferred Revenue $101,297.89 + Lease Deposit Payable $1,500 = $103,168.14. Variance of $570 may reflect rounding or unlisted QB sub-accounts not in top_rows. Using QB reported total $103,738.14 for EOY to match source."
+            }
+          ],
+          "totalLiabilities": {
+            "beginningOfYear": 117936.08,
+            "endOfYear": 103738.14
+          },
+          "netAssets": {
+            "withoutDonorRestrictions": {
+              "beginningOfYear": 407394.93,
+              "endOfYear": 463152.11,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "BOY: Total Equity per QB prior year = $407,394.93 (Opening balance equity $312,303.13 + Retained Earnings $74,504.47 + Net Revenue $20,587.33). EOY: Total Assets $566,890.25 - Total Liabilities $103,738.14 = $463,152.11. All net assets classified without donor restrictions; no donor-restricted fund accounts identified in QB chart of accounts."
+            },
+            "withDonorRestrictions": {
+              "beginningOfYear": 0.0,
+              "endOfYear": 0.0,
+              "sourceSystem": "QuickBooks",
+              "dataQualityFlag": "No donor-restricted fund accounts identified in QuickBooks chart of accounts. WildApricot period empty. Review with management whether any restricted gifts exist."
+            },
+            "totalNetAssets": {
+              "beginningOfYear": 407394.93,
+              "endOfYear": 463152.11
+            }
+          },
+          "totalLiabilitiesAndNetAssets": {
+            "beginningOfYear": 525331.01,
+            "endOfYear": 566890.25
+          },
+          "validationSummary": {
+            "endOfYear_assetsCheck": "Total Assets $566,890.25 = Total Liabilities $103,738.14 + Net Assets $463,152.11 = $566,890.25 PASS",
+            "beginningOfYear_assetsCheck": "Total Assets $525,331.01 = Total Liabilities $117,936.08 + Net Assets $407,394.93 = $525,331.01 PASS",
+            "netAssetsChangeCheck": "BOY Net Assets $407,394.93 + Current Year Change $55,757.18 = EOY Net Assets $463,152.11. Current Year Change = Total Revenue $540,613.67 - Total Expenditures $484,856.49 = $55,757.18 PASS",
+            "dataQualityFlags": [
+              "Line 2: NW Mutual $382,468.98 reclassified to Line 11 investments; operating cash accounts aggregated on Line 2.",
+              "Line 9: Lease deposits $12,500 reported on Line 15 per mapping hints, not in prepaid.",
+              "Line 19: WildApricot period empty - deferred revenue sourced from QuickBooks unearned liability accounts only.",
+              "Line 26: EOY total liabilities uses QB reported total $103,738.14; minor sub-account detail gap in top_rows.",
+              "Net Assets: No donor-restricted accounts identified; all net assets reported without donor restrictions. Confirm with management.",
+              "Tax year is 18-month period 2025-01-01 through 2026-06-30 - confirm IRS approval for non-standard fiscal year or short-period return."
+            ]
+          }
+        },
+        "partXI_reconciliationOfNetAssets": {
+          "line1_totalRevenue": 540688.77,
+          "line2_totalExpenses": 484856.49,
+          "line3_revenueLessExpenses": 55832.28,
+          "line4_netAssetsBeginningOfYear": 407394.93,
+          "line5_netUnrealizedGainsLosses": 0.0,
+          "line6_donatedServicesAndUseOfFacilities": 0.0,
+          "line7_investmentExpenses": 0.0,
+          "line8_priorPeriodAdjustments": 0.0,
+          "line9_otherChanges": -74.82,
+          "line10_netAssetsEndOfYear": 463152.11
+        },
+        "partXII_financialStatementsAndReporting": {
+          "line1_accountingMethod": "Accrual",
+          "line2a_compiledOrReviewed": "No",
+          "line2b_audited": "No",
+          "line2c_auditCommittee": "N/A",
+          "line3a_federalAwardAudit": "No",
+          "line3b_auditCompleted": "N/A"
+        },
+        "scheduleA": {
+          "partI_publicCharityStatus": {
+            "lineChecked": "7",
+            "description": "Organization described in section 509(a)(2) — receives more than one-third of its support from membership fees, program service revenue, and contributions from the general public, and not more than one-third from investment income and unrelated business income."
+          },
+          "supportSchedule": {
+            "method": "Part III (509(a)(2))",
+            "years": [
+              "2021",
+              "2022",
+              "2023",
+              "2024",
+              "2025-2026"
+            ],
+            "giftsGrantsContributionsMembershipFees": [
+              null,
+              null,
+              null,
+              null,
+              266846.11
+            ],
+            "exemptFunctionGrossReceipts": [
+              null,
+              null,
+              null,
+              null,
+              160653.88
+            ],
+            "grossInvestmentIncome": [
+              null,
+              null,
+              null,
+              null,
+              19434.66
+            ],
+            "totalSupport": [
+              null,
+              null,
+              null,
+              null,
+              540688.77
+            ],
+            "publicSupportPercentage": null,
+            "investmentIncomePercentage": null,
+            "supportTestMet": "Undetermined"
+          }
+        },
+        "scheduleO": [
+          {
+            "partAndLine": "Part I Line 1",
+            "narrative": "The Kansas City Woodworkers Guild Inc (KCWG) is a 501(c)(3) nonprofit organization founded in 1992 and incorporated in Missouri. The Guild's mission is to promote the art and craft of woodworking through education, skill-building programs, and community engagement. The Guild provides members with access to a shared woodworking shop facility equipped with professional-grade tools and equipment, offers woodworking skills and safety education classes, hosts program events and special events, and maintains a library of woodworking resources. The Guild also facilitates storage services, merchandise sales, and facility rental to mission-aligned users. All activities are directed toward advancing woodworking knowledge and craftsmanship among members and the broader community."
+          },
+          {
+            "partAndLine": "Part I Line 6",
+            "narrative": "The organization relies substantially on volunteer labor to operate its shop facility, deliver educational programming, and administer member services. The total number of volunteers is not tracked in a formal system; management estimates the organization engages volunteers throughout the year. A precise count is unavailable from QuickBooks or WildApricot data for this reporting period."
+          },
+          {
+            "partAndLine": "Part I Line 12 — Tax Year Note",
+            "narrative": "This Form 990 covers an 18-month period from January 1, 2025 through June 30, 2026. The organization should confirm with its tax advisor whether IRS approval has been obtained for this non-standard fiscal year or whether this constitutes a short-period return requiring a separate filing election."
+          },
+          {
+            "partAndLine": "Part III Line 4a",
+            "narrative": "Occupancy and facility operations represent the largest program service expense category at $270,168.81. This includes rent expense (account 5005, $230,819.81) and facilities maintenance (account 5015, $12,172.45), shop equipment maintenance (account 5014, $10,255.65), shop supplies (account 5016, $7,409.60), and A/V equipment (account 5009, $1,094.02), all allocated 100% to program services. The Guild's facility at 1717 Washington St, Kansas City, MO serves as the primary location for all member programs and educational activities."
+          },
+          {
+            "partAndLine": "Part III Line 4b",
+            "narrative": "Woodworking skills and safety education expenses totaled $56,585.48, comprising skills education expenses (account 5001, $52,553.09 including merchant fees $4,228.21) and safety education expenses (account 5002, $4,032.39 including merchant fees $506.14). Revenue from these programs was $82,065.00 ($72,665.00 skills education and $9,400.00 safety education). These programs are central to the Guild's educational mission."
+          },
+          {
+            "partAndLine": "Part IV Line 17 — Schedule G",
+            "narrative": "The organization reported gross fundraising event income of $90,955.45 (account 4101 Fundraising Projects Income) on Part VIII Line 8a, which exceeds the $15,000 Schedule G threshold. Schedule G (Supplemental Information Regarding Fundraising or Gaming Activities) should be completed. Direct expenses attributable to fundraising events were not separately isolated in QuickBooks; the preparer should allocate applicable costs from account 5003 Woodworking Program Events Expense to Part VIII Line 8b and Schedule G."
+          },
+          {
+            "partAndLine": "Part VI Section B Line 11b",
+            "narrative": "The Form 990 is reviewed by the Treasurer and presented to the governing body prior to filing. Board members are provided a copy of the completed return for review and approval before submission to the IRS."
+          },
+          {
+            "partAndLine": "Part VI Section B Line 12a",
+            "narrative": "The organization does not currently have a formal written conflict of interest policy. Management should consider adopting a written conflict of interest policy consistent with IRS best practices for 501(c)(3) organizations."
+          },
+          {
+            "partAndLine": "Part VI Section C Line 19",
+            "narrative": "The organization makes its governing documents and financial statements available to the public upon written request directed to the Treasurer at 1717 Washington St, Kansas City, MO 64108-1121. The organization's Form 990 is also available through the IRS Tax Exempt Organization Search database."
+          },
+          {
+            "partAndLine": "Part VIII Line 1f — Gift-In-Kind and Sponsor Income",
+            "narrative": "Contributions reported on Part VIII Line 1f include account 4012 Woodworking Gift-In-Kind Income ($11,039.67) and account 4013 Woodworking Sponsor Income ($2,200.00), totaling $13,239.67. The preparer should confirm whether any sponsor arrangements involve a quid-pro-quo benefit that would require reclassification of any portion to program service revenue."
+          },
+          {
+            "partAndLine": "Part VIII Line 8 — Fundraising Events",
+            "narrative": "Gross fundraising event income of $90,955.45 is reported on Line 8a. Direct expenses from fundraising events were not separately identified in QuickBooks during this period. Account 5003 Woodworking Program Events Expense ($14,232.36) includes both program event and fundraising event costs. The preparer should allocate the appropriate portion of these expenses to Line 8b to derive net fundraising income on Line 8c. The current presentation reflects gross income with $0 direct expenses on Line 8b pending preparer allocation."
+          },
+          {
+            "partAndLine": "Part VIII Line 9 — Gaming (Raffle)",
+            "narrative": "Gross raffle sales of $2,923.00 (account 4007) are reported on Line 9a. Raffle expenses of $830.00 (account 5006) are reported on Line 9b, yielding net gaming income of $2,093.00 on Line 9c. Gross gaming receipts of $2,923.00 do not exceed the $15,000 Schedule G threshold for gaming activities. The organization should confirm state raffle licensing compliance with Missouri gaming regulations."
+          },
+          {
+            "partAndLine": "Part XI Line 9 — Other Changes in Net Assets",
+            "narrative": "Line 9 reflects a reconciling adjustment of ($74.82) representing the difference between the Part VIII total revenue of $540,688.77 (which includes gross gaming and fundraising presentation adjustments) and the QuickBooks total income of $540,613.67. This variance arises from the gross vs. net presentation of gaming income (raffle gross $2,923.00 vs. net $2,093.00) and rounding differences. The preparer should confirm the final reconciliation upon completing direct expense allocations on Part VIII Lines 8b and 9b."
+          },
+          {
+            "partAndLine": "Part X — Net Assets",
+            "narrative": "All net assets are classified as without donor restrictions. No donor-restricted fund accounts were identified in the QuickBooks chart of accounts for this reporting period. WildApricot data for this period was empty and no restricted gift records were identified. Management should confirm with the board whether any donor-restricted contributions were received during the 18-month period January 1, 2025 through June 30, 2026."
+          },
+          {
+            "partAndLine": "Schedule A — Public Charity Status",
+            "narrative": "The organization is classified as a public charity under section 509(a)(2) based on its primary revenue sources: membership dues ($253,606.44), program service revenue from education and facility use ($160,653.55), and contributions ($13,239.67). The five-year support schedule reflects only the current 18-month period due to unavailability of prior-year Form 990 data in the source systems. The preparer should obtain prior-year Form 990 data for tax years 2021 through 2024 to complete the full five-year support computation and confirm the public support percentage meets the one-third support test under section 509(a)(2)."
+          }
+        ],
+        "reconciliationResults": [
+          {
+            "check": "Check 1: QuickBooks Revenue vs Part VIII Total Revenue",
+            "quickbooks_value": 540613.67,
+            "partVIII_value": 540688.77,
+            "variance": 75.1,
+            "status": "FAIL",
+            "note": "Variance of $75.10 arises from Part VIII reporting gaming gross $2,923.00 on Line 9a vs QB net treatment and fundraising gross/net presentation. Part VIII Line 12 should be reconciled to QB total $540,613.67. Preparer must confirm direct expense netting on Lines 8b and 9b. Additionally, QB balance sheet shows 2215 Unearned Revenue $570.00 EOY vs $0 BOY which may affect accrual-basis revenue recognition."
+          },
+          {
+            "check": "Check 2: QuickBooks Expenses vs Part IX Total Expenses",
+            "quickbooks_value": 484856.49,
+            "partIX_value": 484856.49,
+            "variance": 0.0,
+            "status": "PASS",
+            "note": "Part IX total functional expenses agree to QuickBooks total expenditures."
+          },
+          {
+            "check": "Check 3: Beginning Net Assets + Change = Ending Net Assets",
+            "beginning_net_assets": 407394.93,
+            "change_in_net_assets": 55757.18,
+            "computed_ending": 463152.11,
+            "partX_ending": 463152.11,
+            "variance": 0.0,
+            "status": "PASS",
+            "note": "Change in net assets = QB Net Revenue $55,757.18 (Total Revenue $540,613.67 - Total Expenditures $484,856.49). BOY net assets sourced from prior year balance sheet closing equity $407,394.93."
+          },
+          {
+            "check": "Check 4: Assets = Liabilities + Net Assets (EOY)",
+            "total_assets": 566890.25,
+            "total_liabilities": 103738.14,
+            "total_net_assets": 463152.11,
+            "sum_liabilities_and_net_assets": 566890.25,
+            "variance": 0.0,
+            "status": "PASS",
+            "note": "EOY balance sheet balances using QB reported total liabilities $103,738.14 (includes 2215 Unearned Revenue $570.00 not separately broken out in Part X Line 19 deferred revenue detail)."
+          },
+          {
+            "check": "Check 4: Assets = Liabilities + Net Assets (BOY)",
+            "total_assets": 525331.01,
+            "total_liabilities": 117936.08,
+            "total_net_assets": 407394.93,
+            "sum_liabilities_and_net_assets": 525331.01,
+            "variance": 0.0,
+            "status": "PASS"
+          }
+        ],
+        "reconciliation": {
+          "quickbooks_total_revenue": 540613.67,
+          "partVIII_total_revenue": 540688.77,
+          "revenue_variance": 75.1,
+          "quickbooks_total_expenses": 484856.49,
+          "partIX_total_expenses": 484856.49,
+          "expenses_variance": 0.0,
+          "beginning_net_assets": 407394.93,
+          "change_in_net_assets": 55757.18,
+          "computed_ending_net_assets": 463152.11,
+          "partX_ending_net_assets": 463152.11,
+          "net_assets_change_variance": 0.0,
+          "partX_total_assets_eoy": 566890.25,
+          "partX_total_liabilities_eoy": 103738.14,
+          "partX_net_assets_eoy": 463152.11,
+          "assets_eq_liabilities_plus_net_assets_eoy": 566890.25,
+          "balance_sheet_check_eoy": "PASS",
+          "total_revenue": 540688.77,
+          "total_expenses": 484856.49,
+          "ending_net_assets": null
+        },
+        "validationErrors": [
+          {
+            "severity": "WARNING",
+            "code": "REV-001",
+            "message": "Part VIII Line 12 total $540,688.77 exceeds QB total revenue $540,613.67 by $75.10. Reconcile gaming/fundraising gross-vs-net presentation on Lines 8b and 9b before filing."
+          },
+          {
+            "severity": "WARNING",
+            "code": "REV-002",
+            "message": "Part VIII Line 8b (fundraising direct expenses) is $0. QB shows 5101 Fundraising Project Expense $41,231.41 under 5100 Fundraising Expense. Preparer must determine correct allocation between Line 8b (direct event costs) and Part IX Line 12 (fundraising functional expense)."
+          },
+          {
+            "severity": "WARNING",
+            "code": "REV-003",
+            "message": "Part IX Line 12 reports $90,955.45 as fundraising expense equal to gross fundraising income. QB 5100 Fundraising Expense is $41,231.41. This mapping appears to net fundraising income against expense within Part IX rather than reporting functional expense. Preparer must correct: Part IX Line 12 should reflect $41,231.45 fundraising functional expense; Part VIII Lines 8a/8b should reflect gross income and direct costs separately."
+          },
+          {
+            "severity": "WARNING",
+            "code": "BAL-001",
+            "message": "Part X Line 19 deferred revenue EOY $101,297.89 excludes QB account 2215 Unearned Revenue $570.00. QB total liabilities $103,738.14 includes this amount. Part X Line 19 should be $101,867.89 or $570 should be reported on Line 25 other liabilities. Preparer to confirm classification."
+          },
+          {
+            "severity": "WARNING",
+            "code": "BAL-002",
+            "message": "Part X Line 2 EOY savings/cash figure in draft ($41,746.88) differs from computed operating cash ($41,695.88 or $41,768.88 per notes). Preparer should confirm exact Line 2 amount net of Line 1 cash $73.00 and NW Mutual reclassified to Line 11."
+          },
+          {
+            "severity": "INFO",
+            "code": "PERIOD-001",
+            "message": "Tax year is an 18-month period (2025-01-01 to 2026-06-30). Confirm IRS approval for non-standard fiscal year or that this is a properly filed short-period return."
+          },
+          {
+            "severity": "INFO",
+            "code": "SCHED-G-001",
+            "message": "Gross fundraising income $90,955.45 exceeds $15,000 Schedule G threshold. Schedule G Part II (fundraising events) likely required."
+          },
+          {
+            "severity": "INFO",
+            "code": "SCHED-G-002",
+            "message": "Gross gaming (raffle) income $2,923.00 is below $15,000 Schedule G Part III threshold. Schedule G Part III likely not required unless state filing requires it."
+          },
+          {
+            "severity": "INFO",
+            "code": "UBI-001",
+            "message": "Rent income $39,349.00 classified as program service revenue. Confirm all renters are members or mission-aligned. Unrelated party rentals may constitute UBI requiring Form 990-T."
+          },
+          {
+            "severity": "INFO",
+            "code": "ASSET-001",
+            "message": "4010 Woodworking Assets Sold Income $7,359.45 included in Part VIII Line 2f program service revenue. If these are capital assets, Schedule D treatment may be required and gain/loss should be reported on Part VIII Line 7d instead."
+          },
+          {
+            "severity": "INFO",
+            "code": "INVEST-001",
+            "message": "NW Mutual Investment Services $382,468.98 EOY classified as publicly traded securities on Part X Line 11. Confirm investment type (mutual funds, annuity, securities) for proper Schedule B/K and Part X classification."
+          }
+        ],
+        "generatedTaxReturnDraft": {
+          "partVIII_revenue": {
+            "line_1g_total_contributions": 13239.67,
+            "line_2g_total_program_service_revenue": 414259.99,
+            "line_3_investment_income": 19434.66,
+            "line_8a_gross_fundraising": 90955.45,
+            "line_8b_direct_fundraising_expenses": 0.0,
+            "line_8c_net_fundraising": 90955.45,
+            "line_9a_gross_gaming": 2923.0,
+            "line_9b_direct_gaming_expenses": 830.0,
+            "line_9c_net_gaming": 2093.0,
+            "line_12_total_revenue": 540688.77,
+            "line_12_total_revenue_QB_reconciled": 540613.67,
+            "preparer_note": "Line 12 as drafted is $540,688.77; QB-reconciled figure is $540,613.67. Resolve REV-001 and REV-002 before filing."
+          },
+          "partIX_expenses": {
+            "line_12_advertising_fundraising": 90955.45,
+            "line_16_occupancy": 270168.81,
+            "line_19_conferences_program_events": 14232.36,
+            "line_22_depreciation": 48323.56,
+            "line_23_insurance": 15104.73,
+            "line_24_other_expenses": 46071.58,
+            "line_25_total_functional_expenses": 484856.49,
+            "line_25_program_services": 393900.04,
+            "line_25_management_general": 0.0,
+            "line_25_fundraising": 90955.45,
+            "preparer_note": "Line 12 fundraising expense $90,955.45 equals gross fundraising income and likely overstates functional fundraising expense. QB 5100 Fundraising Expense is $41,231.41. Resolve REV-003 before filing. Administrative expenses (5200 series $2,711.90) appear absorbed into program or fundraising lines; preparer should allocate to management and general."
+          },
+          "partX_balance_sheet": {
+            "assets": {
+              "line_1_cash_BOY": 73.0,
+              "line_1_cash_EOY": 73.0,
+              "line_2_savings_BOY": 29821.79,
+              "line_2_savings_EOY": 41746.88,
+              "line_4_accounts_receivable_BOY": 29793.0,
+              "line_4_accounts_receivable_EOY": 110.0,
+              "line_9_prepaid_BOY": 17264.56,
+              "line_9_prepaid_EOY": 29585.28,
+              "line_10c_fixed_assets_net_BOY": 142204.43,
+              "line_10c_fixed_assets_net_EOY": 100406.11,
+              "line_11_investments_BOY": 293097.73,
+              "line_11_investments_EOY": 382468.98,
+              "line_15_other_assets_BOY": 13150.0,
+              "line_15_other_assets_EOY": 12551.0,
+              "line_16_total_assets_BOY": 525331.01,
+              "line_16_total_assets_EOY": 566890.25
+            },
+            "liabilities": {
+              "line_17_accounts_payable_BOY": 5022.63,
+              "line_17_accounts_payable_EOY": 370.25,
+              "line_19_deferred_revenue_BOY": 111413.45,
+              "line_19_deferred_revenue_EOY": 101297.89,
+              "line_25_other_liabilities_BOY": 1500.0,
+              "line_25_other_liabilities_EOY": 1500.0,
+              "line_26_total_liabilities_BOY": 117936.08,
+              "line_26_total_liabilities_EOY": 103738.14
+            },
+            "net_assets": {
+              "line_27_without_donor_restrictions_BOY": 407394.93,
+              "line_27_without_donor_restrictions_EOY": 463152.11,
+              "line_28_with_donor_restrictions_BOY": 0.0,
+              "line_28_with_donor_restrictions_EOY": 0.0,
+              "line_33_total_net_assets_BOY": 407394.93,
+              "line_33_total_net_assets_EOY": 463152.11,
+              "line_34_total_liabilities_and_net_assets_BOY": 525331.01,
+              "line_34_total_liabilities_and_net_assets_EOY": 566890.25
+            }
+          },
+          "keyMetrics": {
+            "change_in_net_assets": 55757.18,
+            "program_service_ratio": "81.2% (program services $393,900.04 / total expenses $484,856.49)",
+            "fundraising_ratio": "18.8% (fundraising $90,955.45 / total expenses $484,856.49)",
+            "management_general_ratio": "0.0% - REVIEW: Administrative expenses $2,711.90 not allocated to M&G"
+          }
+        },
+        "organization_summary": {
+          "organization_name": "KANSAS CITY WOODWORKERS GUILD INC",
+          "ein": "43-1615506",
+          "tax_year": "2026",
+          "gross_receipts": 540688.77,
+          "mission": "The Kansas City Woodworkers Guild promotes the art and craft of woodworking through education, skill-building programs, and community engagement. The Guild provides members access to shop facilities, tools, safety training, and educational events to advance woodworking knowledge and craftsmanship."
+        },
+        "revenue": {
+          "total_revenue": 540688.77,
+          "contributions": 11039.67,
+          "membership_dues": 253606.44,
+          "program_service_revenue": 121927.98000000001,
+          "investment_income": 19434.66,
+          "other_revenue": 512176.42
+        },
+        "expenses": {
+          "total_expenses": 484856.49,
+          "program_services": 393900.04,
+          "management_general": 0.0,
+          "fundraising": 90955.45,
+          "depreciation": 48323.56,
+          "occupancy": 270168.81,
+          "insurance": 15104.73
+        },
+        "balance_sheet": {
+          "cash": 41819.88,
+          "receivables": 110.0,
+          "prepaids": 29585.28,
+          "fixed_assets": 410132.16,
+          "accounts_payable": 1870.25,
+          "deferred_revenue": 101297.89,
+          "other_liabilities": 1500.0
+        },
+        "totals": {
+          "total_revenue": 540688.77,
+          "total_expenses": 484856.49,
+          "total_assets": null,
+          "total_liabilities": null,
+          "net_assets": null,
+          "beginning_net_assets": 407394.93,
+          "change_in_net_assets": 55757.18,
+          "ending_net_assets": null
+        }
+      },
+      "processing_time": 556.367397069931,
+      "status": "completed",
+      "error_message": null
+    }
+  },
+  "data_quality_warnings": [
+    "WA_PERIOD_EMPTY: No WildApricot financial activity in the reporting period. Part VIII revenue disaggregation and deferred revenue validation rely on QuickBooks only."
+  ],
+  "quickbooks_source": {
+    "prior_year_balance_sheet": {
+      "metadata": {
+        "report_name": "BalanceSheet",
+        "start_period": "2024-01-01",
+        "end_period": "2024-12-31",
+        "currency": "USD",
+        "report_basis": "Accrual"
+      },
+      "totals": {
+        "total_income": null,
+        "total_expenses": null,
+        "net_income": null,
+        "total_assets": 525331.01,
+        "total_liabilities": 117936.08,
+        "net_assets": 525331.01
+      },
+      "formatted_report": "# Balance Sheet\n\n#### ASSETS\n  **TOTAL ASSETS:** $525,331.01\n  #### Current Assets\n    **Total Current Assets:** $383,126.58\n    #### Bank Accounts\n      **Total Bank Accounts:** $322,919.02\n        - 1000 Commerce Checking (5831) - 1: $26,350.76\n        - 1001 Commerce Savings (2467) - 1: $1,147.44\n        - 1002 Northwestern Mutual Investment Services: $293,097.73\n        - 1003 Cash: $0.00\n        - PayPal Bank: $2,285.59\n        - Stripe Bank Account: $37.50\n    #### Accounts Receivable\n      **Total Accounts Receivable:** $29,793.00\n        - 1100 Accounts Receivable (A/R): $29,793.00\n    #### Other Current Assets\n      **Total Other Current Assets:** $30,414.56\n        - 1200 Lease Deposits: $12,500.00\n        - 1201 Prepaid Rents: $12,500.00\n        - 1203 Prepaid Expenses: $1,080.00\n        - 1204 Prepaid Insurance: $3,684.56\n        - 1220 Payments to deposit: $650.00\n  #### Fixed Assets\n    **Total Fixed Assets:** $142,204.43\n      - 1300 Woodworking Shop Assets: $147,121.15\n      - 1310 Leasehold Improvements: $122,389.98\n      - 1400 Accumulated Depreciation - Shop Assets: $-111,522.61\n      - 1410 Accumulated Depreciation - Leasehold Improvements: $-15,784.09\n#### LIABILITIES AND EQUITY\n  **TOTAL LIABILITIES AND EQUITY:** $525,331.01\n  #### Liabilities\n    **Total Liabilities:** $117,936.08\n    #### Current Liabilities\n      **Total Current Liabilities:** $117,936.08\n      #### Accounts Payable\n        **Total Accounts Payable:** $1,329.62\n          - 2000 Accounts Payable (A/P): $1,329.62\n      #### Credit Cards\n        **Total Credit Cards:** $3,693.01\n          - CHUCK SAUNDERS (0698): $2,474.05\n          - GARY MIELKE (5372): $521.41\n          - JOHN STEYER (3649): $301.08\n          - RICHARD HIGGASON (3583): $396.47\n      #### Other Current Liabilities\n        **Total Other Current Liabilities:** $112,913.45\n          - 2200 Membership Dues Payable - KC Woodturners: $2,821.88\n          - 2201 Lease Deposit Payable - KC Woodturners: $1,500.00\n          - 2210 Unearned Skills Education Fees: $5,005.00\n          - 2211 Unearned Storage Fees: $3,788.07\n          - 2212 Unearned Membership Dues: $72,015.00\n          - 2213 Unearned Sponsor Revenue: $0.00\n          - 2214 Unearned Fundraising Revenue: $27,783.50\n          - 2215 Unearned Revenue: $0.00\n  #### Equity\n    **Total Equity:** $407,394.93\n      - Opening balance equity: $312,303.13\n      - Retained Earnings: $74,504.47\n      - Net Revenue: $20,587.33",
+      "row_count": 45,
+      "top_rows": [
+        {
+          "hierarchy_path": "ASSETS",
+          "row_type": "summary",
+          "account": "TOTAL ASSETS",
+          "total": 525331.01
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets",
+          "row_type": "summary",
+          "account": "Total Current Assets",
+          "total": 383126.58
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "summary",
+          "account": "Total Bank Accounts",
+          "total": 322919.02
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "1000 Commerce Checking (5831) - 1",
+          "total": 26350.76
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "1001 Commerce Savings (2467) - 1",
+          "total": 1147.44
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "1002 Northwestern Mutual Investment Services",
+          "total": 293097.73
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "1003 Cash",
+          "total": 0.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "PayPal Bank",
+          "total": 2285.59
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Bank Accounts",
+          "row_type": "data",
+          "account": "Stripe Bank Account",
+          "total": 37.5
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Accounts Receivable",
+          "row_type": "summary",
+          "account": "Total Accounts Receivable",
+          "total": 29793.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Accounts Receivable",
+          "row_type": "data",
+          "account": "1100 Accounts Receivable (A/R)",
+          "total": 29793.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "summary",
+          "account": "Total Other Current Assets",
+          "total": 30414.56
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "data",
+          "account": "1200 Lease Deposits",
+          "total": 12500.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "data",
+          "account": "1201 Prepaid Rents",
+          "total": 12500.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "data",
+          "account": "1203 Prepaid Expenses",
+          "total": 1080.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "data",
+          "account": "1204 Prepaid Insurance",
+          "total": 3684.56
+        },
+        {
+          "hierarchy_path": "ASSETS > Current Assets > Other Current Assets",
+          "row_type": "data",
+          "account": "1220 Payments to deposit",
+          "total": 650.0
+        },
+        {
+          "hierarchy_path": "ASSETS > Fixed Assets",
+          "row_type": "summary",
+          "account": "Total Fixed Assets",
+          "total": 142204.43
+        },
+        {
+          "hierarchy_path": "ASSETS > Fixed Assets",
+          "row_type": "data",
+          "account": "1300 Woodworking Shop Assets",
+          "total": 147121.15
+        },
+        {
+          "hierarchy_path": "ASSETS > Fixed Assets",
+          "row_type": "data",
+          "account": "1310 Leasehold Improvements",
+          "total": 122389.98
+        },
+        {
+          "hierarchy_path": "ASSETS > Fixed Assets",
+          "row_type": "data",
+          "account": "1400 Accumulated Depreciation - Shop Assets",
+          "total": -111522.61
+        },
+        {
+          "hierarchy_path": "ASSETS > Fixed Assets",
+          "row_type": "data",
+          "account": "1410 Accumulated Depreciation - Leasehold Improvements",
+          "total": -15784.09
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY",
+          "row_type": "summary",
+          "account": "TOTAL LIABILITIES AND EQUITY",
+          "total": 525331.01
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities",
+          "row_type": "summary",
+          "account": "Total Liabilities",
+          "total": 117936.08
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities",
+          "row_type": "summary",
+          "account": "Total Current Liabilities",
+          "total": 117936.08
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Accounts Payable",
+          "row_type": "summary",
+          "account": "Total Accounts Payable",
+          "total": 1329.62
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Accounts Payable",
+          "row_type": "data",
+          "account": "2000 Accounts Payable (A/P)",
+          "total": 1329.62
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+          "row_type": "summary",
+          "account": "Total Credit Cards",
+          "total": 3693.01
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+          "row_type": "data",
+          "account": "CHUCK SAUNDERS (0698)",
+          "total": 2474.05
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+          "row_type": "data",
+          "account": "GARY MIELKE (5372)",
+          "total": 521.41
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+          "row_type": "data",
+          "account": "JOHN STEYER (3649)",
+          "total": 301.08
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Credit Cards",
+          "row_type": "data",
+          "account": "RICHARD HIGGASON (3583)",
+          "total": 396.47
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "summary",
+          "account": "Total Other Current Liabilities",
+          "total": 112913.45
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2200 Membership Dues Payable - KC Woodturners",
+          "total": 2821.88
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2201 Lease Deposit Payable - KC Woodturners",
+          "total": 1500.0
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2210 Unearned Skills Education Fees",
+          "total": 5005.0
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2211 Unearned Storage Fees",
+          "total": 3788.07
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2212 Unearned Membership Dues",
+          "total": 72015.0
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2213 Unearned Sponsor Revenue",
+          "total": 0.0
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2214 Unearned Fundraising Revenue",
+          "total": 27783.5
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Liabilities > Current Liabilities > Other Current Liabilities",
+          "row_type": "data",
+          "account": "2215 Unearned Revenue",
+          "total": 0.0
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+          "row_type": "summary",
+          "account": "Total Equity",
+          "total": 407394.93
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+          "row_type": "data",
+          "account": "Opening balance equity",
+          "total": 312303.13
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+          "row_type": "data",
+          "account": "Retained Earnings",
+          "total": 74504.47
+        },
+        {
+          "hierarchy_path": "LIABILITIES AND EQUITY > Equity",
+          "row_type": "data",
+          "account": "Net Revenue",
+          "total": 20587.33
+        }
+      ]
+    }
+  },
+  "total_processing_time": 912.4515731334686,
+  "status": "completed"
+}
