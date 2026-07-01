@@ -1,0 +1,165 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  AWS_REGION: us-east-1
+  EC2_USER: ubuntu
+
+jobs:
+  build-and-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: newpath-accountbridge-deploy
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker builder
+        run: |
+          docker context use default
+          docker buildx use default
+
+      - name: Build & push backend image
+        run: |
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          SHA_TAG=$(echo "${{ github.sha }}" | tr -d '[:space:]')
+          BACKEND_IMAGE="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-api"
+          docker build --no-cache -f Dockerfile -t "${BACKEND_IMAGE}:${SHA_TAG}" -t "${BACKEND_IMAGE}:latest" .
+          docker push "${BACKEND_IMAGE}:${SHA_TAG}"
+          docker push "${BACKEND_IMAGE}:latest"
+
+      - name: Build & push frontend image
+        run: |
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          SHA_TAG=$(echo "${{ github.sha }}" | tr -d '[:space:]')
+          FRONTEND_IMAGE="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/accountbridge-goml-frontend"
+          docker build --no-cache -f ui/Dockerfile -t "${FRONTEND_IMAGE}:${SHA_TAG}" -t "${FRONTEND_IMAGE}:latest" ./ui
+          docker push "${FRONTEND_IMAGE}:${SHA_TAG}"
+          docker push "${FRONTEND_IMAGE}:latest"
+
+  deploy:
+    name: Deploy on EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
+      - name: Write backend .env to EC2
+        run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=30 \
+            ubuntu@${EC2_HOST} \
+            "mkdir -p /home/ubuntu/accountbridge"
+          printf '%s' "${{ secrets.BACKEND_ENV }}" | ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "cat > /home/ubuntu/accountbridge/.env"
+
+      - name: Write frontend .env to EC2
+        run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "mkdir -p /home/ubuntu/accountbridge/ui"
+          printf '%s' "${{ secrets.UI_ENV }}" | ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "cat > /home/ubuntu/accountbridge/ui/.env"
+
+      - name: Copy docker-compose.yml to EC2
+        run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          scp -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            docker-compose.yml \
+            ubuntu@${EC2_HOST}:/home/ubuntu/accountbridge/docker-compose.yml
+
+      - name: Deploy on EC2
+        run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} bash << ENDSSH
+            set -e
+
+            mkdir -p /home/ubuntu/accountbridge/data
+            cd /home/ubuntu/accountbridge
+
+            # Login to ECR using EC2 instance role
+            aws ecr get-login-password --region us-east-1 | \
+              docker login --username AWS --password-stdin \
+              ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+
+            export IMAGE_TAG=latest
+
+            # Pull latest images from ECR
+            docker compose pull
+
+            # Restart containers with new images
+            docker compose up -d --remove-orphans
+
+            # Remove dangling images
+            docker image prune -f
+
+            # Keep only 3 most recent images per repo
+            for REPO in accountbridge-goml-api accountbridge-goml-frontend; do
+              echo "Cleaning old images for \$REPO..."
+              docker images --format "{{.ID}} {{.Repository}} {{.Tag}} {{.CreatedAt}}" | \
+                grep "${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/\$REPO" | \
+                grep -v "latest" | \
+                sort -k4 -r | \
+                awk 'NR>3 {print \$1}' | \
+                xargs -r docker rmi -f || true
+            done
+
+            echo "=== Deploy complete ==="
+            docker compose ps
+          ENDSSH
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f /tmp/deploy_key
+
+      - name: Health check
+        run: |
+          EC2_HOST=$(echo "${{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          sleep 20
+          ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ubuntu@${EC2_HOST} \
+            "curl -sf http://localhost:8000/api/health && echo 'Backend healthy' || echo 'Backend health check failed'"
+          rm -f /tmp/deploy_key
+        continue-on-error: true
