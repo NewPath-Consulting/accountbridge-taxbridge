@@ -23,6 +23,15 @@ _PLACEHOLDER_API_URLS = {
     "http://api.example.com",
     "api.example.com",
 }
+DEFAULT_WILDAPRICOT_ACCOUNT_ID = "497705"
+DEFAULT_QUICKBOOKS_REALM_ID = "9130356628667026"
+_PLACEHOLDER_ID_VALUES = {
+    "string",
+    "your_account_id",
+    "your-account-id",
+    "your_realm_id",
+    "your-realm-id",
+}
 
 if load_dotenv is not None:
     load_dotenv(PROJECT_ROOT / ".env")
@@ -44,22 +53,38 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* ---- global ---- */
-    [data-testid="stAppViewContainer"] { background: #0f1117; }
-    [data-testid="stSidebar"] { background: #161b27; border-right: 1px solid #2a2f3d; }
-    h1, h2, h3 { color: #e2e8f0; }
-    p, li, label { color: #94a3b8; }
+    /* Theme-aware tokens — inherit Streamlit light/dark variables */
+    .stApp {
+        --ab-border: color-mix(in srgb, var(--text-color) 18%, transparent);
+        --ab-muted: color-mix(in srgb, var(--text-color) 62%, transparent);
+        --ab-surface: var(--secondary-background-color);
+        --ab-surface-elevated: color-mix(in srgb, var(--text-color) 4%, var(--background-color));
+    }
+
+    /* Let Streamlit control app/sidebar backgrounds; avoid overriding button label <p> tags */
+    .stApp h1, .stApp h2, .stApp h3,
+    .stApp .main .block-container > div p,
+    .stApp [data-testid="stSidebar"] p,
+    .stApp li, .stApp label {
+        color: var(--text-color);
+    }
+
+    .ab-subtitle {
+        color: var(--ab-muted);
+        margin-top: -0.5rem;
+    }
 
     /* ---- cards ---- */
     .card {
-        background: #161b27;
-        border: 1px solid #2a2f3d;
+        background: var(--ab-surface);
+        border: 1px solid var(--ab-border);
         border-radius: 10px;
         padding: 1.25rem 1.5rem;
         margin-bottom: 1rem;
+        color: var(--text-color);
     }
     .card-success { border-left: 4px solid #22c55e; }
-    .card-info    { border-left: 4px solid #3b82f6; }
+    .card-info    { border-left: 4px solid var(--primary-color); }
     .card-warn    { border-left: 4px solid #f59e0b; }
     .card-error   { border-left: 4px solid #ef4444; }
 
@@ -72,28 +97,41 @@ st.markdown(
         font-weight: 600;
         letter-spacing: 0.03em;
     }
-    .badge-green  { background:#14532d; color:#4ade80; }
-    .badge-blue   { background:#1e3a5f; color:#60a5fa; }
-    .badge-red    { background:#450a0a; color:#f87171; }
-    .badge-yellow { background:#451a03; color:#fbbf24; }
+    .badge-green  { background: #dcfce7; color: #166534; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-red    { background: #fee2e2; color: #b91c1c; }
+    .badge-yellow { background: #fef3c7; color: #b45309; }
+    .stApp[data-theme="dark"] .badge-green  { background: #14532d; color: #4ade80; }
+    .stApp[data-theme="dark"] .badge-blue   { background: #1e3a5f; color: #60a5fa; }
+    .stApp[data-theme="dark"] .badge-red    { background: #450a0a; color: #f87171; }
+    .stApp[data-theme="dark"] .badge-yellow { background: #451a03; color: #fbbf24; }
 
     /* ---- metric tiles ---- */
     .metric-tile {
-        background: #1e2433;
-        border: 1px solid #2a2f3d;
+        background: var(--ab-surface-elevated);
+        border: 1px solid var(--ab-border);
         border-radius: 8px;
         padding: 1rem;
         text-align: center;
     }
-    .metric-tile .value { font-size: 1.6rem; font-weight: 700; color: #e2e8f0; }
-    .metric-tile .label { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .metric-tile .value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+    .metric-tile .label {
+        font-size: 0.75rem;
+        color: var(--ab-muted);
+        margin-top: 2px;
+    }
 
     /* ---- step indicator ---- */
     .step-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .step-label { color: var(--text-color); font-size: 0.85rem; opacity: 0.85; }
     .step-num {
         width: 26px; height: 26px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: var(--primary-color);
         color: #fff;
         font-size: 0.75rem;
         font-weight: 700;
@@ -101,7 +139,142 @@ st.markdown(
         flex-shrink: 0;
     }
     .step-num.done  { background: #22c55e; }
-    .step-num.idle  { background: #334155; }
+    .step-num.idle {
+        background: #e2e8f0;
+        color: #475569;
+    }
+    .stApp[data-theme="dark"] .step-num.idle {
+        background: #334155;
+        color: #e2e8f0;
+    }
+
+    /* ---- action buttons (visible in light + dark) ---- */
+    /* Streamlit 1.36 uses .stButton; newer versions also use data-testid="stButton" */
+    .stApp .stButton > button,
+    .stApp div[data-testid="stButton"] > button {
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.02em;
+        border-radius: 0.5rem !important;
+        min-height: 2.75rem;
+        box-shadow: none !important;
+    }
+
+    /* Primary: Save & Run, Run Reports, Run Benchmark */
+    .stApp .stButton > button[kind="primary"],
+    .stApp .stButton > button[data-testid="stBaseButton-primary"],
+    .stApp .stButton > button[data-testid="baseButton-primary"],
+    .stApp div[data-testid="stButton"] > button[kind="primary"],
+    .stApp button[data-testid="stBaseButton-primary"],
+    .stApp button[data-testid="baseButton-primary"] {
+        background-color: #2563eb !important;
+        background-image: none !important;
+        border: 2px solid #1d4ed8 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    .stApp[data-theme="dark"] .stButton > button[kind="primary"],
+    .stApp[data-theme="dark"] .stButton > button[data-testid="stBaseButton-primary"],
+    .stApp[data-theme="dark"] .stButton > button[data-testid="baseButton-primary"],
+    .stApp[data-theme="dark"] div[data-testid="stButton"] > button[kind="primary"],
+    .stApp[data-theme="dark"] button[data-testid="stBaseButton-primary"],
+    .stApp[data-theme="dark"] button[data-testid="baseButton-primary"] {
+        background-color: #3b82f6 !important;
+        border-color: #93c5fd !important;
+    }
+    .stApp .stButton > button[kind="primary"] *,
+    .stApp .stButton > button[data-testid="stBaseButton-primary"] *,
+    .stApp .stButton > button[data-testid="baseButton-primary"] *,
+    .stApp div[data-testid="stButton"] > button[kind="primary"] *,
+    .stApp button[data-testid="stBaseButton-primary"] *,
+    .stApp button[data-testid="baseButton-primary"] * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    .stApp .stButton > button[kind="primary"]:hover,
+    .stApp .stButton > button[data-testid="stBaseButton-primary"]:hover,
+    .stApp div[data-testid="stButton"] > button[kind="primary"]:hover,
+    .stApp button[data-testid="stBaseButton-primary"]:hover,
+    .stApp button[data-testid="baseButton-primary"]:hover {
+        background-color: #1d4ed8 !important;
+        border-color: #1e3a8a !important;
+        color: #ffffff !important;
+    }
+
+    /* Per-key fallbacks (Streamlit 1.41+) */
+    .stApp .st-key-save_and_run_reports button,
+    .stApp .st-key-run_reports_btn button,
+    .stApp .st-key-run_benchmark_btn button {
+        background-color: #2563eb !important;
+        border: 2px solid #1d4ed8 !important;
+        color: #ffffff !important;
+    }
+    .stApp .st-key-save_and_run_reports button *,
+    .stApp .st-key-run_reports_btn button *,
+    .stApp .st-key-run_benchmark_btn button * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    /* Secondary / default: Load from local cache, Refresh, Reset, etc. */
+    .stApp .stButton > button[kind="secondary"],
+    .stApp .stButton > button[data-testid="stBaseButton-secondary"],
+    .stApp .stButton > button[data-testid="baseButton-secondary"],
+    .stApp div[data-testid="stButton"] > button[kind="secondary"],
+    .stApp button[data-testid="stBaseButton-secondary"],
+    .stApp button[data-testid="baseButton-secondary"] {
+        background-color: #e2e8f0 !important;
+        background-image: none !important;
+        border: 2px solid #475569 !important;
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+    .stApp[data-theme="dark"] .stButton > button[kind="secondary"],
+    .stApp[data-theme="dark"] .stButton > button[data-testid="stBaseButton-secondary"],
+    .stApp[data-theme="dark"] div[data-testid="stButton"] > button[kind="secondary"],
+    .stApp[data-theme="dark"] button[data-testid="stBaseButton-secondary"],
+    .stApp[data-theme="dark"] button[data-testid="baseButton-secondary"] {
+        background-color: #1e293b !important;
+        border-color: #94a3b8 !important;
+        color: #f8fafc !important;
+        -webkit-text-fill-color: #f8fafc !important;
+    }
+    .stApp .stButton > button[kind="secondary"] *,
+    .stApp .stButton > button[data-testid="stBaseButton-secondary"] *,
+    .stApp button[data-testid="stBaseButton-secondary"] * {
+        color: inherit !important;
+        -webkit-text-fill-color: inherit !important;
+        font-weight: 700 !important;
+    }
+    .stApp .stButton > button[kind="secondary"]:hover,
+    .stApp .stButton > button[data-testid="stBaseButton-secondary"]:hover {
+        background-color: #cbd5e1 !important;
+        border-color: #334155 !important;
+    }
+    .stApp[data-theme="dark"] .stButton > button[kind="secondary"]:hover,
+    .stApp[data-theme="dark"] .stButton > button[data-testid="stBaseButton-secondary"]:hover {
+        background-color: #334155 !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    /* Disabled buttons */
+    .stApp .stButton > button:disabled,
+    .stApp div[data-testid="stButton"] > button:disabled {
+        opacity: 0.55 !important;
+        cursor: not-allowed !important;
+    }
+    .stApp .stButton > button[kind="primary"]:disabled,
+    .stApp button[data-testid="stBaseButton-primary"]:disabled {
+        background-color: #94a3b8 !important;
+        border-color: #64748b !important;
+        color: #ffffff !important;
+    }
+    .stApp .stButton > button[kind="primary"]:disabled * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -134,7 +307,7 @@ def _init_state():
         "available_reports_error": None,
         "selected_report_files": [],
         "pending_wildapricot_data": None,
-        "show_qb_refresh_prompt": False,
+        "qb_credentials_error": None,
         "user_prompt": "",
     }
     for k, v in defaults.items():
@@ -171,11 +344,127 @@ def resolve_bearer_token() -> str:
 
 
 def resolve_wildapricot_account_id() -> str:
-    return env_value("WILDAPRICOT_ACCOUNT_ID")
+    """Fixed data source ID — edit only in ui/.env (falls back to project .env defaults)."""
+    value = env_value("WILDAPRICOT_ACCOUNT_ID", DEFAULT_WILDAPRICOT_ACCOUNT_ID)
+    return value or DEFAULT_WILDAPRICOT_ACCOUNT_ID
 
 
 def resolve_quickbooks_realm_id() -> str:
-    return env_value("QUICKBOOKS_REALM_ID")
+    """Fixed data source ID — edit only in ui/.env (falls back to project .env defaults)."""
+    value = env_value("QUICKBOOKS_REALM_ID", DEFAULT_QUICKBOOKS_REALM_ID)
+    return value or DEFAULT_QUICKBOOKS_REALM_ID
+
+
+def validate_data_source_id(value: str, field_label: str) -> Optional[str]:
+    """Return a user-friendly error message, or None when the ID is valid."""
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return f"{field_label} is not configured. Set it in `ui/.env`."
+    if cleaned.lower() in _PLACEHOLDER_ID_VALUES:
+        return f"{field_label} must be a real numeric ID, not a placeholder."
+    if not cleaned.isdigit():
+        return f"{field_label} must contain digits only. Got `{cleaned}`."
+    return None
+
+
+def validate_data_source_ids(wa_id: str, qb_id: str) -> Optional[str]:
+    for label, value in (
+        ("WildApricot Account ID", wa_id),
+        ("QuickBooks Realm ID", qb_id),
+    ):
+        error = validate_data_source_id(value, label)
+        if error:
+            return error
+    return None
+
+
+def format_api_error_detail(detail: object, status_code: int) -> str:
+    """Turn FastAPI / API error payloads into readable messages."""
+    if status_code == 403:
+        if isinstance(detail, dict):
+            message = detail.get("message") or detail.get("detail") or detail.get("error")
+            if message:
+                return (
+                    f"Access denied (403): {message}. "
+                    "Check your API bearer token in `ui/.env` and confirm you have permission "
+                    "to access this resource."
+                )
+        if isinstance(detail, str) and detail.strip():
+            return (
+                f"Access denied (403): {detail}. "
+                "Check your API bearer token in `ui/.env` and confirm you have permission "
+                "to access this resource."
+            )
+        return (
+            "Access denied (403). Your API credentials may be missing or invalid. "
+            "Verify `BEARER_TOKEN` in `ui/.env` matches the API server configuration."
+        )
+
+    if status_code == 401:
+        if isinstance(detail, dict):
+            if detail.get("error") == "quickbooks_refresh_token_required":
+                return detail.get(
+                    "message",
+                    "QuickBooks credentials expired. Update them in the QuickBooks section above.",
+                )
+            message = detail.get("message") or detail.get("detail")
+            if message:
+                return f"Authentication failed (401): {message}"
+        if isinstance(detail, str) and detail.strip():
+            return f"Authentication failed (401): {detail}"
+        return (
+            "Authentication failed (401). Set `BEARER_TOKEN` in `ui/.env` to match "
+            "the API server `.env`."
+        )
+
+    if status_code == 422 and isinstance(detail, list):
+        messages = []
+        for item in detail:
+            if not isinstance(item, dict):
+                continue
+            loc = " → ".join(str(part) for part in item.get("loc", []) if part != "body")
+            msg = item.get("msg", "Invalid value")
+            if loc:
+                messages.append(f"{loc}: {msg}")
+            else:
+                messages.append(msg)
+        if messages:
+            return "Request validation failed:\n- " + "\n- ".join(messages)
+
+    if isinstance(detail, dict):
+        message = detail.get("message") or detail.get("detail") or detail.get("error")
+        if message:
+            return str(message)
+        return json.dumps(detail, indent=2)
+
+    if isinstance(detail, str):
+        stripped = detail.strip()
+        if stripped.startswith("{") or stripped.startswith("["):
+            try:
+                return format_api_error_detail(json.loads(stripped), status_code)
+            except json.JSONDecodeError:
+                pass
+        return stripped or f"Request failed with status {status_code}."
+
+    return f"Request failed with status {status_code}."
+
+
+def validate_run_reports_inputs(
+    *,
+    wa_id: str,
+    qb_id: str,
+    bearer_token: str,
+) -> Optional[str]:
+    """Client-side checks before calling /api/reports."""
+    id_error = validate_data_source_ids(wa_id, qb_id)
+    if id_error:
+        return id_error
+    if not bearer_token:
+        return (
+            "API bearer token is not configured. Add `BEARER_TOKEN` to `ui/.env` "
+            "so it matches the API server."
+        )
+    return None
 
 
 def get_bearer_token() -> str:
@@ -264,17 +553,14 @@ def format_api_request_error(exc: Exception, base_url: str, endpoint: str) -> st
     """Return a user-friendly API error message instead of raw urllib3 traces."""
     target = f"{base_url.rstrip('/')}{endpoint}"
     if isinstance(exc, requests.HTTPError) and exc.response is not None:
-        if exc.response.status_code == 401:
-            return (
-                f"API returned 401 Unauthorized for `{target}`. "
-                "Set **API Bearer Token** in the sidebar to match `BEARER_TOKEN` "
-                "in the API server `.env`."
-            )
+        status_code = exc.response.status_code
         try:
-            detail = exc.response.json().get("detail", exc.response.text)
+            payload = exc.response.json()
+            detail = payload.get("detail", payload)
         except ValueError:
             detail = exc.response.text
-        return f"API request to `{target}` failed ({exc.response.status_code}): {detail}"
+        friendly = format_api_error_detail(detail, status_code)
+        return f"API request to `{target}` failed ({status_code}): {friendly}"
     if isinstance(exc, requests.ConnectionError):
         if base_url.rstrip("/") in _PLACEHOLDER_API_URLS or "example.com" in base_url:
             return (
@@ -340,7 +626,7 @@ def store_reports_success(resp: dict, elapsed: float) -> None:
     st.session_state.reports_elapsed = elapsed
     st.session_state.step = max(st.session_state.step, 2)
     st.session_state.pending_wildapricot_data = None
-    st.session_state.show_qb_refresh_prompt = False
+    st.session_state.qb_credentials_error = None
 
 
 def fetch_available_reports(base_url: str) -> list:
@@ -421,17 +707,98 @@ def extract_benchmark_reports(reports_response: dict) -> Tuple[dict, dict]:
     return context, benchmark_slice
 
 
-def load_reports_from_local_cache() -> Tuple[dict, dict, dict]:
-    """Load full reports response + benchmark slice from data/reports/latest.json."""
-    if not REPORTS_CACHE_PATH.is_file():
+def load_reports_from_local_cache(base_url: str) -> Tuple[dict, dict, dict]:
+    """Load reports from API server cache, with local file fallback for dev."""
+    resp: Optional[dict] = None
+    try:
+        resp = fetch_cached_reports_from_api(base_url)
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 404:
+            if REPORTS_CACHE_PATH.is_file():
+                with open(REPORTS_CACHE_PATH, encoding="utf-8") as f:
+                    resp = json.load(f)
+            else:
+                raise FileNotFoundError(
+                    "No cached reports found on the API server. Run **Run Reports** first."
+                ) from exc
+        else:
+            raise
+    except requests.RequestException as exc:
+        if REPORTS_CACHE_PATH.is_file():
+            with open(REPORTS_CACHE_PATH, encoding="utf-8") as f:
+                resp = json.load(f)
+        else:
+            raise ConnectionError(
+                format_api_request_error(exc, base_url, "/api/reports/cache")
+            ) from exc
+
+    if resp is None:
         raise FileNotFoundError(
-            f"No cached reports at `{REPORTS_CACHE_PATH}`. "
-            "Run /api/reports first (Step 1)."
+            f"No cached reports at `{REPORTS_CACHE_PATH}`. Run /api/reports first (Step 1)."
         )
-    with open(REPORTS_CACHE_PATH, encoding="utf-8") as f:
-        resp = json.load(f)
     context, benchmark_slice = extract_benchmark_reports(resp)
     return resp, context, benchmark_slice
+
+
+def fetch_cached_reports_from_api(base_url: str) -> dict:
+    url = f"{base_url.rstrip('/')}/api/reports/cache"
+    resp = requests.get(
+        url,
+        headers=build_api_headers(json_content=False),
+        timeout=60,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_reports_cache_status(base_url: str) -> dict:
+    """Return cache availability from API server, with local file fallback."""
+    url = f"{base_url.rstrip('/')}/api/reports/cache/status"
+    try:
+        resp = requests.get(
+            url,
+            headers=build_api_headers(json_content=False),
+            timeout=15,
+        )
+        if resp.status_code == 404:
+            if REPORTS_CACHE_PATH.is_file():
+                mtime = datetime.fromtimestamp(REPORTS_CACHE_PATH.stat().st_mtime)
+                return {
+                    "available": True,
+                    "source": "local",
+                    "updated_at": mtime.isoformat(),
+                }
+            return {"available": False}
+        resp.raise_for_status()
+        data = resp.json()
+        data["source"] = "api"
+        return data
+    except requests.RequestException:
+        if REPORTS_CACHE_PATH.is_file():
+            mtime = datetime.fromtimestamp(REPORTS_CACHE_PATH.stat().st_mtime)
+            return {
+                "available": True,
+                "source": "local",
+                "updated_at": mtime.isoformat(),
+            }
+        return {"available": False}
+
+
+def format_cache_updated_label(cache_status: dict) -> str:
+    if not cache_status.get("available"):
+        return "No cached reports yet — run **Run Reports** first"
+    updated_at = cache_status.get("updated_at")
+    source = cache_status.get("source", "api")
+    if updated_at:
+        try:
+            dt = datetime.fromisoformat(updated_at)
+            label = dt.strftime("%Y-%m-%d %H:%M")
+        except ValueError:
+            label = updated_at
+        if source == "local":
+            return f"Local cache updated: {label}"
+        return f"API cache updated: {label}"
+    return "Cached reports available on API server"
 
 
 def benchmark_years_label(years: Optional[list], start_date: str, end_date: str) -> str:
@@ -555,6 +922,15 @@ def benchmark_ready(use_cached_reports: bool = False) -> bool:
         return False
 
     if use_cached_reports:
+        status = st.session_state.get("reports_cache_status") or {}
+        if status.get("available"):
+            return True
+        if st.session_state.get("stored_reports"):
+            stored = st.session_state.get("stored_reports")
+            return all(
+                k in stored and stored[k].get("content")
+                for k in BENCHMARK_REPORT_KEYS
+            )
         return REPORTS_CACHE_PATH.is_file()
     ctx = get_reports_context()
     stored = st.session_state.get("stored_reports")
@@ -619,9 +995,99 @@ def render_step(num: int, label: str, current_step: int):
         icon = str(num)
     st.markdown(
         f'<div class="step-row"><div class="step-num {cls}">{icon}</div>'
-        f'<span style="color:#cbd5e1;font-size:0.85rem">{label}</span></div>',
+        f'<span class="step-label">{label}</span></div>',
         unsafe_allow_html=True,
     )
+
+
+def build_quickbooks_credentials_payload(
+    client_id: str,
+    client_secret: str,
+    refresh_token: str,
+    access_token: str,
+    realm_id: str,
+) -> Optional[dict]:
+    """Return inline QuickBooks credentials when all required fields are present."""
+    if not all(
+        value.strip()
+        for value in (client_id, client_secret, refresh_token)
+    ):
+        return None
+    payload = {
+        "client_id": client_id.strip(),
+        "client_secret": client_secret.strip(),
+        "refresh_token": refresh_token.strip(),
+        "realm_id": realm_id.strip() or None,
+    }
+    if access_token.strip():
+        payload["access_token"] = access_token.strip()
+    return payload
+
+
+def execute_reports_run(
+    base_url: str,
+    wa_id: str,
+    qb_id: str,
+    start_date: str,
+    end_date: str,
+    *,
+    user_prompt: str = "",
+    quickbooks_credentials: Optional[dict] = None,
+) -> None:
+    """Validate inputs, call /api/reports, and store results or surface friendly errors."""
+    validation_error = validate_run_reports_inputs(
+        wa_id=wa_id,
+        qb_id=qb_id,
+        bearer_token=get_bearer_token(),
+    )
+    if validation_error:
+        st.error(validation_error)
+        return
+
+    t0 = time.time()
+    try:
+        resp = call_reports(
+            base_url,
+            wa_id,
+            qb_id,
+            start_date,
+            end_date,
+            wildapricot_data=st.session_state.get("pending_wildapricot_data"),
+            quickbooks_credentials=quickbooks_credentials,
+            user_prompt=user_prompt,
+        )
+        store_reports_success(resp, time.time() - t0)
+        st.session_state.qb_credentials_error = None
+        st.rerun()
+    except QuickBooksRefreshTokenRequired as e:
+        if e.detail.get("wildapricot_data"):
+            st.session_state.pending_wildapricot_data = e.detail["wildapricot_data"]
+        st.session_state.qb_credentials_error = (
+            e.detail.get("message")
+            or "QuickBooks credentials are invalid or expired. Update them above and try again."
+        )
+        st.rerun()
+    except ValueError as e:
+        st.error(f"Invalid reports response: {e}")
+    except requests.HTTPError as e:
+        if e.response is not None:
+            detail = parse_http_error_detail(e.response)
+            if is_quickbooks_refresh_token_error(detail):
+                if isinstance(detail, dict) and detail.get("wildapricot_data"):
+                    st.session_state.pending_wildapricot_data = detail["wildapricot_data"]
+                st.session_state.qb_credentials_error = (
+                    detail.get("message")
+                    if isinstance(detail, dict)
+                    else "QuickBooks credentials are invalid or expired. Update them above and try again."
+                )
+                st.rerun()
+            st.error(format_api_request_error(e, base_url, "/api/reports"))
+        else:
+            st.error(format_api_request_error(e, base_url, "/api/reports"))
+    except requests.RequestException as e:
+        st.error(format_api_request_error(e, base_url, "/api/reports"))
+    except Exception as e:
+        st.error(format_api_request_error(e, base_url, "/api/reports"))
 
 
 # ──────────────────────────────────────────────
@@ -644,14 +1110,26 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🏢 Data Sources")
-    wa_id = st.text_input(
+    wa_id = resolve_wildapricot_account_id()
+    qb_id = resolve_quickbooks_realm_id()
+    st.text_input(
         "WildApricot Account ID",
-        value=resolve_wildapricot_account_id(),
+        value=wa_id,
+        disabled=True,
+        help="Configured in `ui/.env` (WILDAPRICOT_ACCOUNT_ID). Not editable here.",
     )
-    qb_id = st.text_input(
+    st.text_input(
         "QuickBooks Realm ID",
-        value=resolve_quickbooks_realm_id(),
+        value=qb_id,
+        disabled=True,
+        help="Configured in `ui/.env` (QUICKBOOKS_REALM_ID). Not editable here.",
     )
+    wa_id_error = validate_data_source_id(wa_id, "WildApricot Account ID")
+    qb_id_error = validate_data_source_id(qb_id, "QuickBooks Realm ID")
+    if wa_id_error:
+        st.error(wa_id_error)
+    if qb_id_error:
+        st.error(qb_id_error)
 
     st.markdown("---")
     st.markdown("### 📅 Date Range")
@@ -714,14 +1192,14 @@ with st.sidebar:
             "benchmark_response", "step", "reports_elapsed", "benchmark_elapsed",
             "available_reports", "available_reports_error",
             "selected_report_files",
-            "pending_wildapricot_data", "show_qb_refresh_prompt",
+            "pending_wildapricot_data", "qb_credentials_error",
         ]:
             if k == "step":
                 st.session_state[k] = 0
             elif k == "selected_report_files":
                 st.session_state[k] = []
-            elif k == "show_qb_refresh_prompt":
-                st.session_state[k] = False
+            elif k == "qb_credentials_error":
+                st.session_state[k] = None
             else:
                 st.session_state[k] = None
         st.rerun()
@@ -731,11 +1209,122 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 st.markdown("# 📊 AccountBridge · Reports → Benchmark")
 st.markdown(
-    '<p style="color:#64748b;margin-top:-0.5rem">Generate financial reports, '
+    '<p class="ab-subtitle">Generate financial reports, '
     "store to <code>data/reports/latest.json</code>, then run benchmark "
     "(or benchmark alone from cache).</p>",
     unsafe_allow_html=True,
 )
+
+# ── QuickBooks credentials (always visible in header) ──
+with st.container(border=True):
+    st.markdown("### 🔐 QuickBooks Credentials")
+    st.caption(
+        f"Get tokens from the "
+        f"[Intuit OAuth playground]({QUICKBOOKS_PLAYGROUND_URL}) (**Get Tokens**), "
+        "then save them here before running reports."
+    )
+    if st.session_state.get("qb_credentials_error"):
+        st.error(st.session_state.qb_credentials_error)
+    if st.session_state.get("pending_wildapricot_data"):
+        st.info(
+            "WildApricot data is already fetched and will be reused on retry — "
+            "only QuickBooks will be called again."
+        )
+
+    qb_defaults = quickbooks_credential_defaults()
+    qb_hdr1, qb_hdr2 = st.columns(2)
+    with qb_hdr1:
+        qb_client_id = st.text_input(
+            "QuickBooks Client ID",
+            value=qb_defaults["client_id"],
+            key="qb_client_id_input",
+        )
+        qb_refresh_token = st.text_area(
+            "QuickBooks Refresh Token",
+            value=qb_defaults["refresh_token"],
+            height=72,
+            key="qb_refresh_token_input",
+            placeholder="refresh_token from playground (starts with RT1-)",
+        )
+    with qb_hdr2:
+        qb_client_secret = st.text_input(
+            "QuickBooks Client Secret",
+            value=qb_defaults["client_secret"],
+            type="password",
+            key="qb_client_secret_input",
+        )
+        qb_access_token = st.text_area(
+            "QuickBooks Access Token",
+            value=qb_defaults["access_token"],
+            height=72,
+            key="qb_access_token_input",
+            placeholder="access_token from playground (optional but recommended)",
+        )
+
+    save_run_col, _save_run_spacer = st.columns([1, 3])
+    with save_run_col:
+        save_and_run = st.button(
+            "Save & Run",
+            type="primary",
+            use_container_width=True,
+            key="save_and_run_reports",
+        )
+
+if save_and_run:
+    missing = [
+        label
+        for label, value in (
+            ("Client ID", qb_client_id),
+            ("Client Secret", qb_client_secret),
+            ("Refresh Token", qb_refresh_token),
+        )
+        if not value.strip()
+    ]
+    if missing:
+        st.session_state.qb_credentials_error = f"Required QuickBooks fields: {', '.join(missing)}"
+        st.rerun()
+    else:
+        with st.spinner("Saving QuickBooks credentials and running reports …"):
+            try:
+                submit_quickbooks_credentials(
+                    base_url,
+                    client_id=qb_client_id,
+                    client_secret=qb_client_secret,
+                    refresh_token=qb_refresh_token,
+                    access_token=qb_access_token,
+                    realm_id=qb_id,
+                )
+            except requests.HTTPError as e:
+                detail = parse_http_error_detail(e.response) if e.response is not None else str(e)
+                message = (
+                    detail.get("message", detail)
+                    if isinstance(detail, dict)
+                    else format_api_error_detail(detail, e.response.status_code if e.response else 500)
+                )
+                st.session_state.qb_credentials_error = f"Could not save QuickBooks credentials: {message}"
+                st.rerun()
+            except requests.RequestException as e:
+                st.session_state.qb_credentials_error = format_api_request_error(
+                    e, base_url, "/api/quickbooks/credentials"
+                )
+                st.rerun()
+            else:
+                qb_creds_payload = build_quickbooks_credentials_payload(
+                    qb_client_id,
+                    qb_client_secret,
+                    qb_refresh_token,
+                    qb_access_token,
+                    qb_id,
+                )
+                execute_reports_run(
+                    base_url,
+                    wa_id,
+                    qb_id,
+                    start_date.isoformat(),
+                    end_date.isoformat(),
+                    user_prompt=st.session_state.get("user_prompt", ""),
+                    quickbooks_credentials=qb_creds_payload,
+                )
 
 tab_pipeline, tab_reports, tab_benchmark, tab_raw = st.tabs(
     ["🚀 Pipeline", "📄 Reports", "🎯 Benchmark", "🔩 Raw JSON"]
@@ -747,7 +1336,6 @@ tab_pipeline, tab_reports, tab_benchmark, tab_raw = st.tabs(
 with tab_pipeline:
 
     # ── Step 1: Generate Reports ──
-    st.markdown('<div class="card card-info">', unsafe_allow_html=True)
     st.markdown("### Step 1 · Generate Reports  `/api/reports`")
 
     c1, c2 = st.columns([3, 1])
@@ -758,25 +1346,31 @@ with tab_pipeline:
             unsafe_allow_html=True,
         )
     with c2:
-        run_reports = st.button("▶ Run Reports", use_container_width=True, type="primary")
+        run_reports = st.button(
+            "▶ Run Reports",
+            use_container_width=True,
+            type="primary",
+            key="run_reports_btn",
+        )
 
+    cache_status = get_reports_cache_status(base_url)
+    st.session_state.reports_cache_status = cache_status
     load_col1, load_col2 = st.columns(2)
     with load_col1:
         load_cache = st.button(
             "📂 Load from local cache",
             use_container_width=True,
-            help=f"Read `{REPORTS_CACHE_PATH}` without calling /api/reports",
+            help=(
+                "Load the latest saved reports from the API server cache "
+                f"(`data/reports/latest.json`) without calling /api/reports again."
+            ),
         )
     with load_col2:
-        if REPORTS_CACHE_PATH.is_file():
-            mtime = datetime.fromtimestamp(REPORTS_CACHE_PATH.stat().st_mtime)
-            st.caption(f"Cache updated: {mtime:%Y-%m-%d %H:%M}")
-        else:
-            st.caption("No local cache file yet")
+        st.caption(format_cache_updated_label(cache_status))
 
     if load_cache:
         try:
-            resp, context, benchmark_reports = load_reports_from_local_cache()
+            resp, context, benchmark_reports = load_reports_from_local_cache(base_url)
             st.session_state.reports_response = resp
             st.session_state.reports_context = context
             st.session_state.stored_reports = benchmark_reports
@@ -784,6 +1378,12 @@ with tab_pipeline:
             st.session_state.step = max(st.session_state.step, 2)
             st.rerun()
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as e:
+            st.error(str(e))
+        except requests.HTTPError as e:
+            st.error(format_api_request_error(e, base_url, "/api/reports/cache"))
+        except requests.RequestException as e:
+            st.error(format_api_request_error(e, base_url, "/api/reports/cache"))
+        except ConnectionError as e:
             st.error(str(e))
 
     st.markdown("#### ✍️ Report Instructions")
@@ -805,139 +1405,23 @@ with tab_pipeline:
     st.session_state.user_prompt = user_prompt
 
     if run_reports:
+        qb_creds_payload = build_quickbooks_credentials_payload(
+            qb_client_id,
+            qb_client_secret,
+            qb_refresh_token,
+            qb_access_token,
+            qb_id,
+        )
         with st.spinner("Calling /api/reports …"):
-            t0 = time.time()
-            try:
-                resp = call_reports(
-                    base_url, wa_id, qb_id,
-                    start_date.isoformat(), end_date.isoformat(),
-                    user_prompt=user_prompt,
-                )
-                store_reports_success(resp, time.time() - t0)
-                st.rerun()
-            except QuickBooksRefreshTokenRequired as e:
-                st.session_state.show_qb_refresh_prompt = True
-                if e.detail.get("wildapricot_data"):
-                    st.session_state.pending_wildapricot_data = e.detail["wildapricot_data"]
-                st.rerun()
-            except ValueError as e:
-                st.error(f"Invalid reports response: {e}")
-            except requests.HTTPError as e:
-                st.error(f"HTTP {e.response.status_code}: {e.response.text[:400]}")
-            except requests.RequestException as e:
-                st.error(format_api_request_error(e, base_url, "/api/reports"))
-            except Exception as e:
-                st.error(format_api_request_error(e, base_url, "/api/reports"))
-
-    if st.session_state.get("show_qb_refresh_prompt"):
-        st.markdown('<div class="card card-warn">', unsafe_allow_html=True)
-        st.markdown("### QuickBooks credentials required")
-        st.warning(
-            'Get new credentials from the '
-            f'[{QUICKBOOKS_PLAYGROUND_URL}]({QUICKBOOKS_PLAYGROUND_URL}) '
-            "playground (**Get Tokens**), then paste all values below."
-        )
-        if st.session_state.get("pending_wildapricot_data"):
-            st.info(
-                "WildApricot data is already fetched and will be reused on retry — "
-                "only QuickBooks will be called again."
+            execute_reports_run(
+                base_url,
+                wa_id,
+                qb_id,
+                start_date.isoformat(),
+                end_date.isoformat(),
+                user_prompt=user_prompt,
+                quickbooks_credentials=qb_creds_payload,
             )
-
-        qb_defaults = quickbooks_credential_defaults()
-        qb_client_id = st.text_input(
-            "QuickBooks Client ID",
-            value=qb_defaults["client_id"],
-            key="qb_client_id_input",
-        )
-        qb_client_secret = st.text_input(
-            "QuickBooks Client Secret",
-            value=qb_defaults["client_secret"],
-            type="password",
-            key="qb_client_secret_input",
-        )
-        qb_refresh_token = st.text_area(
-            "QuickBooks Refresh Token",
-            value=qb_defaults["refresh_token"],
-            height=72,
-            key="qb_refresh_token_input",
-            placeholder="refresh_token from playground (starts with RT1-)",
-        )
-        qb_access_token = st.text_area(
-            "QuickBooks Access Token",
-            value=qb_defaults["access_token"],
-            height=72,
-            key="qb_access_token_input",
-            placeholder="access_token from playground (optional but recommended)",
-        )
-
-        retry_col1, retry_col2 = st.columns([1, 3])
-        with retry_col1:
-            retry_qb = st.button(
-                "Save & retry reports",
-                type="primary",
-                use_container_width=True,
-            )
-        if retry_qb:
-            missing = [
-                label
-                for label, value in (
-                    ("Client ID", qb_client_id),
-                    ("Client Secret", qb_client_secret),
-                    ("Refresh Token", qb_refresh_token),
-                )
-                if not value.strip()
-            ]
-            if missing:
-                st.error(f"Required: {', '.join(missing)}")
-            else:
-                with st.spinner("Retrying reports with your QuickBooks credentials …"):
-                    t0 = time.time()
-                    qb_creds_payload = {
-                        "client_id": qb_client_id.strip(),
-                        "client_secret": qb_client_secret.strip(),
-                        "refresh_token": qb_refresh_token.strip(),
-                        "realm_id": qb_id.strip() or None,
-                    }
-                    if qb_access_token.strip():
-                        qb_creds_payload["access_token"] = qb_access_token.strip()
-                    try:
-                        resp = call_reports(
-                            base_url,
-                            wa_id,
-                            qb_id,
-                            start_date.isoformat(),
-                            end_date.isoformat(),
-                            wildapricot_data=st.session_state.get("pending_wildapricot_data"),
-                            quickbooks_credentials=qb_creds_payload,
-                            user_prompt=user_prompt,
-                        )
-                        try:
-                            submit_quickbooks_credentials(
-                                base_url,
-                                client_id=qb_client_id,
-                                client_secret=qb_client_secret,
-                                refresh_token=qb_refresh_token,
-                                access_token=qb_access_token,
-                                realm_id=qb_id,
-                            )
-                        except requests.RequestException:
-                            pass
-                        store_reports_success(resp, time.time() - t0)
-                        st.rerun()
-                    except QuickBooksRefreshTokenRequired as e:
-                        if e.detail.get("wildapricot_data"):
-                            st.session_state.pending_wildapricot_data = e.detail["wildapricot_data"]
-                        message = e.detail.get("message", "QuickBooks rejected the credentials.")
-                        st.error(f"QuickBooks credentials rejected: {message}")
-                    except requests.HTTPError as e:
-                        detail = parse_http_error_detail(e.response)
-                        message = detail.get("message", detail) if isinstance(detail, dict) else detail
-                        st.error(f"QuickBooks credentials update failed: {message}")
-                    except requests.RequestException as e:
-                        st.error(format_api_request_error(e, base_url, "/api/reports"))
-                    except Exception as e:
-                        st.error(str(e))
-        st.markdown("</div>", unsafe_allow_html=True)
 
     if st.session_state.stored_reports is not None:
         n_reports = len(st.session_state.stored_reports)
@@ -964,34 +1448,36 @@ with tab_pipeline:
                 f"Frozen period: {ctx.get('start_date')} → {ctx.get('end_date')} "
                 f"(request_id: {ctx.get('request_id', '—')})"
             )
-    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Step 2: Stored Reports Preview ──
-    st.markdown('<div class="card card-success">', unsafe_allow_html=True)
-    st.markdown("### Step 2 · Stored Reports Slice")
-    if st.session_state.stored_reports:
-        st.markdown(
-            "Cached benchmark slice: "
-            + ", ".join(f"`{k}`" for k in st.session_state.stored_reports.keys())
-        )
-        st.caption(f"Disk cache: `{REPORTS_CACHE_PATH}`")
-        with st.expander("Preview stored `reports` JSON"):
-            st.json(st.session_state.stored_reports)
-    elif REPORTS_CACHE_PATH.is_file():
-        st.info(
-            "Session empty but local cache exists. Use **Load from local cache** "
-            "or enable **Use locally cached reports** for benchmark-only runs."
-        )
-    else:
-        st.info("No reports stored yet. Run Step 1 first.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("### Step 2 · Stored Reports Slice")
+        if st.session_state.stored_reports:
+            st.markdown(
+                "Cached benchmark slice: "
+                + ", ".join(f"`{k}`" for k in st.session_state.stored_reports.keys())
+            )
+            st.caption(f"Disk cache: `{REPORTS_CACHE_PATH}`")
+            with st.expander("Preview stored `reports` JSON"):
+                st.json(st.session_state.stored_reports)
+        elif (st.session_state.get("reports_cache_status") or {}).get("available"):
+            st.info(
+                "Session empty but API cache exists. Use **Load from local cache** "
+                "or enable **Use locally cached reports** for benchmark-only runs."
+            )
+        elif REPORTS_CACHE_PATH.is_file():
+            st.info(
+                "Session empty but local cache exists. Use **Load from local cache** "
+                "or enable **Use locally cached reports** for benchmark-only runs."
+            )
+        else:
+            st.info("No reports stored yet. Run Step 1 first.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Step 3: Benchmark ──
-    st.markdown('<div class="card card-warn">', unsafe_allow_html=True)
     st.markdown("### Step 3 · Run Benchmark  `/api/benchmark`")
     st.caption(
         "Select up to 3 reference PDFs from the list below, then click **Run Benchmark**. "
@@ -1114,6 +1600,7 @@ with tab_pipeline:
             use_container_width=True,
             type="primary",
             disabled=not benchmark_ready(use_cached_reports),
+            key="run_benchmark_btn",
         )
 
     if use_cached_reports:
@@ -1131,7 +1618,7 @@ with tab_pipeline:
             ctx = get_reports_context() if not use_cached_reports else None
             if use_cached_reports and not ctx:
                 try:
-                    _, ctx, _ = load_reports_from_local_cache()
+                    _, ctx, _ = load_reports_from_local_cache(base_url)
                 except (FileNotFoundError, ValueError, json.JSONDecodeError):
                     ctx = None
             years_hint = benchmark_years_label(
@@ -1159,7 +1646,7 @@ with tab_pipeline:
                     st.session_state.step = 3
                     st.rerun()
                 except requests.HTTPError as e:
-                    st.error(f"HTTP {e.response.status_code}: {e.response.text[:400]}")
+                    st.error(format_api_request_error(e, base_url, "/api/benchmark"))
                 except requests.RequestException as e:
                     st.error(format_api_request_error(e, base_url, "/api/benchmark"))
                 except Exception as e:
@@ -1180,8 +1667,6 @@ with tab_pipeline:
         st.caption(
             "⚠ Run Reports, load local cache, or enable cached-reports benchmark mode."
         )
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ──────────────────────────────────────────────

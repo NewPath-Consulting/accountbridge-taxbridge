@@ -1,4 +1,6 @@
 """Reports generation endpoint."""
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.exceptions import ResponseValidationError
 from typing import Optional, Any
@@ -13,6 +15,7 @@ from app.adapters.quickbooks.exceptions import (
     QUICKBOOKS_REFRESH_TOKEN_NOTIFY_MESSAGE,
 )
 from app.adapters.wildapricot.exceptions import WildApricotAuthError
+from app.utils.reports_cache import latest_cache_path, load_cached_reports_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -61,6 +64,42 @@ def _quickbooks_refresh_token_http_exception(
 def get_reports_service() -> ReportsService:
     """Get or create reports service (dependency injection)."""
     return ReportsService()
+
+
+@router.get(
+    "/reports/cache/status",
+    tags=["Reports"],
+    summary="Check whether cached reports exist on the API server",
+)
+@limiter.limit(rate_limit_string)
+async def cached_reports_status(request: Request):
+    """Return cache availability and last-updated time for data/reports/latest.json."""
+    path = latest_cache_path()
+    if not path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="No cached reports found. Run POST /api/reports first.",
+        )
+    mtime = path.stat().st_mtime
+    return {
+        "available": True,
+        "path": str(path),
+        "updated_at": datetime.fromtimestamp(mtime).isoformat(),
+    }
+
+
+@router.get(
+    "/reports/cache",
+    tags=["Reports"],
+    summary="Load cached reports from the API server disk cache",
+)
+@limiter.limit(rate_limit_string)
+async def get_cached_reports(request: Request):
+    """Return the full /api/reports response saved to data/reports/latest.json."""
+    try:
+        return load_cached_reports_response()
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post(
