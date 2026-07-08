@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 import time
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -14,10 +14,10 @@ except ImportError:
     load_dotenv = None
 
 BENCHMARK_REPORT_KEYS = ("cash_flow", "tax_return", "balance_sheet")
+MAX_BENCHMARK_REFERENCE_DOCS = 3
 DEFAULT_API_BASE_URL = "http://localhost:8000"
 UI_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = UI_DIR.parent
-REPORTS_CACHE_PATH = PROJECT_ROOT / "data" / "reports" / "latest.json"
 _PLACEHOLDER_API_URLS = {
     "https://api.example.com",
     "http://api.example.com",
@@ -218,7 +218,7 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    /* Secondary / default: Load from local cache, Refresh, Reset, etc. */
+    /* Secondary / default: Refresh, Reset, etc. */
     .stApp .stButton > button[kind="secondary"],
     .stApp .stButton > button[data-testid="stBaseButton-secondary"],
     .stApp .stButton > button[data-testid="baseButton-secondary"],
@@ -670,11 +670,12 @@ def fiscal_year_document_sets(docs: list) -> dict[int, list[str]]:
 
 
 def prune_selected_report_files(valid_file_names: set[str]) -> None:
-    """Drop stale selections when the available document list changes."""
+    """Drop stale selections and enforce the max reference-document limit."""
     current = st.session_state.get("selected_report_files") or []
-    st.session_state.selected_report_files = [
+    pruned = [
         file_name for file_name in current if file_name in valid_file_names
     ]
+    st.session_state.selected_report_files = pruned[:MAX_BENCHMARK_REFERENCE_DOCS]
 
 
 def extract_benchmark_reports(reports_response: dict) -> Tuple[dict, dict]:
@@ -705,100 +706,6 @@ def extract_benchmark_reports(reports_response: dict) -> Tuple[dict, dict]:
         "reports_status": reports_response.get("status"),
     }
     return context, benchmark_slice
-
-
-def load_reports_from_local_cache(base_url: str) -> Tuple[dict, dict, dict]:
-    """Load reports from API server cache, with local file fallback for dev."""
-    resp: Optional[dict] = None
-    try:
-        resp = fetch_cached_reports_from_api(base_url)
-    except requests.HTTPError as exc:
-        if exc.response is not None and exc.response.status_code == 404:
-            if REPORTS_CACHE_PATH.is_file():
-                with open(REPORTS_CACHE_PATH, encoding="utf-8") as f:
-                    resp = json.load(f)
-            else:
-                raise FileNotFoundError(
-                    "No cached reports found on the API server. Run **Run Reports** first."
-                ) from exc
-        else:
-            raise
-    except requests.RequestException as exc:
-        if REPORTS_CACHE_PATH.is_file():
-            with open(REPORTS_CACHE_PATH, encoding="utf-8") as f:
-                resp = json.load(f)
-        else:
-            raise ConnectionError(
-                format_api_request_error(exc, base_url, "/api/reports/cache")
-            ) from exc
-
-    if resp is None:
-        raise FileNotFoundError(
-            f"No cached reports at `{REPORTS_CACHE_PATH}`. Run /api/reports first (Step 1)."
-        )
-    context, benchmark_slice = extract_benchmark_reports(resp)
-    return resp, context, benchmark_slice
-
-
-def fetch_cached_reports_from_api(base_url: str) -> dict:
-    url = f"{base_url.rstrip('/')}/api/reports/cache"
-    resp = requests.get(
-        url,
-        headers=build_api_headers(json_content=False),
-        timeout=60,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
-def get_reports_cache_status(base_url: str) -> dict:
-    """Return cache availability from API server, with local file fallback."""
-    url = f"{base_url.rstrip('/')}/api/reports/cache/status"
-    try:
-        resp = requests.get(
-            url,
-            headers=build_api_headers(json_content=False),
-            timeout=15,
-        )
-        if resp.status_code == 404:
-            if REPORTS_CACHE_PATH.is_file():
-                mtime = datetime.fromtimestamp(REPORTS_CACHE_PATH.stat().st_mtime)
-                return {
-                    "available": True,
-                    "source": "local",
-                    "updated_at": mtime.isoformat(),
-                }
-            return {"available": False}
-        resp.raise_for_status()
-        data = resp.json()
-        data["source"] = "api"
-        return data
-    except requests.RequestException:
-        if REPORTS_CACHE_PATH.is_file():
-            mtime = datetime.fromtimestamp(REPORTS_CACHE_PATH.stat().st_mtime)
-            return {
-                "available": True,
-                "source": "local",
-                "updated_at": mtime.isoformat(),
-            }
-        return {"available": False}
-
-
-def format_cache_updated_label(cache_status: dict) -> str:
-    if not cache_status.get("available"):
-        return "No cached reports yet — run **Run Reports** first"
-    updated_at = cache_status.get("updated_at")
-    source = cache_status.get("source", "api")
-    if updated_at:
-        try:
-            dt = datetime.fromisoformat(updated_at)
-            label = dt.strftime("%Y-%m-%d %H:%M")
-        except ValueError:
-            label = updated_at
-        if source == "local":
-            return f"Local cache updated: {label}"
-        return f"API cache updated: {label}"
-    return "Cached reports available on API server"
 
 
 def benchmark_years_label(years: Optional[list], start_date: str, end_date: str) -> str:
@@ -915,23 +822,12 @@ def get_reports_context() -> Optional[dict]:
     return ctx
 
 
-def benchmark_ready(use_cached_reports: bool = False) -> bool:
+def benchmark_ready() -> bool:
     available = st.session_state.get("available_reports")
     selected = st.session_state.get("selected_report_files", [])
     if available is not None and len(selected) == 0:
         return False
 
-    if use_cached_reports:
-        status = st.session_state.get("reports_cache_status") or {}
-        if status.get("available"):
-            return True
-        if st.session_state.get("stored_reports"):
-            stored = st.session_state.get("stored_reports")
-            return all(
-                k in stored and stored[k].get("content")
-                for k in BENCHMARK_REPORT_KEYS
-            )
-        return REPORTS_CACHE_PATH.is_file()
     ctx = get_reports_context()
     stored = st.session_state.get("stored_reports")
     if not ctx or not stored:
@@ -946,34 +842,21 @@ def benchmark_ready(use_cached_reports: bool = False) -> bool:
 
 def call_benchmark(
     base_url: str,
-    reports_context: Optional[dict],
-    stored_reports: Optional[dict],
+    reports_context: dict,
+    stored_reports: dict,
     years: Optional[list],
     *,
-    use_cached_reports: bool = False,
     selected_document_files: Optional[list] = None,
 ) -> dict:
     url = f"{base_url.rstrip('/')}/api/benchmark"
     headers = build_api_headers()
-    payload: dict = {"use_cached_reports": use_cached_reports}
-    if use_cached_reports:
-        if reports_context:
-            for key in (
-                "wildapricot_account_id",
-                "quickbooks_realm_id",
-                "start_date",
-                "end_date",
-            ):
-                if reports_context.get(key):
-                    payload[key] = reports_context[key]
-    else:
-        payload.update({
-            "wildapricot_account_id": reports_context["wildapricot_account_id"],
-            "quickbooks_realm_id": reports_context["quickbooks_realm_id"],
-            "start_date": reports_context["start_date"],
-            "end_date": reports_context["end_date"],
-            "reports": stored_reports,
-        })
+    payload: dict = {
+        "wildapricot_account_id": reports_context["wildapricot_account_id"],
+        "quickbooks_realm_id": reports_context["quickbooks_realm_id"],
+        "start_date": reports_context["start_date"],
+        "end_date": reports_context["end_date"],
+        "reports": stored_reports,
+    }
     if years:
         payload["years"] = years
     if selected_document_files:
@@ -1110,19 +993,19 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🏢 Data Sources")
-    wa_id = resolve_wildapricot_account_id()
-    qb_id = resolve_quickbooks_realm_id()
-    st.text_input(
+    if "wildapricot_account_id" not in st.session_state:
+        st.session_state.wildapricot_account_id = resolve_wildapricot_account_id()
+    if "quickbooks_realm_id" not in st.session_state:
+        st.session_state.quickbooks_realm_id = resolve_quickbooks_realm_id()
+    wa_id = st.text_input(
         "WildApricot Account ID",
-        value=wa_id,
-        disabled=True,
-        help="Configured in `ui/.env` (WILDAPRICOT_ACCOUNT_ID). Not editable here.",
+        key="wildapricot_account_id",
+        help="WildApricot account ID for this client. Defaults from `WILDAPRICOT_ACCOUNT_ID` in `.env`.",
     )
-    st.text_input(
+    qb_id = st.text_input(
         "QuickBooks Realm ID",
-        value=qb_id,
-        disabled=True,
-        help="Configured in `ui/.env` (QUICKBOOKS_REALM_ID). Not editable here.",
+        key="quickbooks_realm_id",
+        help="QuickBooks company / realm ID for this client. Defaults from `QUICKBOOKS_REALM_ID` in `.env`.",
     )
     wa_id_error = validate_data_source_id(wa_id, "WildApricot Account ID")
     qb_id_error = validate_data_source_id(qb_id, "QuickBooks Realm ID")
@@ -1158,14 +1041,6 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🎯 Benchmark Options")
-    use_cached_reports = st.checkbox(
-        "Use locally cached reports (benchmark only)",
-        value=False,
-        help=(
-            f"Skip inline reports payload; API reads `{REPORTS_CACHE_PATH}` "
-            "saved by /api/reports."
-        ),
-    )
     years_input = st.text_input(
         "Fiscal Years (comma-separated, optional)",
         placeholder="e.g. 2025",
@@ -1180,11 +1055,6 @@ with st.sidebar:
     render_step(1, "Generate Reports", st.session_state.step)
     render_step(2, "Store Reports slice", st.session_state.step)
     render_step(3, "Run Benchmark", st.session_state.step)
-
-    if REPORTS_CACHE_PATH.is_file():
-        st.caption(f"Local cache: `{REPORTS_CACHE_PATH.name}` found")
-    else:
-        st.caption("Local cache: not saved yet")
 
     if st.button("🔁 Reset", use_container_width=True):
         for k in [
@@ -1209,9 +1079,8 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 st.markdown("# 📊 AccountBridge · Reports → Benchmark")
 st.markdown(
-    '<p class="ab-subtitle">Generate financial reports, '
-    "store to <code>data/reports/latest.json</code>, then run benchmark "
-    "(or benchmark alone from cache).</p>",
+    '<p class="ab-subtitle">Generate financial reports, then run benchmark '
+    "against reference documents.</p>",
     unsafe_allow_html=True,
 )
 
@@ -1353,39 +1222,6 @@ with tab_pipeline:
             key="run_reports_btn",
         )
 
-    cache_status = get_reports_cache_status(base_url)
-    st.session_state.reports_cache_status = cache_status
-    load_col1, load_col2 = st.columns(2)
-    with load_col1:
-        load_cache = st.button(
-            "📂 Load from local cache",
-            use_container_width=True,
-            help=(
-                "Load the latest saved reports from the API server cache "
-                f"(`data/reports/latest.json`) without calling /api/reports again."
-            ),
-        )
-    with load_col2:
-        st.caption(format_cache_updated_label(cache_status))
-
-    if load_cache:
-        try:
-            resp, context, benchmark_reports = load_reports_from_local_cache(base_url)
-            st.session_state.reports_response = resp
-            st.session_state.reports_context = context
-            st.session_state.stored_reports = benchmark_reports
-            st.session_state.benchmark_response = None
-            st.session_state.step = max(st.session_state.step, 2)
-            st.rerun()
-        except (FileNotFoundError, ValueError, json.JSONDecodeError) as e:
-            st.error(str(e))
-        except requests.HTTPError as e:
-            st.error(format_api_request_error(e, base_url, "/api/reports/cache"))
-        except requests.RequestException as e:
-            st.error(format_api_request_error(e, base_url, "/api/reports/cache"))
-        except ConnectionError as e:
-            st.error(str(e))
-
     st.markdown("#### ✍️ Report Instructions")
     user_prompt = st.text_area(
         "User prompt (optional)",
@@ -1439,8 +1275,7 @@ with tab_pipeline:
                     unsafe_allow_html=True,
                 )
         st.success(
-            f"✅ Cached **cash_flow**, **tax_return**, and **balance_sheet** for benchmark ({elapsed:.1f}s). "
-            f"Also saved to `{REPORTS_CACHE_PATH}` by the API."
+            f"✅ Stored **cash_flow**, **tax_return**, and **balance_sheet** for benchmark ({elapsed:.1f}s)."
         )
         ctx = get_reports_context()
         if ctx:
@@ -1456,22 +1291,11 @@ with tab_pipeline:
         st.markdown("### Step 2 · Stored Reports Slice")
         if st.session_state.stored_reports:
             st.markdown(
-                "Cached benchmark slice: "
+                "In-session benchmark slice: "
                 + ", ".join(f"`{k}`" for k in st.session_state.stored_reports.keys())
             )
-            st.caption(f"Disk cache: `{REPORTS_CACHE_PATH}`")
             with st.expander("Preview stored `reports` JSON"):
                 st.json(st.session_state.stored_reports)
-        elif (st.session_state.get("reports_cache_status") or {}).get("available"):
-            st.info(
-                "Session empty but API cache exists. Use **Load from local cache** "
-                "or enable **Use locally cached reports** for benchmark-only runs."
-            )
-        elif REPORTS_CACHE_PATH.is_file():
-            st.info(
-                "Session empty but local cache exists. Use **Load from local cache** "
-                "or enable **Use locally cached reports** for benchmark-only runs."
-            )
         else:
             st.info("No reports stored yet. Run Step 1 first.")
 
@@ -1522,7 +1346,10 @@ with tab_pipeline:
 
         _fy_sets = fiscal_year_document_sets(_available_docs)
         if _fy_sets:
-            st.caption("Quick select a fiscal-year set (up to 3 PDFs):")
+            st.caption(
+                f"Quick select a fiscal-year set "
+                f"(up to {MAX_BENCHMARK_REFERENCE_DOCS} PDFs):"
+            )
             _fy_cols = st.columns(min(len(_fy_sets), 4))
             for idx, (year, files) in enumerate(
                 sorted(_fy_sets.items(), reverse=True)
@@ -1533,23 +1360,35 @@ with tab_pipeline:
                         key=f"select_fy_{year}",
                         use_container_width=True,
                     ):
-                        st.session_state.selected_report_files = files[:3]
+                        st.session_state.selected_report_files = (
+                            files[:MAX_BENCHMARK_REFERENCE_DOCS]
+                        )
                         st.rerun()
 
-        st.multiselect(
-            "Choose 1–3 reference PDFs to benchmark against:",
+        _selected_files = st.multiselect(
+            f"Choose 1–{MAX_BENCHMARK_REFERENCE_DOCS} reference PDFs to benchmark against:",
             options=_file_names,
             format_func=lambda file_name: _label_by_file[file_name],
-            max_selections=3,
             key="selected_report_files",
             help=(
                 "Select Form 990, Cash Flow, and Financial Position PDFs (same fiscal year). "
                 "Each PDF is extracted to JSON and compared to the matching AI report "
-                "(tax_return, cash_flow, balance_sheet). Up to 3 documents."
+                f"(tax_return, cash_flow, balance_sheet). "
+                f"Up to {MAX_BENCHMARK_REFERENCE_DOCS} documents."
             ),
         )
 
-        _selected_files = st.session_state.get("selected_report_files") or []
+        if len(_selected_files) > MAX_BENCHMARK_REFERENCE_DOCS:
+            st.warning(
+                f"Only {MAX_BENCHMARK_REFERENCE_DOCS} reference documents can be "
+                "benchmarked at once. Keeping the first "
+                f"{MAX_BENCHMARK_REFERENCE_DOCS} selections."
+            )
+            st.session_state.selected_report_files = (
+                _selected_files[:MAX_BENCHMARK_REFERENCE_DOCS]
+            )
+            st.rerun()
+
         if len(_selected_files) == 0:
             st.warning("Select at least 1 reference document to enable the benchmark.")
         else:
@@ -1599,28 +1438,17 @@ with tab_pipeline:
             "▶ Run Benchmark",
             use_container_width=True,
             type="primary",
-            disabled=not benchmark_ready(use_cached_reports),
+            disabled=not benchmark_ready(),
             key="run_benchmark_btn",
         )
 
-    if use_cached_reports:
-        st.caption(
-            f"Benchmark will read reports from `{REPORTS_CACHE_PATH}` on the API server."
-        )
-
     if run_bench:
-        if not benchmark_ready(use_cached_reports):
+        if not benchmark_ready():
             st.error(
-                "Benchmark prerequisites missing. Run Step 1, load local cache, "
-                "or enable **Use locally cached reports** when the cache file exists."
+                "Benchmark prerequisites missing. Run Step 1 to generate reports first."
             )
         else:
-            ctx = get_reports_context() if not use_cached_reports else None
-            if use_cached_reports and not ctx:
-                try:
-                    _, ctx, _ = load_reports_from_local_cache(base_url)
-                except (FileNotFoundError, ValueError, json.JSONDecodeError):
-                    ctx = None
+            ctx = get_reports_context()
             years_hint = benchmark_years_label(
                 years_list,
                 (ctx or {}).get("start_date") or start_date.isoformat(),
@@ -1638,7 +1466,6 @@ with tab_pipeline:
                         ctx,
                         st.session_state.stored_reports,
                         years_list,
-                        use_cached_reports=use_cached_reports,
                         selected_document_files=_sel_files,
                     )
                     st.session_state.benchmark_response = resp
@@ -1663,10 +1490,8 @@ with tab_pipeline:
             + f"&nbsp; | &nbsp;Completed in **{elapsed:.1f}s**",
             unsafe_allow_html=True,
         )
-    elif not benchmark_ready(use_cached_reports):
-        st.caption(
-            "⚠ Run Reports, load local cache, or enable cached-reports benchmark mode."
-        )
+    elif not benchmark_ready():
+        st.caption("⚠ Run Reports first, then select reference documents.")
 
 
 # ──────────────────────────────────────────────

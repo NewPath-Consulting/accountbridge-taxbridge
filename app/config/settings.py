@@ -91,9 +91,6 @@ class Settings(BaseSettings):
     # Input hardening: comma-separated MIME types; empty = no content-type check
     ALLOWED_UPLOAD_CONTENT_TYPES: str = ""
 
-    # TEMP: local cache for /api/reports output (benchmark-only testing)
-    REPORTS_CACHE_DIR: str = "data/reports"
-
     # Benchmark reference documents
     BENCHMARK_DOCS_LOCAL_PATH: str = "docs"
     BENCHMARK_DOCS_S3_BUCKET: str = ""

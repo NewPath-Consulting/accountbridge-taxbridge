@@ -20,7 +20,7 @@ import uvicorn
 
 from app.api.dependencies.rate_limit import limiter
 from app.api.dependencies.auth import require_api_auth
-from app.api.endpoints import health, reports, ingestion, benchmark, quickbooks
+from app.api.endpoints import health, reports, benchmark, quickbooks
 from app.config.settings import get_settings
 from app.observability.logging_config import configure_logging, request_id_ctx
 
@@ -134,12 +134,6 @@ def create_app() -> FastAPI:
     
     # Routes (health is public; other API routes require bearer token when AUTH_METHOD=bearer)
     app.include_router(health.router, prefix="/api/health", tags=["Health"])
-    app.include_router(
-        ingestion.router,
-        prefix="/api",
-        tags=["Document Ingestion"],
-        dependencies=[require_api_auth],
-    )
     app.include_router(
         reports.router,
         prefix="/api",

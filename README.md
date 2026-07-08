@@ -1,6 +1,6 @@
-# AccountBridge vCFO
+# Report Generation and Benchmarking Solution
 
-**AccountBridge** is an AI-powered Virtual CFO platform for nonprofits, built with [GoML.io](https://goml.io). It connects **WildApricot** (membership, events, donations) and **QuickBooks** (accounting), then uses **AWS Bedrock** LLMs to generate structured financial reports and benchmark them against human-prepared reference documents.
+An AI-powered report generation and benchmarking solution for nonprofits, built with [GoML.io](https://goml.io). It connects **WildApricot** (membership, events, donations) and **QuickBooks** (accounting), then uses **AWS Bedrock** LLMs to generate structured financial reports and score them against human-prepared reference documents.
 
 ---
 
@@ -14,6 +14,8 @@
 - [Local Development](#local-development)
 - [Streamlit UI](#streamlit-ui)
 - [Configuration](#configuration)
+- [Benchmark Reference Documents](#benchmark-reference-documents)
+- [Switching to Another Client](#switching-to-another-client)
 - [QuickBooks Setup](#quickbooks-setup)
 - [WildApricot Setup](#wildapricot-setup)
 - [Deployment](#deployment)
@@ -28,7 +30,6 @@
 | **Report generation** | Builds Cash Flow, Balance Sheet, and Form 990 (tax return) reports from live QuickBooks + WildApricot data |
 | **User prompts** | Optional `user_prompt` on `/api/reports` to steer LLM output across all three reports |
 | **Benchmarking** | Compares AI-generated reports against reference PDFs (local `docs/` or S3) and scores accuracy |
-| **Document extraction** | Uploads PDFs to AWS Textract (+ optional LLM cleanup) via `/api/extract` |
 | **QuickBooks OAuth** | Auto-refreshes access tokens; credentials can be submitted via API or Streamlit UI |
 
 ---
@@ -46,7 +47,6 @@ flowchart TB
         Main["app/main.py"]
         Reports["POST /api/reports"]
         Benchmark["POST /api/benchmark"]
-        Extract["POST /api/extract"]
         QB["POST /api/quickbooks/*"]
         Health["GET /api/health"]
     end
@@ -54,7 +54,6 @@ flowchart TB
     subgraph Services["Business Logic"]
         ReportsSvc["ReportsService"]
         BenchmarkSvc["BenchmarkService"]
-        ExtractSvc["ExtractionService"]
         TokenSvc["TokenRefreshService"]
     end
 
@@ -73,15 +72,13 @@ flowchart TB
 
     UI --> Main
     API_Client --> Main
-    Main --> Reports & Benchmark & Extract & QB & Health
+    Main --> Reports & Benchmark & QB & Health
     Reports --> ReportsSvc
     Benchmark --> BenchmarkSvc
-    Extract --> ExtractSvc
     QB --> TokenSvc
 
     ReportsSvc --> WA & QBAPI & LLM & Prompts
-    BenchmarkSvc --> LLM & Prompts & Scoring & S3
-    ExtractSvc --> Textract & S3 & LLM
+    BenchmarkSvc --> LLM & Prompts & Scoring & S3 & Textract
     TokenSvc --> QBAPI
 ```
 
@@ -106,7 +103,7 @@ sequenceDiagram
         LLM-->>RS: JSON report content
     end
     RS-->>API: ReportsResponse
-    API-->>C: JSON + cache to data/reports/latest.json
+    API-->>C: JSON response
 ```
 
 ### Layer responsibilities
@@ -130,12 +127,12 @@ accountbridge-vcfo/
 ├── app/                          # FastAPI backend
 │   ├── main.py                   # App entry, middleware, route registration
 │   ├── api/
-│   │   ├── endpoints/            # health, reports, benchmark, ingestion, quickbooks
+│   │   ├── endpoints/            # health, reports, benchmark, quickbooks
 │   │   ├── schemas/              # Pydantic request/response models
 │   │   └── dependencies/         # Auth (bearer/api_key/jwt) and rate limiting
 │   ├── services/
 │   │   ├── reports_service.py    # Main report pipeline
-│   │   ├── ingestion_service.py  # Document extraction orchestration
+│   │   ├── ingestion_service.py  # Internal Textract extraction (used by benchmark)
 │   │   ├── llm_service.py        # LLM enhancement for extracted docs
 │   │   └── token_refresh_service.py  # Background QuickBooks token refresh
 │   ├── adapters/
@@ -155,7 +152,7 @@ accountbridge-vcfo/
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── data/
-│   ├── reports/                  # Cached report outputs (latest.json)
+│   ├── reports/                  # Optional saved report outputs
 │   └── quickbooks/               # Sample/exported QB JSON
 ├── tests/                        # Unit + integration tests
 ├── Dockerfile                    # Backend container
@@ -170,6 +167,10 @@ accountbridge-vcfo/
 
 ## API Endpoints
 
+Full request/response reference, auth, errors, and workflows: **[API_README.md](./API_README.md)**.
+
+Interactive docs: `http://localhost:8000/docs` (Swagger UI)
+
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/health` | No | Basic health check |
@@ -178,12 +179,8 @@ accountbridge-vcfo/
 | POST | `/api/reports` | Yes | Generate Cash Flow, Balance Sheet, Tax Return |
 | GET | `/api/benchmark/reports` | Yes | List available reference PDFs |
 | POST | `/api/benchmark` | Yes | Run benchmark against reference docs |
-| POST | `/api/extract` | Yes | Extract text/tables from a single PDF |
-| POST | `/api/extract/batch` | Yes | Batch document extraction |
 | POST | `/api/quickbooks/credentials` | Yes | Save & validate QuickBooks OAuth credentials |
 | POST | `/api/quickbooks/refresh-token` | Yes | Legacy: refresh token only |
-
-Interactive docs: `http://localhost:8000/docs` (Swagger UI)
 
 ### Example: Generate reports
 
@@ -216,21 +213,15 @@ Optional fields:
    - Cash Flow (GAAP indirect method)
    - Balance Sheet (Statement of Financial Position)
    - Tax Return (Form 990 — split into Parts VIII, IX, X, I–VII/XI/XII, reconciliation)
-5. Save result to `data/reports/latest.json`
+5. Return `ReportsResponse` JSON
 
 ### 2. Benchmark (`/api/benchmark`)
 
-1. Accept generated reports (inline or from local cache)
+1. Accept generated reports in the request body
 2. Load reference PDFs from `docs/` or S3 (`BENCHMARK_DOCS_*` settings)
 3. Extract reference content via Textract
 4. LLM compares AI reports vs reference and produces scorecards
 5. Return composite scores for cash flow, financial position, and Form 990
-
-### 3. Document extraction (`/api/extract`)
-
-1. Upload PDF → S3 → AWS Textract
-2. Optional LLM enhancement to structured JSON
-3. Return extracted pages, tables, and LLM output
 
 ---
 
@@ -306,7 +297,7 @@ The UI (`ui/app.py`) provides four tabs:
 
 **Sidebar configuration:** WildApricot account ID, QuickBooks realm ID, date range, benchmark options.
 
-**Main page (Step 1):** User prompt text area, Run Reports, Load from local cache.
+**Main page (Step 1):** User prompt text area and Run Reports.
 
 **QuickBooks credentials:** If tokens expire, the UI prompts for Client ID, Secret, Refresh Token, and Access Token from the [Intuit OAuth playground](https://developer.intuit.com/app/developer/playground), then retries with credentials sent directly to the API.
 
@@ -325,11 +316,52 @@ Copy `.env.example` to `.env`. Key settings:
 | `WILDAPRICOT_*` | WildApricot API credentials |
 | `QUICKBOOKS_*` | QuickBooks OAuth and realm ID |
 | `BENCHMARK_DOCS_SOURCE` | `local` or `s3` for reference PDFs |
-| `REPORTS_CACHE_DIR` | Default `data/reports` |
+| `BENCHMARK_DOCS_LOCAL_PATH` | Local folder for reference PDFs (default `docs`) |
+| `BENCHMARK_DOCS_S3_BUCKET` | S3 bucket when source is `s3` |
+| `BENCHMARK_DOCS_S3_PREFIX` | S3 key prefix for client/manual reports |
 
 **Important:** `LLM_MODEL` / `MODEL_ID` must be a valid Bedrock model or inference profile ARN. A truncated or wrong ID causes all report LLM calls to fail with `ValidationException: The provided model identifier is invalid`.
 
 After changing `.env`, **restart the backend** — settings are cached at startup.
+
+---
+
+## Benchmark Reference Documents
+
+Benchmarking compares generated reports against human-prepared PDFs. Those reference files are **not** uploaded through the API; they are loaded from storage configured in `.env`.
+
+### Where they are stored
+
+| Source | Setting | Location |
+|--------|---------|----------|
+| **Local** | `BENCHMARK_DOCS_SOURCE=local` | Folder from `BENCHMARK_DOCS_LOCAL_PATH` (default: project `docs/`) |
+| **S3** | `BENCHMARK_DOCS_SOURCE=s3` | `s3://{BENCHMARK_DOCS_S3_BUCKET}/{BENCHMARK_DOCS_S3_PREFIX}` |
+
+Example for S3:
+
+```env
+BENCHMARK_DOCS_SOURCE=s3
+BENCHMARK_DOCS_S3_BUCKET=goml-accountbridge-benchmarking-docs
+BENCHMARK_DOCS_S3_PREFIX=manual_reports/
+```
+
+Only PDF filenames that match the expected naming patterns are listed (Form 990, Statement of Cash Flows, Statement of Financial Position). Use `GET /api/benchmark/reports` or the UI reference-document picker to see what the backend found.
+
+Place (or upload) each client's filed/reference PDFs in that local folder or S3 prefix before running a benchmark.
+
+---
+
+## Switching to Another Client
+
+Report generation and benchmarking are **per client**. To work with a different nonprofit / company, update `.env` (and restart the backend):
+
+| What to change | Env vars / notes |
+|----------------|------------------|
+| **WildApricot account** | `WILDAPRICOT_API_KEY`, `WILDAPRICOT_ACCOUNT_ID` |
+| **QuickBooks company** | `QUICKBOOKS_CLIENT_ID`, `QUICKBOOKS_CLIENT_SECRET`, `QUICKBOOKS_REFRESH_TOKEN`, `QUICKBOOKS_ACCESS_TOKEN`, `QUICKBOOKS_REALM_ID` |
+| **Benchmark reference PDFs** | Point `BENCHMARK_DOCS_*` at that client's local `docs/` folder or S3 prefix (different client → different PDFs) |
+
+Also set the matching **WildApricot Account ID** and **QuickBooks Realm ID** in the Streamlit sidebar (or in the `/api/reports` request body). Fresh QuickBooks tokens can be submitted via the UI or `POST /api/quickbooks/credentials` instead of editing `.env` each time.
 
 ---
 

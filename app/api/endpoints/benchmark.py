@@ -1,7 +1,7 @@
 """Benchmark comparison endpoint."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from typing import Any, Optional
+from typing import Optional
 import logging
 
 from app.api.dependencies.rate_limit import limiter, rate_limit_string
@@ -13,7 +13,6 @@ from app.api.schemas.benchmark import (
 )
 from app.core.benchmark.document_source import get_document_source
 from app.core.benchmark.service import BenchmarkService
-from app.utils.reports_cache import load_benchmark_inputs_from_cache
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -74,31 +73,6 @@ async def list_benchmark_reports(
     return AvailableReportsResponse(documents=items, total=len(items))
 
 
-def _resolve_benchmark_inputs(
-    benchmark_request: BenchmarkRequest,
-) -> tuple[str, str, str, str, dict]:
-    """Resolve metadata and reports from request body or local cache."""
-    if benchmark_request.use_cached_reports:
-        context, reports = load_benchmark_inputs_from_cache()
-        return (
-            benchmark_request.wildapricot_account_id
-            or context["wildapricot_account_id"],
-            benchmark_request.quickbooks_realm_id
-            or context["quickbooks_realm_id"],
-            benchmark_request.start_date or context["start_date"],
-            benchmark_request.end_date or context["end_date"],
-            reports,
-        )
-
-    return (
-        benchmark_request.wildapricot_account_id,
-        benchmark_request.quickbooks_realm_id,
-        benchmark_request.start_date,
-        benchmark_request.end_date,
-        benchmark_request.reports,
-    )
-
-
 @router.post(
     "/benchmark",
     response_model=BenchmarkResponse,
@@ -115,32 +89,24 @@ async def run_benchmark(
     Extract ground-truth from reference PDFs, compare against reports
     (cash_flow + tax_return from /api/reports) using split LLM evaluation,
     and return scores with explanations.
-
-    Set use_cached_reports=true to load the reports slice from
-    data/reports/latest.json (saved automatically by /api/reports).
     """
     try:
-        wa_id, qb_id, start_date, end_date, reports = _resolve_benchmark_inputs(
-            benchmark_request
-        )
-
         logger.info(
-            "Benchmark request: wa=%s qb=%s years=%s period=%s..%s cached=%s",
-            wa_id,
-            qb_id,
+            "Benchmark request: wa=%s qb=%s years=%s period=%s..%s",
+            benchmark_request.wildapricot_account_id,
+            benchmark_request.quickbooks_realm_id,
             benchmark_request.years,
-            start_date,
-            end_date,
-            benchmark_request.use_cached_reports,
+            benchmark_request.start_date,
+            benchmark_request.end_date,
         )
 
         result = await benchmark_service.run_benchmark(
-            reports=reports,
+            reports=benchmark_request.reports,
             years=benchmark_request.years,
-            start_date=start_date,
-            end_date=end_date,
-            wildapricot_account_id=wa_id,
-            quickbooks_realm_id=qb_id,
+            start_date=benchmark_request.start_date,
+            end_date=benchmark_request.end_date,
+            wildapricot_account_id=benchmark_request.wildapricot_account_id,
+            quickbooks_realm_id=benchmark_request.quickbooks_realm_id,
             selected_document_files=benchmark_request.selected_document_files,
         )
 

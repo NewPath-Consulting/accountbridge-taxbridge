@@ -57,7 +57,6 @@ from app.core.prompts.report_prompts import (
 from app.core.model_gateway.aim_main import acompletion
 from app.core.model_gateway.test_utils import extract_text
 from app.config.settings import settings
-from app.utils.reports_cache import save_reports_response
 
 logger = logging.getLogger(__name__)
 
@@ -184,10 +183,6 @@ class ReportsService:
                 "total_processing_time": total_time,
                 "status": overall_status,
             }
-            try:
-                save_reports_response(result)
-            except Exception as exc:
-                logger.warning("Failed to save reports to local cache: %s", exc)
             return result
 
         except Exception as e:

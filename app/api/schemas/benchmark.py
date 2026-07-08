@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AvailableReportItem(BaseModel):
@@ -28,31 +28,13 @@ class AvailableReportsResponse(BaseModel):
 class BenchmarkRequest(BaseModel):
     """Request model for running LLM benchmark comparison."""
 
-    wildapricot_account_id: Optional[str] = Field(
-        None, description="WildApricot Account ID"
-    )
-    quickbooks_realm_id: Optional[str] = Field(
-        None, description="QuickBooks Realm ID"
-    )
-    start_date: Optional[str] = Field(
-        None, description="Reports period start (YYYY-MM-DD)"
-    )
-    end_date: Optional[str] = Field(
-        None, description="Reports period end (YYYY-MM-DD)"
-    )
-    reports: Optional[Dict[str, Any]] = Field(
-        None,
-        description=(
-            "cash_flow and tax_return from /api/reports. "
-            "Omit when use_cached_reports=true."
-        ),
-    )
-    use_cached_reports: bool = Field(
-        False,
-        description=(
-            "TEMP: load reports from local data/reports/latest.json "
-            "(saved by /api/reports) for benchmark-only testing."
-        ),
+    wildapricot_account_id: str = Field(..., description="WildApricot Account ID")
+    quickbooks_realm_id: str = Field(..., description="QuickBooks Realm ID")
+    start_date: str = Field(..., description="Reports period start (YYYY-MM-DD)")
+    end_date: str = Field(..., description="Reports period end (YYYY-MM-DD)")
+    reports: Dict[str, Any] = Field(
+        ...,
+        description="cash_flow and tax_return from /api/reports (balance_sheet also accepted).",
     )
     years: Optional[List[int]] = Field(
         None,
@@ -72,9 +54,7 @@ class BenchmarkRequest(BaseModel):
 
     @field_validator("reports")
     @classmethod
-    def validate_reports(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        if v is None:
-            return v
+    def validate_reports(cls, v: Dict[str, Any]) -> Dict[str, Any]:
         for key in ("cash_flow", "tax_return"):
             if key not in v:
                 raise ValueError(f"reports must include '{key}'")
@@ -82,29 +62,6 @@ class BenchmarkRequest(BaseModel):
             if not isinstance(entry, dict) or not entry.get("content"):
                 raise ValueError(f"reports['{key}'] must include non-empty content")
         return v
-
-    @model_validator(mode="after")
-    def validate_request_mode(self) -> "BenchmarkRequest":
-        if self.use_cached_reports:
-            return self
-
-        missing = [
-            name
-            for name in (
-                "wildapricot_account_id",
-                "quickbooks_realm_id",
-                "start_date",
-                "end_date",
-            )
-            if not getattr(self, name)
-        ]
-        if missing:
-            raise ValueError(
-                f"{', '.join(missing)} required unless use_cached_reports=true"
-            )
-        if self.reports is None:
-            raise ValueError("reports is required unless use_cached_reports=true")
-        return self
 
 
 class BenchmarkResponse(BaseModel):

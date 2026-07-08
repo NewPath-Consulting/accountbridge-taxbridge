@@ -28,7 +28,7 @@ async def extract_reference_document(
     llm_service=None,
 ) -> ExtractionResponse:
     """
-    Run a reference PDF through the same flow as POST /api/extract with benchmarking prompts.
+    Run a reference PDF through Textract + LLM extraction for benchmarking prompts.
 
     Ground truth is in ExtractionResponse.llm_output.
     """

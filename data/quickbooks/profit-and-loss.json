@@ -1,10 +1,10 @@
 {
   "Header": {
-    "Time": "2026-06-30T21:19:11-07:00",
+    "Time": "2026-07-08T09:50:23-07:00",
     "ReportName": "ProfitAndLoss",
     "ReportBasis": "Accrual",
-    "StartPeriod": "2026-01-01",
-    "EndPeriod": "2026-06-30",
+    "StartPeriod": "2025-01-01",
+    "EndPeriod": "2025-12-31",
     "SummarizeColumnsBy": "Total",
     "Currency": "USD",
     "Option": [
@@ -78,7 +78,7 @@
                         "id": "7"
                       },
                       {
-                        "value": "82081.44"
+                        "value": "171525.00"
                       }
                     ],
                     "type": "Data"
@@ -90,7 +90,7 @@
                         "id": "8"
                       },
                       {
-                        "value": "22448.00"
+                        "value": "50217.00"
                       }
                     ],
                     "type": "Data"
@@ -102,7 +102,7 @@
                         "id": "6"
                       },
                       {
-                        "value": "3600.00"
+                        "value": "5800.00"
                       }
                     ],
                     "type": "Data"
@@ -115,7 +115,7 @@
                           "id": "104"
                         },
                         {
-                          "value": "618.63"
+                          "value": "1932.39"
                         }
                       ]
                     },
@@ -128,7 +128,7 @@
                               "id": "1150040005"
                             },
                             {
-                              "value": "0.00"
+                              "value": "6063.00"
                             }
                           ],
                           "type": "Data"
@@ -141,7 +141,7 @@
                           "value": "Total 4004 Woodworking Program Events"
                         },
                         {
-                          "value": "618.63"
+                          "value": "7995.39"
                         }
                       ]
                     },
@@ -154,7 +154,7 @@
                         "id": "105"
                       },
                       {
-                        "value": "1019.88"
+                        "value": "2805.04"
                       }
                     ],
                     "type": "Data"
@@ -166,7 +166,7 @@
                         "id": "106"
                       },
                       {
-                        "value": "13333.00"
+                        "value": "26016.00"
                       }
                     ],
                     "type": "Data"
@@ -178,7 +178,7 @@
                         "id": "107"
                       },
                       {
-                        "value": "375.00"
+                        "value": "2548.00"
                       }
                     ],
                     "type": "Data"
@@ -190,7 +190,7 @@
                         "id": "108"
                       },
                       {
-                        "value": "4546.92"
+                        "value": "7231.57"
                       }
                     ],
                     "type": "Data"
@@ -202,7 +202,7 @@
                         "id": "109"
                       },
                       {
-                        "value": "30.50"
+                        "value": "176.17"
                       }
                     ],
                     "type": "Data"
@@ -214,7 +214,7 @@
                         "id": "110"
                       },
                       {
-                        "value": "4576.85"
+                        "value": "2782.60"
                       }
                     ],
                     "type": "Data"
@@ -226,7 +226,7 @@
                         "id": "111"
                       },
                       {
-                        "value": "1990.34"
+                        "value": "5266.56"
                       }
                     ],
                     "type": "Data"
@@ -238,7 +238,19 @@
                         "id": "161"
                       },
                       {
-                        "value": "6450.00"
+                        "value": "4589.67"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "4013 Woodworking Sponsor Income",
+                        "id": "112"
+                      },
+                      {
+                        "value": "2200.00"
                       }
                     ],
                     "type": "Data"
@@ -251,7 +263,7 @@
                     "value": "Total 4000 Program Income"
                   },
                   {
-                    "value": "141070.56"
+                    "value": "289153.00"
                   }
                 ]
               },
@@ -278,7 +290,7 @@
                         "id": "113"
                       },
                       {
-                        "value": "29776.95"
+                        "value": "61178.50"
                       }
                     ],
                     "type": "Data"
@@ -291,7 +303,7 @@
                     "value": "Total 4100 Fundraising Income"
                   },
                   {
-                    "value": "29776.95"
+                    "value": "61178.50"
                   }
                 ]
               },
@@ -318,7 +330,7 @@
                         "id": "24"
                       },
                       {
-                        "value": "5113.40"
+                        "value": "14321.26"
                       }
                     ],
                     "type": "Data"
@@ -331,7 +343,7 @@
                     "value": "Total 4200 Administrative Income"
                   },
                   {
-                    "value": "5113.40"
+                    "value": "14321.26"
                   }
                 ]
               },
@@ -345,7 +357,7 @@
               "value": "Total Revenue"
             },
             {
-              "value": "175960.91"
+              "value": "364652.76"
             }
           ]
         },
@@ -359,7 +371,7 @@
               "value": "Gross Profit"
             },
             {
-              "value": "175960.91"
+              "value": "364652.76"
             }
           ]
         },
@@ -401,7 +413,7 @@
                           "id": "116"
                         },
                         {
-                          "value": "12784.23"
+                          "value": "35540.65"
                         }
                       ]
                     },
@@ -414,7 +426,7 @@
                               "id": "184"
                             },
                             {
-                              "value": "1273.51"
+                              "value": "2954.70"
                             }
                           ],
                           "type": "Data"
@@ -427,7 +439,7 @@
                           "value": "Total 5001 Woodworking Skills Education Expense"
                         },
                         {
-                          "value": "14057.74"
+                          "value": "38495.35"
                         }
                       ]
                     },
@@ -441,7 +453,7 @@
                           "id": "119"
                         },
                         {
-                          "value": "944.51"
+                          "value": "2581.74"
                         }
                       ]
                     },
@@ -454,7 +466,7 @@
                               "id": "185"
                             },
                             {
-                              "value": "186.14"
+                              "value": "320.00"
                             }
                           ],
                           "type": "Data"
@@ -467,7 +479,7 @@
                           "value": "Total 5002 Woodworking Safety Education Expenses"
                         },
                         {
-                          "value": "1130.65"
+                          "value": "2901.74"
                         }
                       ]
                     },
@@ -481,7 +493,7 @@
                           "id": "117"
                         },
                         {
-                          "value": "613.77"
+                          "value": "2558.39"
                         }
                       ]
                     },
@@ -494,7 +506,7 @@
                               "id": "183"
                             },
                             {
-                              "value": "1051.31"
+                              "value": "10008.89"
                             }
                           ],
                           "type": "Data"
@@ -507,7 +519,7 @@
                           "value": "Total 5003 Woodworking Program Events Expense"
                         },
                         {
-                          "value": "1665.08"
+                          "value": "12567.28"
                         }
                       ]
                     },
@@ -520,7 +532,7 @@
                         "id": "118"
                       },
                       {
-                        "value": "1368.69"
+                        "value": "4841.30"
                       }
                     ],
                     "type": "Data"
@@ -532,7 +544,31 @@
                         "id": "62"
                       },
                       {
-                        "value": "80819.81"
+                        "value": "150000.00"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "5006 Woodworking Raffle Expense",
+                        "id": "120"
+                      },
+                      {
+                        "value": "830.00"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "5008 Woodworking Library Expense",
+                        "id": "122"
+                      },
+                      {
+                        "value": "96.00"
                       }
                     ],
                     "type": "Data"
@@ -544,7 +580,7 @@
                         "id": "123"
                       },
                       {
-                        "value": "384.57"
+                        "value": "709.45"
                       }
                     ],
                     "type": "Data"
@@ -557,7 +593,7 @@
                           "id": "115"
                         },
                         {
-                          "value": "4042.42"
+                          "value": "1724.95"
                         }
                       ]
                     },
@@ -570,7 +606,7 @@
                               "id": "68"
                             },
                             {
-                              "value": "2862.76"
+                              "value": "3844.70"
                             }
                           ],
                           "type": "Data"
@@ -583,7 +619,7 @@
                           "value": "Total 5010 Woodworking Membership Expense"
                         },
                         {
-                          "value": "6905.18"
+                          "value": "5569.65"
                         }
                       ]
                     },
@@ -596,7 +632,7 @@
                         "id": "125"
                       },
                       {
-                        "value": "3640.37"
+                        "value": "2239.71"
                       }
                     ],
                     "type": "Data"
@@ -608,7 +644,7 @@
                         "id": "126"
                       },
                       {
-                        "value": "4242.28"
+                        "value": "6013.37"
                       }
                     ],
                     "type": "Data"
@@ -620,7 +656,7 @@
                         "id": "138"
                       },
                       {
-                        "value": "2596.70"
+                        "value": "9575.75"
                       }
                     ],
                     "type": "Data"
@@ -632,7 +668,7 @@
                         "id": "127"
                       },
                       {
-                        "value": "2094.35"
+                        "value": "5315.25"
                       }
                     ],
                     "type": "Data"
@@ -644,7 +680,7 @@
                         "id": "153"
                       },
                       {
-                        "value": "6169.20"
+                        "value": "2782.60"
                       }
                     ],
                     "type": "Data"
@@ -656,7 +692,7 @@
                         "id": "162"
                       },
                       {
-                        "value": "1259.64"
+                        "value": "2305.43"
                       }
                     ],
                     "type": "Data"
@@ -668,7 +704,7 @@
                         "id": "131"
                       },
                       {
-                        "value": "900.00"
+                        "value": "1800.00"
                       }
                     ],
                     "type": "Data"
@@ -680,7 +716,7 @@
                         "id": "75"
                       },
                       {
-                        "value": "1275.23"
+                        "value": "1318.06"
                       }
                     ],
                     "type": "Data"
@@ -692,7 +728,7 @@
                         "id": "180"
                       },
                       {
-                        "value": "351.14"
+                        "value": "787.32"
                       }
                     ],
                     "type": "Data"
@@ -704,7 +740,7 @@
                         "id": "72"
                       },
                       {
-                        "value": "218.00"
+                        "value": "258.00"
                       }
                     ],
                     "type": "Data"
@@ -716,7 +752,7 @@
                         "id": "61"
                       },
                       {
-                        "value": "2653.99"
+                        "value": "5462.12"
                       }
                     ],
                     "type": "Data"
@@ -728,7 +764,7 @@
                         "id": "60"
                       },
                       {
-                        "value": "2976.55"
+                        "value": "4012.07"
                       }
                     ],
                     "type": "Data"
@@ -740,7 +776,7 @@
                         "id": "175"
                       },
                       {
-                        "value": "7183.71"
+                        "value": "14853.55"
                       }
                     ],
                     "type": "Data"
@@ -752,7 +788,7 @@
                         "id": "176"
                       },
                       {
-                        "value": "8762.10"
+                        "value": "17524.20"
                       }
                     ],
                     "type": "Data"
@@ -765,7 +801,7 @@
                     "value": "Total 5000 Program Expense"
                   },
                   {
-                    "value": "150654.98"
+                    "value": "290258.20"
                   }
                 ]
               },
@@ -792,7 +828,7 @@
                         "id": "132"
                       },
                       {
-                        "value": "13321.33"
+                        "value": "27910.08"
                       }
                     ],
                     "type": "Data"
@@ -805,7 +841,7 @@
                     "value": "Total 5100 Fundraising Expense"
                   },
                   {
-                    "value": "13321.33"
+                    "value": "27910.08"
                   }
                 ]
               },
@@ -832,7 +868,7 @@
                         "id": "69"
                       },
                       {
-                        "value": "735.96"
+                        "value": "931.84"
                       }
                     ],
                     "type": "Data"
@@ -844,7 +880,7 @@
                         "id": "50"
                       },
                       {
-                        "value": "222.86"
+                        "value": "172.85"
                       }
                     ],
                     "type": "Data"
@@ -856,7 +892,7 @@
                         "id": "73"
                       },
                       {
-                        "value": "15.60"
+                        "value": "60.67"
                       }
                     ],
                     "type": "Data"
@@ -868,7 +904,7 @@
                         "id": "135"
                       },
                       {
-                        "value": "212.00"
+                        "value": "360.12"
                       }
                     ],
                     "type": "Data"
@@ -881,7 +917,7 @@
                     "value": "Total 5200 Administrative Expense"
                   },
                   {
-                    "value": "1186.42"
+                    "value": "1525.48"
                   }
                 ]
               },
@@ -895,7 +931,7 @@
               "value": "Total Expenditures"
             },
             {
-              "value": "165162.73"
+              "value": "319693.76"
             }
           ]
         },
@@ -909,7 +945,7 @@
               "value": "Net Operating Revenue"
             },
             {
-              "value": "10798.18"
+              "value": "44959.00"
             }
           ]
         },
@@ -923,7 +959,7 @@
               "value": "Net Revenue"
             },
             {
-              "value": "10798.18"
+              "value": "44959.00"
             }
           ]
         },
