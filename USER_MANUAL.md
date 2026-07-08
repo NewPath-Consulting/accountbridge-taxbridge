@@ -10,7 +10,7 @@ It has two parts:
 
 # Part A — Web Dashboard
 
-A step-by-step guide to using the appplication. This part is written for everyday users — no technical knowledge required. Just follow the screens.
+A step-by-step guide to using the appplication. This part is written for everyday users — no technical knowledge required. Just follow the screens. There is a [video walkthrough](https://vimeo.com/newpath/taxbridgeuidemo?share=copy) available.
 
 ## 1. What Is This Tool?
 
