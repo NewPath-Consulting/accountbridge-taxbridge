@@ -77,14 +77,14 @@ def _call_provider_sync(
             api_version=api_version,
             timeout=timeout,
         )
-        return client.chat.completions.create(model=model, messages=messages, **optional_params)
+        return _as_dict( client.chat.completions.create(model=model, messages=messages, **optional_params))
 
     if provider in (None, "openai") or provider in openai_compatible_providers:
         base_url = api_base
         key = api_key
         # defaults resolved by OpenAI SDK; we keep this minimal
         client = openai.OpenAI(api_key=key, base_url=base_url, timeout=timeout)
-        return client.chat.completions.create(model=model, messages=messages, **optional_params)
+        return _as_dict( client.chat.completions.create(model=model, messages=messages, **optional_params))
 
     if provider == "bedrock":
         from app.core.model_gateway.providers.bedrock import bedrock_chat_completion
@@ -102,7 +102,15 @@ def _call_provider_sync(
         api_base=api_base,
         timeout=timeout,
     )
-
+#Newly added to ensure OPENAI API works
+def _as_dict(resp: Any) -> Any:
+    """Normalise an OpenAI SDK response object to the OpenAI-shaped dict
+    the rest of the codebase expects (Bedrock already returns a dict)."""
+    if hasattr(resp, "model_dump"):
+        return resp.model_dump()
+    if hasattr(resp, "to_dict"):
+        return resp.to_dict()
+    return resp
 
 async def _call_provider_async(
     *,
@@ -122,11 +130,11 @@ async def _call_provider_async(
             api_version=api_version,
             timeout=timeout,
         )
-        return await client.chat.completions.create(model=model, messages=messages, **optional_params)
+        return _as_dict( await client.chat.completions.create(model=model, messages=messages, **optional_params))
 
     if provider in (None, "openai") or provider in openai_compatible_providers:
         client = openai.AsyncOpenAI(api_key=api_key, base_url=api_base, timeout=timeout)
-        return await client.chat.completions.create(model=model, messages=messages, **optional_params)
+        return _as_dict( await client.chat.completions.create(model=model, messages=messages, **optional_params))
 
     if provider == "bedrock":
         from app.core.model_gateway.providers.bedrock import abedrock_chat_completion
