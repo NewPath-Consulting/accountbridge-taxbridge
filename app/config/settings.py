@@ -53,7 +53,8 @@ class Settings(BaseSettings):
     SHUTDOWN_DRAIN_SECONDS: int = 30
 
     # Reports generation (LLM)
-    REPORTS_MAX_TOKENS: int = 32768
+    #REPORTS_MAX_TOKENS: int = 32768   //Was this but changed to the below
+    REPORTS_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_SECTION_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_PART_IX_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS: int = 8192
