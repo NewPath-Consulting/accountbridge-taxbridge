@@ -79,6 +79,7 @@ class ReportsService:
 
     def __init__(self):
         logger.info("ReportsService initialized")
+        self._raw_pl_report: Dict[str, Any] = {}
 
     async def generate_reports(
         self,
@@ -116,6 +117,9 @@ class ReportsService:
             logger.info(f"Postprocessing source data request_id={request_id}")
             wildapricot_data = postprocess_wildapricot_data(wildapricot_data)
             quickbooks_data = postprocess_quickbooks_data(quickbooks_data)
+            self._raw_pl_report = (
+                (quickbooks_data.get("profit_and_loss") or {}).get("raw") or {}
+            )
 
             llm_inputs = build_llm_inputs(
                 wildapricot_data,
@@ -805,7 +809,7 @@ class ReportsService:
             end_date=end_date,
         )
 
-        pl_raw = ((quickbooks_data or {}).get("profit_and_loss") or {}).get("raw") or {}
+        pl_raw = self._raw_pl_report or {}
         content, enforcement_notes = enforce_deterministic_amounts(content, pl_raw)
         if enforcement_notes:
             existing = content.get("validationErrors") or []
