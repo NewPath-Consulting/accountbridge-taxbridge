@@ -36,6 +36,7 @@ from app.utils.llm_source_summary import (
     build_reference_financials_from_qb,
     wildapricot_period_empty,
 )
+from app.utils.form_990_enforce import enforce_deterministic_amounts
 from app.utils.form_990_mapping import build_qb_mapping_hints
 from app.utils.quickbooks_periods import prior_year_balance_sheet_period
 from app.utils.report_normalization import (
@@ -803,9 +804,21 @@ class ReportsService:
             start_date=start_date,
             end_date=end_date,
         )
+
+        pl_raw = ((quickbooks_data or {}).get("profit_and_loss") or {}).get("raw") or {}
+        content, enforcement_notes = enforce_deterministic_amounts(content, pl_raw)
+        if enforcement_notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + enforcement_notes
+            logger.info(
+                "Tax Return: deterministic enforcement applied %d correction(s)",
+                len(enforcement_notes),
+            )
+
         content = normalize_tax_return_content(
             content, quickbooks_data=quickbooks_data
         )
+
         error_message = "; ".join(error_messages) if error_messages else None
 
         processing_time = time.time() - start_time
