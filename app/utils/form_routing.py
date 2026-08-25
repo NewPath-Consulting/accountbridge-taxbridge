@@ -6,9 +6,15 @@ is made here in code from validated figures -- never by the model.
 
 The IRS thresholds:
 
-    Form 990-N    gross receipts normally <= $50,000
+    Form 990-N    gross receipts normally at or below the age-based limit
     Form 990-EZ   gross receipts < $200,000  AND  total assets < $500,000
     Form 990      gross receipts >= $200,000  OR  total assets >= $500,000
+
+The 990-N limit is not a fixed $50,000. The IRS sets it by the age of the
+organization -- $75,000 for a first-year filer, $60,000 between one and three
+years, $50,000 once established -- with a correspondingly shorter look-back.
+Applying $50,000 to a one-year-old organization with $70,000 of receipts
+would route it to the 990-EZ when it is eligible for the e-Postcard.
 
 Two details that are easy to get wrong and expensive to get wrong:
 
@@ -28,13 +34,18 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from app.utils.gross_receipts import normally_gross_receipts
+from app.utils.gross_receipts import (
+    AgeTier,
+    normally_gross_receipts,
+    threshold_990n_for_age,
+)
 
 __all__ = [
     "FORM_990N",
     "FORM_990EZ",
     "FORM_990",
     "GROSS_RECEIPTS_990N_LIMIT",
+    "AgeTier",
     "GROSS_RECEIPTS_990EZ_LIMIT",
     "TOTAL_ASSETS_990EZ_LIMIT",
     "REVIEW_BAND",
@@ -63,6 +74,8 @@ class FormRouting:
         "gross_receipts",
         "total_assets",
         "basis",
+        "age_tier",
+        "gross_receipts_limit",
         "requires_review",
         "review_reasons",
         "notes",
@@ -77,11 +90,15 @@ class FormRouting:
         requires_review: bool,
         review_reasons: list[str],
         notes: list[str],
+        age_tier: str = AgeTier.UNKNOWN,
+        gross_receipts_limit: float = GROSS_RECEIPTS_990N_LIMIT,
     ) -> None:
         self.form = form
         self.gross_receipts = gross_receipts
         self.total_assets = total_assets
         self.basis = basis
+        self.age_tier = age_tier
+        self.gross_receipts_limit = gross_receipts_limit
         self.requires_review = requires_review
         self.review_reasons = review_reasons
         self.notes = notes
@@ -92,6 +109,8 @@ class FormRouting:
             "gross_receipts": self.gross_receipts,
             "total_assets": self.total_assets,
             "gross_receipts_basis": self.basis,
+            "age_tier": self.age_tier,
+            "gross_receipts_990n_limit": self.gross_receipts_limit,
             "requires_human_review": self.requires_review,
             "review_reasons": list(self.review_reasons),
             "notes": list(self.notes),
@@ -110,6 +129,7 @@ def route_form_variant(
     total_assets: float | None = None,
     *,
     prior_year_gross_receipts: Iterable[float | None] = (),
+    organization_age_years: float | None = None,
     review_band: float = REVIEW_BAND,
 ) -> FormRouting:
     """Select the form variant, or withhold the decision for review.
@@ -121,7 +141,10 @@ def route_form_variant(
     notes: list[str] = []
     review_reasons: list[str] = []
 
-    tested, basis = normally_gross_receipts(gross_receipts, prior_year_gross_receipts)
+    limit_990n, age_tier = threshold_990n_for_age(organization_age_years)
+    tested, basis = normally_gross_receipts(
+        gross_receipts, prior_year_gross_receipts, organization_age_years
+    )
 
     if tested is None:
         return FormRouting(
@@ -132,9 +155,30 @@ def route_form_variant(
             requires_review=True,
             review_reasons=["No gross receipts available; cannot determine form."],
             notes=notes,
+            age_tier=age_tier,
+            gross_receipts_limit=limit_990n,
         )
 
-    if basis == "current_year_only":
+    if age_tier == AgeTier.UNKNOWN:
+        review_reasons.append(
+            f"Organization age unknown, so the strictest 990-N limit "
+            f"({GROSS_RECEIPTS_990N_LIMIT:,.0f}) was applied. A newer "
+            f"organization may qualify under a higher limit."
+        )
+    else:
+        notes.append(
+            f"990-N limit {limit_990n:,.0f} applied for age tier "
+            f"'{age_tier}'."
+        )
+
+    if basis == "first_year_only":
+        notes.append(
+            "Tested on the first tax year alone, as the IRS requires for a "
+            "newly formed organization."
+        )
+    elif basis == "average_first_2yr":
+        notes.append("Tested on the average of the first two tax years.")
+    elif basis == "current_year_only":
         review_reasons.append(
             "Only one year of gross receipts available; the IRS 'normally' test "
             "looks at recent history, so this decision rests on a single period."
@@ -147,11 +191,11 @@ def route_form_variant(
     # --- the decision ----------------------------------------------------
     assets = float(total_assets) if total_assets is not None else None
 
-    if tested <= GROSS_RECEIPTS_990N_LIMIT:
+    if tested <= limit_990n:
         form = FORM_990N
         notes.append(
             f"Gross receipts {tested:,.2f} is at or below the "
-            f"{GROSS_RECEIPTS_990N_LIMIT:,.0f} e-Postcard limit."
+            f"{limit_990n:,.0f} e-Postcard limit for this organization."
         )
     elif tested < GROSS_RECEIPTS_990EZ_LIMIT and (
         assets is not None and assets < TOTAL_ASSETS_990EZ_LIMIT
@@ -187,7 +231,7 @@ def route_form_variant(
 
     # --- boundary proximity ----------------------------------------------
     for threshold, label in (
-        (GROSS_RECEIPTS_990N_LIMIT, "the 990-N limit"),
+        (limit_990n, "the 990-N limit"),
         (GROSS_RECEIPTS_990EZ_LIMIT, "the 990-EZ gross receipts limit"),
     ):
         if _within_band(tested, threshold, review_band):
@@ -212,4 +256,6 @@ def route_form_variant(
         requires_review=bool(review_reasons),
         review_reasons=review_reasons,
         notes=notes,
+        age_tier=age_tier,
+        gross_receipts_limit=limit_990n,
     )
