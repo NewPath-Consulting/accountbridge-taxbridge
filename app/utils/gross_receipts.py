@@ -33,7 +33,60 @@ __all__ = [
     "gross_receipts_from_pl",
     "rolling_average_gross_receipts",
     "normally_gross_receipts",
+    "AgeTier",
+    "NEW_ORG_LIMIT",
+    "YOUNG_ORG_LIMIT",
+    "ESTABLISHED_ORG_LIMIT",
+    "age_tier_for",
+    "threshold_990n_for_age",
 ]
+
+# The 990-N eligibility threshold is not a single number. The IRS applies a
+# higher limit and a shorter look-back to newer organizations, on the basis
+# that startup-year revenue can spike without meaning the organization has
+# outgrown the e-Postcard.
+#
+#   1 year or less   received or pledged $75,000 or less in the first tax year
+#   1 to 3 years     averaged $60,000 or less across the first two tax years
+#   3 years or more  averaged $50,000 or less across the preceding 3 tax
+#                    years, including the year being calculated
+NEW_ORG_LIMIT = 75_000.0
+YOUNG_ORG_LIMIT = 60_000.0
+ESTABLISHED_ORG_LIMIT = 50_000.0
+
+
+class AgeTier:
+    NEW = "new_1yr_or_less"
+    YOUNG = "young_1_to_3yr"
+    ESTABLISHED = "established_3yr_or_more"
+    UNKNOWN = "age_unknown"
+
+
+def age_tier_for(age_years: float | None) -> str:
+    """Classify an organization by age for the 990-N eligibility test."""
+    if age_years is None:
+        return AgeTier.UNKNOWN
+    if age_years <= 1:
+        return AgeTier.NEW
+    if age_years < 3:
+        return AgeTier.YOUNG
+    return AgeTier.ESTABLISHED
+
+
+def threshold_990n_for_age(age_years: float | None) -> tuple[float, str]:
+    """Return the 990-N gross receipts limit and the tier it came from.
+
+    When age is unknown the strictest limit applies. That is the safe
+    direction -- it can only route an organization to a longer form than
+    required, never to one it is ineligible for -- but callers should
+    surface it, because the decision rests on an assumption.
+    """
+    tier = age_tier_for(age_years)
+    if tier == AgeTier.NEW:
+        return NEW_ORG_LIMIT, tier
+    if tier == AgeTier.YOUNG:
+        return YOUNG_ORG_LIMIT, tier
+    return ESTABLISHED_ORG_LIMIT, tier
 
 
 class GrossReceipts:
@@ -111,6 +164,7 @@ def rolling_average_gross_receipts(values: Iterable[float | None]) -> float | No
 def normally_gross_receipts(
     current: float | None,
     prior_years: Iterable[float | None] = (),
+    age_years: float | None = None,
 ) -> tuple[float | None, str]:
     """Return the figure to test against the thresholds, and how it was derived.
 
@@ -123,6 +177,20 @@ def normally_gross_receipts(
 
     if current is None and not priors:
         return None, "no_data"
+
+    tier = age_tier_for(age_years)
+
+    # A first-year organization is tested on that year alone. Averaging in
+    # prior years would be wrong -- there are none to average.
+    if tier == AgeTier.NEW and current is not None:
+        return _round(current), "first_year_only"
+
+    # Between one and three years the test looks at the first two tax years,
+    # so at most one prior year joins the current one.
+    if tier == AgeTier.YOUNG and current is not None:
+        if priors:
+            return rolling_average_gross_receipts([current, priors[0]]), "average_first_2yr"
+        return _round(current), "first_year_only"
 
     if len(priors) >= 2 and current is not None:
         window = [current, *priors][:3]
