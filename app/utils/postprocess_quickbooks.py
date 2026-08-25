@@ -540,6 +540,7 @@ def postprocess_quickbooks_report(report_json: Dict[str, Any]) -> Dict[str, Any]
         "metadata": asdict(parser.metadata),
         "rows": rows,
         "formatted_report": parser.format_report(),
+        "raw": report_json,
     }
 
 
