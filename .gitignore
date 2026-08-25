@@ -218,3 +218,7 @@ __marimo__/
 .streamlit/secrets.toml
 ui/.env
 .DS_Store
+
+# pipeline output and API cache
+reports_response*.json
+data/quickbooks/*.json
