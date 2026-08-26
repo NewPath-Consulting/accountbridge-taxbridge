@@ -227,3 +227,8 @@ data/quickbooks/*.json
 data/propublica_cache/
 data/propublica_harness/
 harness_run.txt
+
+# ProPublica harness cache and results
+data/propublica_cache/
+data/propublica_harness/
+harness_run.txt
