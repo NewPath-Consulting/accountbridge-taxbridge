@@ -17,5 +17,6 @@ uvicorn
 tiktoken
 openai
 python-multipart
-httpxpytest
+httpx
+pytest
 pytest-asyncio

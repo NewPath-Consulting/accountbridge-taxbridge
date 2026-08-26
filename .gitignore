@@ -222,3 +222,8 @@ ui/.env
 # pipeline output and API cache
 reports_response*.json
 data/quickbooks/*.json
+
+# ProPublica harness cache and results
+data/propublica_cache/
+data/propublica_harness/
+harness_run.txt
