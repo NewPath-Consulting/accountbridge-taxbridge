@@ -6,9 +6,17 @@ is made here in code from validated figures -- never by the model.
 
 The IRS thresholds:
 
-    Form 990-N    gross receipts normally at or below the age-based limit
-    Form 990-EZ   gross receipts < $200,000  AND  total assets < $500,000
-    Form 990      gross receipts >= $200,000  OR  total assets >= $500,000
+    Form 990-N    gross receipts *normally* at or below the age-based limit
+    Form 990-EZ   gross receipts < $200,000 *for the tax year*
+                  AND total assets < $500,000 at year end
+    Form 990      otherwise
+
+Only the 990-N threshold carries the "normally" language, and only it is
+tested against a multi-year average. The 990-EZ test is made on the tax
+year alone. Averaging it sends organizations to the full 990 that qualify
+for the short form: measured against real filings, an organization with
+42,347 of receipts and two large prior years was routed to the 990 when it
+filed -- correctly -- a 990-EZ.
 
 The 990-N limit is not a fixed $50,000. The IRS sets it by the age of the
 organization -- $75,000 for a first-year filer, $60,000 between one and three
@@ -74,6 +82,7 @@ class FormRouting:
         "gross_receipts",
         "total_assets",
         "basis",
+        "gross_receipts_current",
         "age_tier",
         "gross_receipts_limit",
         "requires_review",
@@ -92,6 +101,7 @@ class FormRouting:
         notes: list[str],
         age_tier: str = AgeTier.UNKNOWN,
         gross_receipts_limit: float = GROSS_RECEIPTS_990N_LIMIT,
+        gross_receipts_current: float | None = None,
     ) -> None:
         self.form = form
         self.gross_receipts = gross_receipts
@@ -99,6 +109,7 @@ class FormRouting:
         self.basis = basis
         self.age_tier = age_tier
         self.gross_receipts_limit = gross_receipts_limit
+        self.gross_receipts_current = gross_receipts_current
         self.requires_review = requires_review
         self.review_reasons = review_reasons
         self.notes = notes
@@ -107,6 +118,8 @@ class FormRouting:
         return {
             "form": self.form,
             "gross_receipts": self.gross_receipts,
+            "gross_receipts_normally": self.gross_receipts,
+            "gross_receipts_current_year": self.gross_receipts_current,
             "total_assets": self.total_assets,
             "gross_receipts_basis": self.basis,
             "age_tier": self.age_tier,
@@ -142,6 +155,11 @@ def route_form_variant(
     review_reasons: list[str] = []
 
     limit_990n, age_tier = threshold_990n_for_age(organization_age_years)
+
+    # `tested` is the "normally" figure -- averaged where history allows -- and
+    # governs the 990-N test only. `current` is the tax year's own figure and
+    # governs the 990-EZ test.
+    current = None if gross_receipts is None else round(float(gross_receipts), 2)
     tested, basis = normally_gross_receipts(
         gross_receipts, prior_year_gross_receipts, organization_age_years
     )
@@ -157,6 +175,7 @@ def route_form_variant(
             notes=notes,
             age_tier=age_tier,
             gross_receipts_limit=limit_990n,
+            gross_receipts_current=current,
         )
 
     if age_tier == AgeTier.UNKNOWN:
@@ -197,20 +216,25 @@ def route_form_variant(
             f"Gross receipts {tested:,.2f} is at or below the "
             f"{limit_990n:,.0f} e-Postcard limit for this organization."
         )
-    elif tested < GROSS_RECEIPTS_990EZ_LIMIT and (
-        assets is not None and assets < TOTAL_ASSETS_990EZ_LIMIT
+    elif (
+        current is not None
+        and current < GROSS_RECEIPTS_990EZ_LIMIT
+        and assets is not None
+        and assets < TOTAL_ASSETS_990EZ_LIMIT
     ):
         form = FORM_990EZ
         notes.append(
-            f"Gross receipts {tested:,.2f} is below {GROSS_RECEIPTS_990EZ_LIMIT:,.0f} "
-            f"and total assets {assets:,.2f} below {TOTAL_ASSETS_990EZ_LIMIT:,.0f}."
+            f"Gross receipts for the tax year {current:,.2f} is below "
+            f"{GROSS_RECEIPTS_990EZ_LIMIT:,.0f} and total assets {assets:,.2f} "
+            f"below {TOTAL_ASSETS_990EZ_LIMIT:,.0f}."
         )
     else:
         form = FORM_990
         if assets is None:
             notes.append(
-                f"Gross receipts {tested:,.2f} is at or above "
-                f"{GROSS_RECEIPTS_990EZ_LIMIT:,.0f}."
+                f"Gross receipts for the tax year "
+                f"{(current if current is not None else tested):,.2f} tested "
+                f"against {GROSS_RECEIPTS_990EZ_LIMIT:,.0f}."
             )
             review_reasons.append(
                 "Total assets unknown; the 990-EZ test requires both gross "
@@ -225,20 +249,28 @@ def route_form_variant(
             )
         else:
             notes.append(
-                f"Gross receipts {tested:,.2f} is at or above "
-                f"{GROSS_RECEIPTS_990EZ_LIMIT:,.0f}."
+                f"Gross receipts for the tax year "
+                f"{(current if current is not None else tested):,.2f} is at or "
+                f"above {GROSS_RECEIPTS_990EZ_LIMIT:,.0f}."
             )
 
     # --- boundary proximity ----------------------------------------------
-    for threshold, label in (
-        (limit_990n, "the 990-N limit"),
-        (GROSS_RECEIPTS_990EZ_LIMIT, "the 990-EZ gross receipts limit"),
+    # Each band measures the figure its own test used: the averaged figure
+    # against the 990-N limit, the tax year's figure against the 990-EZ limit.
+    if _within_band(tested, limit_990n, review_band):
+        review_reasons.append(
+            f"Gross receipts {tested:,.2f} is within {review_band:.0%} of "
+            f"the 990-N limit ({limit_990n:,.0f})."
+        )
+
+    if current is not None and _within_band(
+        current, GROSS_RECEIPTS_990EZ_LIMIT, review_band
     ):
-        if _within_band(tested, threshold, review_band):
-            review_reasons.append(
-                f"Gross receipts {tested:,.2f} is within "
-                f"{review_band:.0%} of {label} ({threshold:,.0f})."
-            )
+        review_reasons.append(
+            f"Gross receipts for the tax year {current:,.2f} is within "
+            f"{review_band:.0%} of the 990-EZ gross receipts limit "
+            f"({GROSS_RECEIPTS_990EZ_LIMIT:,.0f})."
+        )
 
     if assets is not None and _within_band(
         assets, TOTAL_ASSETS_990EZ_LIMIT, review_band
@@ -258,4 +290,5 @@ def route_form_variant(
         notes=notes,
         age_tier=age_tier,
         gross_receipts_limit=limit_990n,
+        gross_receipts_current=current,
     )
