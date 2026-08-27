@@ -53,6 +53,10 @@ _STAGE_LABEL = {
 }
 
 
+def _digits(value: Any) -> str:
+    return "".join(c for c in str(value or "") if c.isdigit())
+
+
 def init_filing_state() -> None:
     for key, value in FILING_STATE_DEFAULTS.items():
         if key not in st.session_state:
@@ -142,11 +146,11 @@ def _routing_panel(detail: dict) -> None:
     for note in detail.get("notes") or []:
         st.caption(f"\u00b7 {note}")
 
-    if detail.get("requires_human_review"):
-        st.warning(
-            "**Held for preparer review.** "
-            + " ".join(detail.get("review_reasons") or [])
-        )
+    reasons = detail.get("review_reasons") or []
+    if reasons:
+        st.warning("**Held for preparer review.**")
+        for reason in reasons:
+            st.markdown(f"- {reason}")
 
 
 # ── the tab ──────────────────────────────────────────────────────────────
@@ -174,10 +178,20 @@ def render(
 
     ein_col, button_col = st.columns([3, 1])
     with ein_col:
-        org["ein"] = st.text_input(
+        entered_ein = st.text_input(
             "EIN", value=org.get("ein", ""), placeholder="43-1633425",
             key="filing_ein_input",
         )
+
+    # Changing the EIN invalidates everything derived from the previous one.
+    # Left in place, the age and filing history of one organization would be
+    # applied to another's ledger.
+    if _digits(entered_ein) != _digits(org.get("ein", "")):
+        st.session_state.filing_lookup = None
+        st.session_state.filing_age_years = None
+        st.session_state.filing_priors = []
+        st.session_state.filing_result = None
+    org["ein"] = entered_ein
     with button_col:
         st.write("")
         looked_up = st.button("Look up", use_container_width=True)

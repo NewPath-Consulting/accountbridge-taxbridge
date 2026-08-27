@@ -303,3 +303,58 @@ def test_no_filings_is_flagged(propublica_payload):
     )
     assert result.prior_year_gross_receipts == []
     assert any("this year alone" in n for n in result.notes)
+
+
+# --- guarding against mismatched sources ---------------------------------
+
+def test_receipts_far_below_the_history_are_flagged(service, organization):
+    """The likeliest cause is that the organization looked up and the ledger
+    being read are not the same one. Identity comes from an EIN the preparer
+    types; the figures come from whichever QuickBooks company is connected,
+    and nothing forces them to agree."""
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        prior_year_gross_receipts=[900_000.0, 850_000.0, 880_000.0],
+    )
+    routing = result["stages"][3]["detail"]
+    assert routing["requires_human_review"] is True
+    assert any("same organization" in r for r in routing["review_reasons"])
+
+
+def test_receipts_far_above_the_history_are_flagged(service, organization):
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        prior_year_gross_receipts=[500.0, 600.0],
+    )
+    routing = result["stages"][3]["detail"]
+    assert any("same organization" in r for r in routing["review_reasons"])
+
+
+def test_receipts_in_line_with_history_are_not_flagged(service, organization):
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        prior_year_gross_receipts=[10_400.0, 9_900.0],
+    )
+    routing = result["stages"][3]["detail"]
+    assert not any("same organization" in r for r in routing["review_reasons"])
+
+
+def test_no_history_cannot_diverge(service, organization):
+    """With nothing to compare against, the check must stay silent rather
+    than guess."""
+    result = _prepare(service, organization=organization, organization_age_years=48.0)
+    routing = result["stages"][3]["detail"]
+    assert not any("same organization" in r for r in routing["review_reasons"])
+
+
+def test_divergence_names_both_figures(service, organization):
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        prior_year_gross_receipts=[900_000.0],
+    )
+    reason = next(
+        r for r in result["stages"][3]["detail"]["review_reasons"]
+        if "same organization" in r
+    )
+    assert "10,605.77" in reason
+    assert "900,000.00" in reason

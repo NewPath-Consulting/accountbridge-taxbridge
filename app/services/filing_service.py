@@ -37,6 +37,12 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["FilingPreparationService", "STAGE_ORDER"]
 
+# A period whose receipts differ from the recent average by more than this
+# is either a genuine anomaly or a sign that the ledger and the filing
+# history belong to different organizations. Either way a preparer should
+# look before the return is filed.
+HISTORY_DIVERGENCE_FACTOR = 5.0
+
 STAGE_ORDER = (
     "source_data",
     "deterministic_totals",
@@ -157,14 +163,26 @@ class FilingPreparationService:
             organization_age_years=organization_age_years,
         )
 
+        routing_detail = routing.as_dict()
+        divergence = self._history_divergence(
+            computed.total, prior_year_gross_receipts
+        )
+        if divergence:
+            routing_detail["requires_human_review"] = True
+            routing_detail["review_reasons"] = [
+                *routing_detail.get("review_reasons", []),
+                divergence,
+            ]
+
+        needs_review = routing_detail["requires_human_review"]
         stages.append(_stage(
             "form_routing",
-            "review" if routing.requires_review else "ok",
+            "review" if needs_review else "ok",
             (
                 f"Routed to Form {routing.form}."
-                + (" Held for preparer review." if routing.requires_review else "")
+                + (" Held for preparer review." if needs_review else "")
             ),
-            **routing.as_dict(),
+            **routing_detail,
         ))
 
         # --- 5. payload -----------------------------------------------------
@@ -266,6 +284,37 @@ class FilingPreparationService:
 
         client = factory(**(dict(credentials) if credentials else {}))
         return await client.get_profit_and_loss(realm_id, start_date, end_date)
+
+    @staticmethod
+    def _history_divergence(
+        current: float, priors: Optional[list[float]]
+    ) -> Optional[str]:
+        """Flag a period wildly out of line with the filing history.
+
+        The most likely cause in practice is that the organization looked up
+        and the ledger being read are not the same one: the identity comes
+        from an EIN typed by the preparer, the figures from whichever
+        QuickBooks company is connected, and nothing forces them to agree.
+        A genuine tenfold swing is worth a second look regardless.
+        """
+        usable = [float(p) for p in (priors or []) if p]
+        if not usable or current <= 0:
+            return None
+
+        average = sum(usable) / len(usable)
+        if average <= 0:
+            return None
+
+        ratio = max(current, average) / min(current, average)
+        if ratio < HISTORY_DIVERGENCE_FACTOR:
+            return None
+
+        direction = "below" if current < average else "above"
+        return (
+            f"Gross receipts of {current:,.2f} are {ratio:.0f}x {direction} the "
+            f"{len(usable)}-year average of {average:,.2f}. Confirm the filing "
+            f"history and the accounting records belong to the same organization."
+        )
 
     @staticmethod
     def _total_assets(report_content: Optional[Mapping[str, Any]]) -> float | None:
