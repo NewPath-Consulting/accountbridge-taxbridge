@@ -15,9 +15,14 @@ from app.utils.form_990n import (
     build_form_990n_payload,
     normalise_ein,
 )
+from app.utils.form_990n import filing_window
 from app.utils.form_routing import route_form_variant
 
 ESTABLISHED = 10.0
+
+# The most recent year Tax990 will accept. Derived rather than hard-coded, so
+# these tests do not start failing on 1 January.
+FILEABLE_YEAR = str(filing_window()[1])
 
 
 @pytest.fixture
@@ -37,7 +42,8 @@ def content() -> dict:
             "website": "https://kcwg.org",
             "principalOfficer": {"name": "Jane Doe", "title": "President"},
         },
-        "organization_summary": {"tax_year": "2026", "gross_receipts": 10605.77},
+        # Inside the filing window; a year cannot be filed before it ends.
+        "organization_summary": {"tax_year": FILEABLE_YEAR, "gross_receipts": 10605.77},
     }
 
 
@@ -68,9 +74,9 @@ def test_payload_matches_the_tax990_contract(content, eligible_routing):
     assert business["EIN"] == "431633425"
     assert business["USAddress"]["ZipCd"] == "64111"
     form = record["Form990N"]
-    assert form["TaxYr"] == "2026"
-    assert form["TaxPeriodBeginDt"] == "2026-01-01"
-    assert form["TaxPeriodEndDt"] == "2026-12-31"
+    assert form["TaxYr"] == FILEABLE_YEAR
+    assert form["TaxPeriodBeginDt"] == f"{FILEABLE_YEAR}-01-01"
+    assert form["TaxPeriodEndDt"] == f"{FILEABLE_YEAR}-12-31"
     assert form["PrincipalOfficer"]["OfficerNm"] == "Jane Doe"
 
 
@@ -260,3 +266,46 @@ def test_as_dict_is_serialisable(content, eligible_routing):
     assert result["is_submittable"] is True
     assert isinstance(result["warnings"], list)
     assert isinstance(result["blocking_errors"], list)
+
+
+# --- the filing window ----------------------------------------------------
+
+def test_the_window_is_three_years_ending_last_year():
+    """A year cannot be filed before it has ended, so the newest available is
+    the one before the current one. Probing Tax990's sandbox in August 2026
+    confirmed this: 2023 to 2025 accepted, 2022 and 2026 refused."""
+    from datetime import date
+    earliest, latest = filing_window(date(2026, 8, 27))
+    assert (earliest, latest) == (2023, 2025)
+
+
+def test_the_current_year_cannot_be_filed(content, eligible_routing):
+    from datetime import date
+    content["organization_summary"]["tax_year"] = str(date.today().year)
+    result = build_form_990n_payload(content, eligible_routing)
+    assert result.payload is None
+    assert any("outside the filing window" in e for e in result.blocking_errors)
+
+
+def test_a_year_too_old_cannot_be_filed(content, eligible_routing):
+    earliest, _ = filing_window()
+    content["organization_summary"]["tax_year"] = str(earliest - 1)
+    result = build_form_990n_payload(content, eligible_routing)
+    assert result.payload is None
+
+
+def test_the_window_boundaries_are_accepted(content, eligible_routing):
+    earliest, latest = filing_window()
+    for year in (str(earliest), str(latest)):
+        content["organization_summary"]["tax_year"] = year
+        result = build_form_990n_payload(content, eligible_routing)
+        assert result.is_submittable, f"{year} should be fileable"
+
+
+def test_the_rejection_names_the_years_available(content, eligible_routing):
+    """A preparer should be told what they can file, not only what they cannot."""
+    earliest, latest = filing_window()
+    content["organization_summary"]["tax_year"] = "2026"
+    result = build_form_990n_payload(content, eligible_routing)
+    message = next(e for e in result.blocking_errors if "filing window" in e)
+    assert str(earliest) in message and str(latest) in message

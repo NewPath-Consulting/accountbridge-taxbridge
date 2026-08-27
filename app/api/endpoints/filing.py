@@ -114,6 +114,7 @@ async def prepare_filing(
             prior_year_gross_receipts=filing_request.prior_year_gross_receipts,
             organization_age_years=filing_request.organization_age_years,
             report_content=filing_request.report_content,
+            tax_year=filing_request.tax_year,
         )
 
         logger.info(

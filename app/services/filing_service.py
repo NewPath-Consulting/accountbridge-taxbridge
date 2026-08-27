@@ -77,12 +77,19 @@ class FilingPreparationService:
         prior_year_gross_receipts: Optional[list[float]] = None,
         organization_age_years: Optional[float] = None,
         report_content: Optional[Mapping[str, Any]] = None,
+        tax_year: Optional[str] = None,
     ) -> dict[str, Any]:
         """Prepare a filing and report each stage.
 
         `report_content` is the `tax_return.content` from a prior reports run.
         Supplying it enables the 990-EZ and full 990 elements; without it the
         routing decision and any 990-N payload are still produced.
+
+        `tax_year` is the year printed on the return, which is not always the
+        year of the accounting period: an organization on a fiscal year files
+        against the year the period began, and a sandbox whose transactions sit
+        in the current year cannot be filed at all, since a year cannot be
+        filed before it has ended. Left unset, the year of `end_date` is used.
         """
         started = time.time()
         stages: list[dict[str, Any]] = []
@@ -186,7 +193,9 @@ class FilingPreparationService:
         ))
 
         # --- 5. payload -----------------------------------------------------
-        content = self._merge_content(report_content, organization, computed, end_date)
+        content = self._merge_content(
+            report_content, organization, computed, tax_year or end_date
+        )
         payload_stage, payload = self._build_payload(content, routing, report_content)
         stages.append(payload_stage)
 

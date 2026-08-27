@@ -115,6 +115,15 @@ class PrepareFilingRequest(BaseModel):
         default_factory=list,
         description="Earlier years, most recent first, for the multi-year test",
     )
+    tax_year: Optional[str] = Field(
+        None,
+        description=(
+            "The tax year printed on the return, which is not always the year "
+            "of the accounting period. Defaults to the year of end_date. A "
+            "year cannot be filed before it has ended, so the current year is "
+            "never available."
+        ),
+    )
     report_content: Optional[Dict[str, Any]] = Field(
         None,
         description=(

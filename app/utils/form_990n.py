@@ -45,6 +45,16 @@ __all__ = [
 # filing, so its use is recorded as a warning rather than applied silently.
 SANDBOX_PLACEHOLDER_PHONE = "2025550100"
 
+# The IRS accepts electronic 990-N filings for a rolling three-year window,
+# and Tax990 enforces it: probing their sandbox in August 2026 returned
+# "TaxYr is not supported" for 2022 and 2026, and accepted 2023 through 2025.
+# A year cannot be filed before it has ended, which is why the current year
+# is closed.
+#
+# Checking here saves a round trip and gives a reason the caller can act on,
+# rather than a rejection code returned after the fact.
+FILING_WINDOW_YEARS = 3
+
 
 class Form990NPayload:
     """A payload, the warnings raised building it, and whether it may be sent."""
@@ -75,6 +85,19 @@ class Form990NPayload:
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return f"Form990NPayload(submittable={self.is_submittable!r})"
+
+
+def filing_window(as_of: Any = None) -> tuple[int, int]:
+    """The earliest and latest tax years currently accepted.
+
+    Filing opens once a year has ended, so the newest year available is the
+    one before the current one.
+    """
+    from datetime import date
+
+    today = as_of or date.today()
+    newest = today.year - 1
+    return newest - (FILING_WINDOW_YEARS - 1), newest
 
 
 def normalise_ein(value: Any) -> str:
@@ -143,6 +166,14 @@ def build_form_990n_payload(
     year = _clean(tax_year or summary.get("tax_year"))
     if not re.fullmatch(r"\d{4}", year):
         blocking.append(f"Tax year must be four digits; got {year!r}.")
+    else:
+        earliest, latest = filing_window()
+        if not earliest <= int(year) <= latest:
+            blocking.append(
+                f"Tax year {year} is outside the filing window. Returns can be "
+                f"filed for {earliest} through {latest}; a year cannot be filed "
+                f"before it has ended."
+            )
 
     # --- element 3: legal name and address -------------------------------
     legal_name = _clean(org.get("legalName") or summary.get("organization_name"))

@@ -15,6 +15,11 @@ from pathlib import Path
 import pytest
 
 from app.services.filing_service import FilingPreparationService
+from app.utils.form_990n import filing_window
+
+# The most recent tax year Tax990 will accept. Derived rather than fixed, so
+# these tests do not start failing on 1 January.
+FILEABLE_YEAR = filing_window()[1]
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -113,9 +118,12 @@ def test_routing_uses_the_computed_figure(service, organization):
 
 
 def test_990n_payload_is_assembled(service, organization):
+    """The ledger is a 2026 period but a return cannot be filed for a year
+    that has not ended, so the payload is dated to the newest fileable year."""
     result = _prepare(
         service, organization=organization, organization_age_years=48.0,
         prior_year_gross_receipts=[10200.0, 9800.0],
+        end_date=f"{FILEABLE_YEAR}-12-31",
     )
     assert result["status"] == "prepared"
     assert result["filing_available"] is True

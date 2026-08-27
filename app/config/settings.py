@@ -142,6 +142,12 @@ class Settings(BaseSettings):
     QUICKBOOKS_AUTO_REFRESH_ENABLED: bool = True
     QUICKBOOKS_AUTO_REFRESH_INTERVAL_MINUTES: int = 50  # Refresh every 50 min (before 1hr expiry)
 
+    TAX990_CLIENT_ID: str = ""
+    TAX990_CLIENT_SECRET_ID: str = ""
+    TAX990_USER_TOKEN: str = ""
+    TAX990_OAUTH_HOST: str = ""
+    TAX990_API_HOST: str = ""
+
     @model_validator(mode="after")
     def _resolve_llm_model(self) -> "Settings":
         if self.LLM_MODEL and self.LLM_MODEL.strip():

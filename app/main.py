@@ -20,7 +20,7 @@ import uvicorn
 
 from app.api.dependencies.rate_limit import limiter
 from app.api.dependencies.auth import require_api_auth
-from app.api.endpoints import health, reports, benchmark, quickbooks, filing
+from app.api.endpoints import health, reports, benchmark, quickbooks, filing, filing_submit
 from app.config.settings import get_settings
 from app.observability.logging_config import configure_logging, request_id_ctx
 
@@ -155,6 +155,12 @@ def create_app() -> FastAPI:
 
     app.include_router(
         filing.router,
+        prefix="/api",
+        tags=["Filing"],
+        dependencies=[require_api_auth],
+    )
+    app.include_router(
+        filing_submit.router,
         prefix="/api",
         tags=["Filing"],
         dependencies=[require_api_auth],
