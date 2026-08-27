@@ -4,6 +4,7 @@ import json
 import logging
 import time
 from typing import Dict, Any, Tuple, Callable, Awaitable, Optional, TYPE_CHECKING
+from app.utils.balance_sheet_totals import enforce_part_x
 
 if TYPE_CHECKING:
     from app.api.schemas.reports import QuickBooksCredentialsInline
@@ -81,6 +82,8 @@ class ReportsService:
     def __init__(self):
         logger.info("ReportsService initialized")
         self._raw_pl_report: Dict[str, Any] = {}
+        self._raw_prior_balance_sheet: Dict[str, Any] = {}
+        self._raw_balance_sheet: Dict[str, Any] = {}
 
     async def generate_reports(
         self,
@@ -121,6 +124,15 @@ class ReportsService:
             self._raw_pl_report = (
                 (quickbooks_data.get("profit_and_loss") or {}).get("raw") or {}
             )
+
+            self._raw_balance_sheet = (
+                (quickbooks_data.get("balance_sheet") or {}).get("raw") or {}
+            )
+            self._raw_prior_balance_sheet = (
+                (quickbooks_data.get("prior_year_balance_sheet") or {}).get("raw") or {}
+            )
+
+            
 
             llm_inputs = build_llm_inputs(
                 wildapricot_data,
@@ -819,6 +831,17 @@ class ReportsService:
                 "Tax Return: deterministic enforcement applied %d correction(s)",
                 len(enforcement_notes),
             )
+
+        content, part_x_notes = enforce_part_x(
+            content,
+            self._raw_balance_sheet or {},
+            prior_report=self._raw_prior_balance_sheet or None,
+        )
+        if part_x_notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + part_x_notes
+
+        
 
         content, propagation_notes = propagate_enforced_totals(content, pl_raw)
         if propagation_notes:
