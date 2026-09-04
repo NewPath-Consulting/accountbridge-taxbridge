@@ -13,6 +13,8 @@ forms, which Tax990's API does not yet accept.
 
 from __future__ import annotations
 
+import base64
+from datetime import date
 from typing import Any, Callable, Optional
 
 import requests
@@ -33,6 +35,8 @@ FILING_STATE_DEFAULTS = {
     "filing_priors": [],
     "filing_result": None,
     "filing_error": None,
+    "filing_submission": None,
+    "filing_submit_error": None,
 }
 
 _STATUS_STYLE = {
@@ -53,6 +57,17 @@ _STAGE_LABEL = {
 }
 
 
+def filing_window(as_of: Optional[date] = None) -> list[int]:
+    """The tax years currently fileable, most recent first.
+
+    A return cannot be filed before its year has ended, so the newest
+    available is the year before this one. Mirrors the rule the API enforces;
+    the API remains the authority and will refuse anything outside it.
+    """
+    newest = (as_of or date.today()).year - 1
+    return [newest, newest - 1, newest - 2]
+
+
 def _digits(value: Any) -> str:
     return "".join(c for c in str(value or "") if c.isdigit())
 
@@ -71,6 +86,17 @@ def call_lookup(base_url: str, headers: dict, ein: str) -> dict:
         json={"ein": ein},
         headers=headers,
         timeout=60,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def call_submit(base_url: str, headers: dict, payload: dict) -> dict:
+    response = requests.post(
+        f"{base_url.rstrip('/')}/api/filing/submit",
+        json={"payload": payload, "include_pdf": True},
+        headers=headers,
+        timeout=180,
     )
     response.raise_for_status()
     return response.json()
@@ -219,14 +245,15 @@ def render(
     if lookup is not None:
         if lookup.get("found"):
             filings = lookup.get("filings") or []
-            st.success(
-                f"Found **{lookup.get('legal_name')}** \u00b7 "
-                f"ruling date {lookup.get('ruling_date')} "
-                f"({lookup.get('age_years'):.1f} years) \u00b7 "
-                f"{len(filings)} prior filing(s) on record."
-            )
+            # The name alone confirms two things: the lookup worked, and it
+            # found the intended organization. A mistyped EIN can return a
+            # real record for the wrong one, so the name is the check that
+            # matters. The ruling date and filing count are diagnostics and
+            # belong with the history they came from.
+            st.success(f"Found **{lookup.get('legal_name')}**.")
             if filings:
-                with st.expander("Filing history from ProPublica"):
+              
+                with st.expander(f"Filing history from ProPublica \u00b7 {len(filings)} year(s)"):
                     st.dataframe(
                         [
                             {
@@ -271,12 +298,12 @@ def render(
     st.divider()
 
     # ── prepare ──────────────────────────────────────────────────────────
-    st.markdown("### Step 2 \u00b7 Prepare the return  `/api/filing/prepare`")
-    st.caption(
-        f"QuickBooks **{quickbooks_realm_id}** \u00b7 "
-        f"**{start_date}** to **{end_date}**. No model is called, so this "
-        f"takes about a second."
-    )
+    st.markdown("### Step 2 \u00b7 Prepare the return ")# `/api/filing/prepare`")
+    # st.caption(
+    #     f"QuickBooks **{quickbooks_realm_id}** \u00b7 "
+    #     f"**{start_date}** to **{end_date}**. No model is called, so this "
+    #     f"takes about a second."
+    # )
 
     age = st.session_state.filing_age_years
     priors = st.session_state.filing_priors
@@ -298,8 +325,32 @@ def render(
             "990-EZ and full 990 do."
         )
 
+    years = filing_window()
+    default_year = str(years[0])
+    ledger_year = (end_date or "")[:4]
+
+    year_col, note_col = st.columns([1, 3])
+    with year_col:
+        selected_year = st.selectbox(
+            "Tax year on the return",
+            [str(y) for y in years],
+            index=0,
+            help=(
+                "A return cannot be filed before its year has ended, so the "
+                "current year is never available."
+            ),
+        )
+    with note_col:
+        st.write("")
+        if ledger_year and ledger_year != selected_year:
+            st.caption(
+                f"\u00b7 The accounting period is {ledger_year}; the return "
+                f"will be dated {selected_year}."
+            )
+
     if st.button("Prepare filing", type="primary"):
         payload: dict[str, Any] = {
+            "tax_year": selected_year,
             "quickbooks_realm_id": quickbooks_realm_id,
             "start_date": start_date,
             "end_date": end_date,
@@ -326,6 +377,9 @@ def render(
             with st.spinner("Reading the ledger and applying the rules\u2026"):
                 st.session_state.filing_result = call_prepare(base_url, headers, payload)
                 st.session_state.filing_error = None
+                # A new preparation invalidates any earlier submission.
+                st.session_state.filing_submission = None
+                st.session_state.filing_submit_error = None
         except Exception as exc:  # noqa: BLE001
             st.session_state.filing_result = None
             st.session_state.filing_error = (
@@ -400,3 +454,88 @@ def render(
         if detail.get("payload"):
             with st.expander("Submission payload"):
                 st.json(detail["payload"])
+
+        if detail.get("filing_available") and status == "ready":
+            _render_filing(base_url, headers, detail["payload"], format_request_error)
+
+
+def _render_filing(
+    base_url: str,
+    headers: dict,
+    payload: dict,
+    format_request_error: Optional[Callable[[Exception, str, str], str]],
+) -> None:
+    """The submission step, kept behind its own button.
+
+    Preparing a return is free and repeatable. Submitting creates a record
+    inside an IRS-authorised e-file provider, so it happens only when a
+    preparer asks for it, against a payload they have already seen above.
+    """
+    st.divider()
+    st.markdown("### Step 4 \u00b7 File with Tax990  `/api/filing/submit`")
+    st.caption(
+        "Sends the payload above to Tax990, runs their validation, and "
+        "retrieves the completed form."
+    )
+
+    if st.button("File with Tax990", type="primary"):
+        try:
+            with st.spinner("Submitting to Tax990\u2026"):
+                st.session_state.filing_submission = call_submit(
+                    base_url, headers, payload
+                )
+                st.session_state.filing_submit_error = None
+        except Exception as exc:  # noqa: BLE001
+            st.session_state.filing_submission = None
+            st.session_state.filing_submit_error = (
+                format_request_error(exc, base_url, "/api/filing/submit")
+                if format_request_error else str(exc)
+            )
+
+    if st.session_state.filing_submit_error:
+        st.error(st.session_state.filing_submit_error)
+
+    submission = st.session_state.filing_submission
+    if not submission:
+        return
+
+    if submission.get("status") == "rejected":
+        st.error(submission.get("message") or "Tax990 rejected the return.")
+        for problem in submission.get("validation_errors") or []:
+            field = problem.get("Field") or problem.get("Name") or ""
+            st.markdown(f"- **{field}** {problem.get('Message', '')}")
+        return
+
+    st.success(submission.get("message") or "Submitted.")
+
+    left, right = st.columns(2)
+    left.metric("Return number", submission.get("return_number") or "\u2014")
+    right.metric("Record ID", (submission.get("record_id") or "")[:8] or "\u2014")
+
+    errors = submission.get("validation_errors") or []
+    if errors:
+        st.warning("Tax990's validation raised the following:")
+        for problem in errors:
+            field = problem.get("Field") or problem.get("Name") or ""
+            st.markdown(f"- **{field}** {problem.get('Message', '')}")
+    else:
+        st.caption("\u00b7 Tax990 validation passed with no errors.")
+
+    pdf = submission.get("pdf_base64")
+    if pdf:
+        st.markdown("#### The completed form")
+        st.download_button(
+            "Download the Form 990-N",
+            data=base64.b64decode(pdf),
+            file_name=f"form_990n_{(submission.get('record_id') or 'draft')[:8]}.pdf",
+            mime="application/pdf",
+        )
+        st.markdown(
+            f'<iframe src="data:application/pdf;base64,{pdf}" '
+            f'width="100%" height="680" style="border:1px solid #C6CCC2;'
+            f'border-radius:6px"></iframe>',
+            unsafe_allow_html=True,
+        )
+    elif submission.get("pdf_url"):
+        st.markdown(f"[Open the completed form]({submission['pdf_url']})")
+        st.caption("\u00b7 The link is short-lived.")

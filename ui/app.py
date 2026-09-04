@@ -1,6 +1,6 @@
 import streamlit as st
 
-import filing_tab
+import filing_tab, run_progress
 import requests
 import json
 import time
@@ -43,8 +43,8 @@ if load_dotenv is not None:
 # Page config
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="TaxBridge · Form 990 Preparation",
-    page_icon="◫",
+    page_title="TaxBridge · Reports → Prepare → File",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -931,15 +931,17 @@ def execute_reports_run(
 
     t0 = time.time()
     try:
-        resp = call_reports(
-            base_url,
-            wa_id,
-            qb_id,
-            start_date,
-            end_date,
-            wildapricot_data=st.session_state.get("pending_wildapricot_data"),
-            quickbooks_credentials=quickbooks_credentials,
-            user_prompt=user_prompt,
+        resp = run_progress.run_with_progress(
+            lambda: call_reports(
+                base_url,
+                wa_id,
+                qb_id,
+                start_date,
+                end_date,
+                wildapricot_data=st.session_state.get("pending_wildapricot_data"),
+                quickbooks_credentials=quickbooks_credentials,
+                user_prompt=user_prompt,
+            )
         )
         store_reports_success(resp, time.time() - t0)
         st.session_state.qb_credentials_error = None
@@ -979,7 +981,7 @@ def execute_reports_run(
 # Sidebar – Configuration
 # ──────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## Configuration")
+    st.markdown("## ⚙️ Configuration")
     st.markdown("---")
 
     base_url = st.text_input(
@@ -994,7 +996,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("### Data sources")
+    st.markdown("### 🏢 Data Sources")
     if "wildapricot_account_id" not in st.session_state:
         st.session_state.wildapricot_account_id = resolve_wildapricot_account_id()
     if "quickbooks_realm_id" not in st.session_state:
@@ -1017,7 +1019,7 @@ with st.sidebar:
         st.error(qb_id_error)
 
     st.markdown("---")
-    st.markdown("### Date range")
+    st.markdown("### 📅 Date Range")
     prior_year = date.today().year - 1
     col_s, col_e = st.columns(2)
     with col_s:
@@ -1042,7 +1044,7 @@ with st.sidebar:
         st.warning("Start and end dates span multiple years. Use a single fiscal year.")
 
     st.markdown("---")
-    st.markdown("### Benchmark options")
+    st.markdown("### 🎯 Benchmark Options")
     years_input = st.text_input(
         "Fiscal Years (comma-separated, optional)",
         placeholder="e.g. 2025",
@@ -1053,12 +1055,12 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### Pipeline status")
+    st.markdown("### 🔄 Pipeline Status")
     render_step(1, "Generate Reports", st.session_state.step)
     render_step(2, "Store Reports slice", st.session_state.step)
     render_step(3, "Run Benchmark", st.session_state.step)
 
-    if st.button("Reset", use_container_width=True):
+    if st.button("🔁 Reset", use_container_width=True):
         for k in [
             "reports_response", "reports_context", "stored_reports",
             "benchmark_response", "step", "reports_elapsed", "benchmark_elapsed",
@@ -1079,16 +1081,16 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 # Main area
 # ──────────────────────────────────────────────
-st.markdown("# TaxBridge")
+st.markdown("# 📊 TaxBridge · Reports → Prepare → File")
 st.markdown(
-    '<p class="ab-subtitle">Prepare Form 990 returns from QuickBooks and '
-    "WildApricot. The model classifies; the code calculates.</p>",
+    '<p class="ab-subtitle">Generate financial reports, benchmark them, '
+    "then prepare and file a return through Tax990.</p>",
     unsafe_allow_html=True,
 )
 
 # ── QuickBooks credentials (always visible in header) ──
 with st.container(border=True):
-    st.markdown("### QuickBooks credentials")
+    st.markdown("### 🔐 QuickBooks Credentials")
     st.caption(
         f"Get tokens from the "
         f"[Intuit OAuth playground]({QUICKBOOKS_PLAYGROUND_URL}) (**Get Tokens**), "
@@ -1198,7 +1200,7 @@ if save_and_run:
                 )
 
 tab_pipeline, tab_reports, tab_filing, tab_benchmark, tab_raw = st.tabs(
-    ["Pipeline", "Reports", "File a return", "Benchmark", "Raw JSON"]
+    ["🚀 Pipeline", "📄 Reports", "📮 File a Return", "🎯 Benchmark", "🔩 Raw JSON"]
 )
 
 # ──────────────────────────────────────────────
@@ -1216,6 +1218,9 @@ with tab_filing:
         start_date=str(start_date),
         end_date=str(end_date),
         report_content=_tax_return.get("content"),
+        quickbooks_credentials=build_quickbooks_credentials_payload(
+            qb_client_id, qb_client_secret, qb_refresh_token, qb_access_token, qb_id
+        ),
         format_request_error=format_api_request_error,
     )
 
@@ -1242,7 +1247,7 @@ with tab_pipeline:
             key="run_reports_btn",
         )
 
-    st.markdown("#### Report instructions")
+    st.markdown("#### ✍️ Report Instructions")
     user_prompt = st.text_area(
         "User prompt (optional)",
         value=st.session_state.get("user_prompt", ""),
@@ -1295,8 +1300,7 @@ with tab_pipeline:
                     unsafe_allow_html=True,
                 )
         st.success(
-            f"Stored cash_flow, tax_return and balance_sheet for benchmarking "
-            f"in {elapsed:.1f}s."
+            f"✅ Stored **cash_flow**, **tax_return**, and **balance_sheet** for benchmark ({elapsed:.1f}s)."
         )
         ctx = get_reports_context()
         if ctx:
@@ -1330,10 +1334,10 @@ with tab_pipeline:
     )
 
     # ── Reference document picker ──
-    st.markdown("#### Reference documents")
+    st.markdown("#### 📑 Select Reference Documents")
     _ref_hdr, _ref_btn_col = st.columns([4, 1])
     with _ref_btn_col:
-        _refresh_docs = st.button("Refresh", key="refresh_docs", use_container_width=True)
+        _refresh_docs = st.button("🔄 Refresh", key="refresh_docs", use_container_width=True)
 
     if _refresh_docs or st.session_state.available_reports is None:
         with st.spinner("Loading available reference documents …"):
@@ -1512,7 +1516,7 @@ with tab_pipeline:
             unsafe_allow_html=True,
         )
     elif not benchmark_ready():
-        st.caption("Run the reports first, then select reference documents.")
+        st.caption("⚠ Run Reports first, then select reference documents.")
 
 
 # ──────────────────────────────────────────────
@@ -1522,7 +1526,7 @@ with tab_reports:
     if not st.session_state.stored_reports:
         st.info("Run the Reports step first.")
     else:
-        st.markdown("## Generated reports")
+        st.markdown("## 📄 Generated Reports")
         reports_resp = st.session_state.get("reports_response") or {}
         warnings = reports_resp.get("data_quality_warnings") or []
         if warnings:
@@ -1558,7 +1562,7 @@ with tab_benchmark:
         st.info("Run the Benchmark step first.")
     else:
         br = st.session_state.benchmark_response
-        st.markdown("## Benchmark results")
+        st.markdown("## 🎯 Benchmark Results")
         st.caption(
             "Scores compare AI-generated reports to filed reference PDFs. "
             "Sandbox or partial QuickBooks data often yields low match scores."
@@ -1674,7 +1678,7 @@ with tab_benchmark:
 # TAB 4 · Raw JSON
 # ──────────────────────────────────────────────
 with tab_raw:
-    st.markdown("## Raw API responses")
+    st.markdown("## 🔩 Raw API Responses")
 
     col_r, col_b = st.columns(2)
 
