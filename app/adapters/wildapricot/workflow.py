@@ -46,6 +46,43 @@ def pluck_ids(items: list[dict[str, Any]], *, key: str = "Id") -> list[int | str
             ids.append(value)
     return ids
 
+def _event_date(event: dict[str, Any]) -> str:
+    """The event's start date as YYYY-MM-DD, or empty if absent."""
+    for key in ("StartDate", "startDate", "startdate"):
+        value = event.get(key)
+        if value:
+            return str(value)[:10]
+    return ""
+
+
+def events_in_period(
+    events: list[dict[str, Any]],
+    start_date: str | None,
+    end_date: str | None,
+) -> tuple[list[dict[str, Any]], int]:
+    """Events whose start date falls in the reporting period.
+
+    Registrations are fetched one call per event against a rate limit, so an
+    account with fifty events costs about a hundred seconds. Registrations for
+    an event held years before the reporting period cannot bear on the return,
+    so fetching them is both slow and pointless.
+
+    With no period supplied, every event is returned and the behaviour is
+    unchanged. An event with no readable start date is kept, on the grounds
+    that skipping it would silently drop data.
+    """
+    if not (start_date and end_date):
+        return events, 0
+
+    start, end = str(start_date)[:10], str(end_date)[:10]
+    kept, skipped = [], 0
+    for event in events:
+        date = _event_date(event)
+        if not date or start <= date <= end:
+            kept.append(event)
+        else:
+            skipped += 1
+    return kept, skipped
 
 def run_extraction_workflow(
     *,
@@ -76,7 +113,19 @@ def run_extraction_workflow(
     event_list = _call_with_401_retry(wa_client, api.list_events)
 
     registration_list: list[dict[str, Any]] = []
-    event_ids = pluck_ids(event_list)
+    relevant_events, skipped_events = events_in_period(
+        event_list, donation_start_date, donation_end_date
+    )
+    if skipped_events:
+        logger.info(
+            "Skipping registrations for %d event(s) outside %s to %s; "
+            "fetching %d in period",
+            skipped_events,
+            donation_start_date,
+            donation_end_date,
+            len(relevant_events),
+        )
+    event_ids = pluck_ids(relevant_events)
     for event_id in event_ids:
         try:
             registration_list.extend(api.list_event_registrations(event_id))
