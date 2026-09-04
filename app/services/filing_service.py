@@ -194,7 +194,7 @@ class FilingPreparationService:
 
         # --- 5. payload -----------------------------------------------------
         content = self._merge_content(
-            report_content, organization, computed, tax_year or end_date
+            report_content, organization, computed, end_date, tax_year
         )
         payload_stage, payload = self._build_payload(content, routing, report_content)
         stages.append(payload_stage)
@@ -344,8 +344,16 @@ class FilingPreparationService:
         organization: Optional[Mapping[str, Any]],
         computed: Any,
         end_date: str,
+        tax_year: Optional[str] = None,
     ) -> dict[str, Any]:
-        """Combine a prior report with identity supplied by the preparer."""
+        """Combine a prior report with identity supplied by the preparer.
+
+        An explicit `tax_year` overrides whatever a prior reports run left
+        behind. That matters: the report carries the year of its accounting
+        period, and a return often cannot be filed for that year -- the
+        current one never can -- so deferring to it would silently discard the
+        preparer's choice.
+        """
         content: dict[str, Any] = dict(report_content or {})
 
         org = dict(content.get("organizationInformation") or {})
@@ -357,7 +365,10 @@ class FilingPreparationService:
         summary = dict(content.get("organization_summary") or {})
         summary["gross_receipts"] = computed.total
         summary["gross_receipts_basis"] = computed.as_dict()
-        summary.setdefault("tax_year", (end_date or "")[:4])
+        if tax_year:
+            summary["tax_year"] = str(tax_year)[:4]
+        else:
+            summary.setdefault("tax_year", (end_date or "")[:4])
         if org.get("legalName"):
             summary["organization_name"] = org["legalName"]
         if org.get("ein"):

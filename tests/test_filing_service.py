@@ -366,3 +366,26 @@ def test_divergence_names_both_figures(service, organization):
     )
     assert "10,605.77" in reason
     assert "900,000.00" in reason
+
+
+def test_an_explicit_tax_year_overrides_the_report(service, organization, pl_report):
+    """A prior reports run carries the year of its accounting period. The
+    return is often filed for a different year -- the current one never can
+    be -- so an explicit choice must win rather than defer."""
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        end_date="2026-12-31",
+        tax_year=str(FILEABLE_YEAR),
+        report_content={"organization_summary": {"tax_year": "2026"}},
+    )
+    form = result["payload"]["Form990NRecords"][0]["Form990N"]
+    assert form["TaxYr"] == str(FILEABLE_YEAR)
+    assert form["TaxPeriodBeginDt"] == f"{FILEABLE_YEAR}-01-01"
+
+
+def test_without_an_explicit_year_the_period_is_used(service, organization):
+    result = _prepare(
+        service, organization=organization, organization_age_years=48.0,
+        end_date=f"{FILEABLE_YEAR}-12-31",
+    )
+    assert result["payload"]["Form990NRecords"][0]["Form990N"]["TaxYr"] == str(FILEABLE_YEAR)

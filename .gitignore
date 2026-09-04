@@ -232,3 +232,11 @@ harness_run.txt
 data/propublica_cache/
 data/propublica_harness/
 harness_run.txt
+
+form_990n_draft.pdf
+ui/app.py.bak
+
+# credentials
+*.env
+!.env.example
+ui/app.py.pre-revert
