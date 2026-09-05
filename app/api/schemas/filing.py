@@ -66,6 +66,13 @@ class LookupResponse(BaseModel):
     prior_year_gross_receipts: List[float] = Field(default_factory=list)
     filings: List[Dict[str, Any]] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
+    tax_exempt_status: str = Field(
+        "",
+        description=(
+            "Formatted from the IRS subsection code, e.g. 501(c)(6). Carried "
+            "because a model asked to guess it answers 501(c)(3)."
+        ),
+    )
 
 
 class PrepareFilingRequest(BaseModel):

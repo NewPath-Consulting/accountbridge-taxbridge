@@ -389,3 +389,28 @@ def test_without_an_explicit_year_the_period_is_used(service, organization):
         end_date=f"{FILEABLE_YEAR}-12-31",
     )
     assert result["payload"]["Form990NRecords"][0]["Form990N"]["TaxYr"] == str(FILEABLE_YEAR)
+
+
+def test_lookup_carries_the_subsection_code(propublica_payload):
+    """A model asked to fill this in answers 501(c)(3), because most
+    nonprofits are charities. A business league is 501(c)(6), and Part IV
+    line 5 asks specifically about membership dues for c4, c5 and c6
+    organizations -- which for a trade association is the largest revenue
+    line on the return."""
+    from app.utils.organization_lookup import lookup_organization
+    propublica_payload["organization"]["subsection_code"] = 6
+    result = lookup_organization(
+        "01-0165097", client=_StubProPublica(propublica_payload)
+    )
+    assert result.tax_exempt_status == "501(c)(6)"
+    assert result.as_dict()["tax_exempt_status"] == "501(c)(6)"
+
+
+def test_an_absent_subsection_is_left_empty(propublica_payload):
+    """Empty is better than a guess. Downstream can see it is missing."""
+    from app.utils.organization_lookup import lookup_organization
+    propublica_payload["organization"].pop("subsection_code", None)
+    result = lookup_organization(
+        "01-0165097", client=_StubProPublica(propublica_payload)
+    )
+    assert result.tax_exempt_status == ""

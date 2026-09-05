@@ -34,10 +34,27 @@ from app.utils.propublica_harness import age_years_at, form_label, gross_receipt
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["OrganizationLookup", "lookup_organization"]
+__all__ = ["OrganizationLookup", "lookup_organization", "exempt_status"]
 
 # Filings older than this add little to a threshold decision made today.
 MAX_HISTORY_YEARS = 5
+
+
+def exempt_status(subsection_code: Any) -> str:
+    """Format an IRS subsection code as it appears on the return.
+
+    Worth carrying rather than assuming. A model asked to fill this in
+    defaults to 501(c)(3), because most nonprofits are charities -- but a
+    business league is 501(c)(6), and the difference changes the form. Part IV
+    line 5 asks specifically about membership dues for 501(c)(4), (5) and (6)
+    organizations, and for a trade association that is usually the largest
+    revenue line on the return.
+    """
+    try:
+        code = int(subsection_code)
+    except (TypeError, ValueError):
+        return ""
+    return f"501(c)({code})" if 1 <= code <= 29 else ""
 
 
 class OrganizationLookup:
@@ -46,6 +63,7 @@ class OrganizationLookup:
     __slots__ = (
         "found", "ein", "legal_name", "address", "ruling_date",
         "age_years", "prior_year_gross_receipts", "filings", "notes",
+        "tax_exempt_status",
     )
 
     def __init__(
@@ -60,6 +78,7 @@ class OrganizationLookup:
         prior_year_gross_receipts: Optional[list[float]] = None,
         filings: Optional[list[dict[str, Any]]] = None,
         notes: Optional[list[str]] = None,
+        tax_exempt_status: str = "",
     ) -> None:
         self.found = found
         self.ein = ein
@@ -70,6 +89,7 @@ class OrganizationLookup:
         self.prior_year_gross_receipts = prior_year_gross_receipts or []
         self.filings = filings or []
         self.notes = notes or []
+        self.tax_exempt_status = tax_exempt_status
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -82,6 +102,7 @@ class OrganizationLookup:
             "prior_year_gross_receipts": list(self.prior_year_gross_receipts),
             "filings": list(self.filings),
             "notes": list(self.notes),
+            "tax_exempt_status": self.tax_exempt_status,
         }
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
@@ -189,6 +210,7 @@ def lookup_organization(
             "state": str(org.get("state") or "").strip(),
             "zip": str(org.get("zipcode") or "").strip()[:5],
         },
+        tax_exempt_status=exempt_status(org.get("subsection_code")),
         ruling_date=str(ruling_date) if ruling_date else None,
         age_years=age,
         prior_year_gross_receipts=priors,
