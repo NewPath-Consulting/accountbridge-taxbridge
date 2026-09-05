@@ -130,16 +130,69 @@ def _reconciliation_pass_rate(content: Mapping[str, Any]) -> tuple[float, int, i
     return passed / total, passed, total
 
 
-def _arithmetic_holds(content: Mapping[str, Any]) -> bool:
+def _part_viii_holds(content: Mapping[str, Any]) -> tuple[bool, str]:
     """Do the Part VIII line items sum to the stated total?"""
     items = content.get("partVIII_revenue") or []
     if not items:
-        return False
+        return False, "Part VIII has no line items."
     walked = round(
         sum(_round(i.get("totalRevenue")) for i in items if isinstance(i, dict)), 2
     )
     stated = _round(content.get("partVIII_totalRevenue"))
-    return walked == stated
+    if walked == stated:
+        return True, ""
+    return False, (
+        f"Part VIII line items sum to {walked:,.2f} against a stated total of "
+        f"{stated:,.2f}."
+    )
+
+
+def _part_ix_columns_hold(content: Mapping[str, Any]) -> tuple[bool, str]:
+    """Do the Part IX columns account for the total?
+
+    The full Form 990 asks for every expense to be allocated across three
+    columns -- program services, management and general, and fundraising --
+    and the three must add up to the total in column A. An expense sitting in
+    the total but in no column is a wrong return, and the kind of error that
+    reads as complete: the total is right, so nothing obviously looks amiss.
+
+    Found on a real organization's data, where 67,306 of expenses were in the
+    total and in no column while the arithmetic check still scored full marks.
+    """
+    totals = content.get("partIX_totals") or {}
+    stated = _round(totals.get("totalExpenses"))
+    if not stated:
+        return True, ""     # nothing reported, nothing to contradict
+
+    columns = round(
+        _round(totals.get("totalProgramServices"))
+        + _round(totals.get("totalManagementAndGeneral"))
+        + _round(totals.get("totalFundraising")),
+        2,
+    )
+    if columns == stated:
+        return True, ""
+
+    unallocated = round(stated - columns, 2)
+    return False, (
+        f"Part IX columns sum to {columns:,.2f} against a total of "
+        f"{stated:,.2f}. {abs(unallocated):,.2f} is "
+        f"{'unallocated' if unallocated > 0 else 'over-allocated'} across "
+        f"program services, management and fundraising."
+    )
+
+
+def _arithmetic_holds(content: Mapping[str, Any]) -> tuple[float, list[str]]:
+    """Score the return's internal arithmetic, and say what failed.
+
+    Two independent checks, weighted equally. A return that gets one right
+    and one wrong is not as sound as one that gets both right, and should not
+    score as though it were.
+    """
+    checks = [_part_viii_holds(content), _part_ix_columns_hold(content)]
+    passed = sum(1 for ok, _ in checks if ok)
+    problems = [message for ok, message in checks if not ok and message]
+    return passed / len(checks), problems
 
 
 def _classification_certainty(validation_notes: list[str]) -> tuple[float, int, int]:
@@ -188,11 +241,13 @@ def score_confidence(
         str(n) for n in (content.get("validationErrors") or []) if n
     ]
 
-    arithmetic = 1.0 if _arithmetic_holds(content) else 0.0
-    if arithmetic == 0.0:
+    arithmetic, arithmetic_problems = _arithmetic_holds(content)
+    for problem in arithmetic_problems:
+        notes.append(problem)
+    if arithmetic < 1.0:
         notes.append(
-            "Part VIII line items do not sum to the stated total; the return "
-            "is not merely uncertain, it is arithmetically wrong."
+            "The return does not add up. It is not merely uncertain, it is "
+            "arithmetically wrong."
         )
 
     recon_rate, passed, total = _reconciliation_pass_rate(content)

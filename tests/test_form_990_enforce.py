@@ -191,3 +191,110 @@ def test_empty_model_output_is_populated_from_the_ledger(pl_report):
     out, _ = enforce_part_viii_amounts(content, pl_report)
     assert out["partVIII_totalRevenue"] == QUICKBOOKS_INCOME_TOTAL
     assert len(out["partVIII_revenue"]) > 0
+
+
+# --- Part IX columns ------------------------------------------------------
+
+from app.utils.form_990_enforce import enforce_part_ix_columns  # noqa: E402
+
+
+def _expenses(*rows):
+    return {
+        "partIX_expenses": [
+            {"line_number": n, "label": label, "amount": amount,
+             **({"classification": column} if column else {})}
+            for n, label, amount, column in rows
+        ],
+        "partIX_totals": {},
+    }
+
+
+CRN_2024 = _expenses(
+    ("1",   "Conference and Meeting Costs", 138000.00, "Program Services"),
+    ("5",   "Management Services",           66000.00, "Management and General"),
+    ("13",  "Office and Administration",      2000.00, "Management and General"),
+    ("11b", "Professional Fees",             26000.00, None),
+    ("12",  "Marketing and Communications",  22306.00, None),
+    ("14",  "Website and Technology",        16000.00, None),
+    ("23",  "Insurance",                      3000.00, None),
+)
+
+
+def _columns(totals):
+    return round(
+        totals["totalProgramServices"]
+        + totals["totalManagementAndGeneral"]
+        + totals["totalFundraising"], 2,
+    )
+
+
+def test_the_columns_account_for_the_total():
+    """The identity on the face of the form. A return where the columns do
+    not sum to the total contradicts itself."""
+    out, _ = enforce_part_ix_columns(dict(CRN_2024), 273306.00)
+    assert _columns(out["partIX_totals"]) == 273306.00
+
+
+def test_classified_lines_keep_their_column():
+    """The model decides which column an expense belongs to, because no
+    ledger fact answers whether an insurance premium is a program cost."""
+    out, _ = enforce_part_ix_columns(dict(CRN_2024), 273306.00)
+    assert out["partIX_totals"]["totalProgramServices"] == 138000.00
+
+
+def test_unclassified_lines_go_to_management_and_general():
+    """IRS instructions put anything not directly attributable to a program
+    under management and general, and it is the honest direction to guess in:
+    program services is the ratio donors judge an organization by."""
+    out, _ = enforce_part_ix_columns(dict(CRN_2024), 273306.00)
+    # 66,000 + 2,000 classified, plus 67,306 that was not
+    assert out["partIX_totals"]["totalManagementAndGeneral"] == 135306.00
+
+
+def test_the_unclassified_lines_are_named():
+    """A preparer needs to know what to move, not only how much."""
+    _, notes = enforce_part_ix_columns(dict(CRN_2024), 273306.00)
+    note = next(n for n in notes if "PART_IX_UNCLASSIFIED_LINES" in n)
+    assert "Professional Fees" in note
+    assert "Insurance" in note
+    assert "4 expense line(s)" in note
+
+
+def test_expenses_missing_from_the_lines_are_still_allocated():
+    """An expense in the ledger total but absent from the line list would
+    otherwise leave the columns short."""
+    content = _expenses(("1", "Programs", 100000.00, "Program Services"))
+    out, notes = enforce_part_ix_columns(content, 150000.00)
+    assert _columns(out["partIX_totals"]) == 150000.00
+    assert out["partIX_totals"]["totalManagementAndGeneral"] == 50000.00
+    assert any("PART_IX_UNALLOCATED_TO_MANAGEMENT" in n for n in notes)
+
+
+def test_over_allocation_is_reported_not_silently_corrected():
+    """Columns claiming more than was spent means the lines are wrong.
+    Scaling them down would hide a real defect."""
+    content = _expenses(
+        ("1", "Programs",   90000.00, "Program Services"),
+        ("5", "Management", 30000.00, "Management and General"),
+    )
+    _, notes = enforce_part_ix_columns(content, 100000.00)
+    assert any("PART_IX_OVER_ALLOCATED" in n for n in notes)
+
+
+def test_column_spellings_are_recognised():
+    for spelling in ("Program Services", "program", "PROGRAMS",
+                     "Program Services (direct)"):
+        content = _expenses(("1", "x", 100.00, spelling))
+        out, _ = enforce_part_ix_columns(content, 100.00)
+        assert out["partIX_totals"]["totalProgramServices"] == 100.00, spelling
+
+    for spelling in ("Fundraising", "fund raising", "Development"):
+        content = _expenses(("1", "x", 100.00, spelling))
+        out, _ = enforce_part_ix_columns(content, 100.00)
+        assert out["partIX_totals"]["totalFundraising"] == 100.00, spelling
+
+
+def test_no_expenses_leaves_the_columns_at_zero_and_says_so():
+    content = {"partIX_expenses": [], "partIX_totals": {}}
+    out, notes = enforce_part_ix_columns(content, 0.0)
+    assert _columns(out["partIX_totals"]) == 0.0

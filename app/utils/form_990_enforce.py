@@ -198,6 +198,139 @@ def enforce_part_viii_amounts(
     return content, notes
 
 
+# The Part IX columns as the IRS names them, and the strings a model is
+# likely to use for each.
+PART_IX_COLUMNS = {
+    "totalProgramServices": (
+        "program services", "program service", "program", "programs",
+        "program_services", "programservices",
+    ),
+    "totalManagementAndGeneral": (
+        "management and general", "management & general", "management",
+        "administration", "administrative", "general",
+        "management_and_general", "managementandgeneral",
+    ),
+    "totalFundraising": (
+        "fundraising", "fund raising", "fund-raising", "development",
+    ),
+}
+
+# Where an expense goes when the model did not say. IRS instructions put
+# anything not directly attributable to a program under management and
+# general, and it is the honest direction to guess in: program services is
+# the figure donors judge an organization by, so defaulting there would
+# flatter the return.
+DEFAULT_COLUMN = "totalManagementAndGeneral"
+
+
+def _amount(value: Any) -> float:
+    """A figure from model output, which may arrive as a string."""
+    try:
+        return round(float(value or 0.0), 2)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _column_for(classification: Any) -> str | None:
+    """Which Part IX column a line's classification names."""
+    text = str(classification or "").strip().lower()
+    if not text:
+        return None
+    for column, spellings in PART_IX_COLUMNS.items():
+        if text in spellings:
+            return column
+    # Fall back to a substring match, so "Program Services (direct)" lands.
+    for column, spellings in PART_IX_COLUMNS.items():
+        if any(word in text for word in spellings):
+            return column
+    return None
+
+
+def enforce_part_ix_columns(
+    content: dict[str, Any], total_expenses: float
+) -> tuple[dict[str, Any], list[str]]:
+    """Rebuild the Part IX columns so they account for the total.
+
+    Form 990 requires every expense to be allocated across three columns --
+    program services, management and general, and fundraising -- and the
+    three must sum to the total in column A. A return where they do not is
+    not merely incomplete; it contradicts itself on the face of the form.
+
+    The model's per-line classification is kept, because deciding whether an
+    insurance premium is a program cost or an administrative one depends on
+    what it insures and no ledger fact answers it. What is not left to the
+    model is the arithmetic: the columns are summed from the lines, and
+    whatever the lines do not account for is placed in management and general
+    and recorded, so a preparer can see exactly what was assumed and move it.
+
+    Found on real data, where 67,306 of expenses -- professional fees,
+    marketing, website and insurance -- sat in the total and in no column,
+    while every other check passed.
+    """
+    notes: list[str] = []
+    totals = dict(content.get("partIX_totals") or {})
+
+    columns = {name: 0.0 for name in PART_IX_COLUMNS}
+    unclassified: list[str] = []
+
+    for item in content.get("partIX_expenses") or []:
+        if not isinstance(item, dict):
+            continue
+        amount = _amount(item.get("amount"))
+        if not amount:
+            continue
+        column = _column_for(item.get("classification"))
+        if column is None:
+            columns[DEFAULT_COLUMN] += amount
+            unclassified.append(
+                f"{item.get('label') or item.get('line_number') or 'unnamed'} "
+                f"{amount:,.2f}"
+            )
+        else:
+            columns[column] += amount
+
+    allocated = round(sum(columns.values()), 2)
+    shortfall = round(total_expenses - allocated, 2)
+
+    if shortfall > 0.005:
+        columns[DEFAULT_COLUMN] = round(columns[DEFAULT_COLUMN] + shortfall, 2)
+        notes.append(
+            f"PART_IX_UNALLOCATED_TO_MANAGEMENT: {shortfall:,.2f} of expenses "
+            f"appeared in the total but in no column, and has been placed in "
+            f"management and general so the columns account for the total. A "
+            f"preparer should reallocate what belongs elsewhere."
+        )
+    elif shortfall < -0.005:
+        notes.append(
+            f"PART_IX_OVER_ALLOCATED: the columns claim {allocated:,.2f} "
+            f"against a total of {total_expenses:,.2f}, {abs(shortfall):,.2f} "
+            f"more than was spent. Left as reported; the line items need "
+            f"review before this return can be filed."
+        )
+
+    if unclassified:
+        notes.append(
+            f"PART_IX_UNCLASSIFIED_LINES: {len(unclassified)} expense line(s) "
+            f"carried no column and were placed in management and general "
+            f"\u2014 {'; '.join(unclassified[:6])}"
+            + (" and others" if len(unclassified) > 6 else "")
+        )
+
+    previous = {name: totals.get(name) for name in PART_IX_COLUMNS}
+    for name, value in columns.items():
+        totals[name] = round(value, 2)
+    content["partIX_totals"] = totals
+
+    for name, was in previous.items():
+        try:
+            if was is not None and round(float(was), 2) != totals[name]:
+                notes.append(f"PART_IX_COLUMN_CORRECTED: {name} {was} -> {totals[name]}")
+        except (TypeError, ValueError):
+            pass
+
+    return content, notes
+
+
 def enforce_deterministic_amounts(
     content: dict[str, Any],
     pl_report: dict[str, Any],
@@ -205,8 +338,10 @@ def enforce_deterministic_amounts(
     """Apply every deterministic override available at this stage.
 
     Part VIII line items and total are rebuilt from the ledger. Part IX's
-    total is set from the ledger as well; its line-by-line breakdown depends
-    on a static IRS line inventory and is handled separately.
+    total is set from the ledger as well, and its three columns are summed
+    from the classified lines so that they account for it. The line-by-line
+    inventory itself depends on a static IRS line list and is handled
+    separately.
     """
     content, notes = enforce_part_viii_amounts(content, pl_report)
 
@@ -229,5 +364,8 @@ def enforce_deterministic_amounts(
                 )
         except (TypeError, ValueError):
             pass
+
+        content, column_notes = enforce_part_ix_columns(content, total_expenses)
+        notes.extend(column_notes)
 
     return content, notes

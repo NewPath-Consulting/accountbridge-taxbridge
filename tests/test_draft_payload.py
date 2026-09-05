@@ -3,7 +3,8 @@
 The specification asks for a payload structure covering organizations routed
 to 990-EZ and the full 990. Tax990's API supports 990-N only, so this is a
 proposal to put in front of them rather than a mapping onto an existing
-contract.
+contract -- which makes it more important, not less, that the shape is
+defensible and every figure in it traceable.
 """
 
 from datetime import datetime, timezone
@@ -192,14 +193,68 @@ def test_clean_output_scores_high(content):
     assert score.overall > 0.85
 
 
-def test_broken_arithmetic_collapses_the_score(content):
-    """A return whose line items do not sum to its total is not uncertain,
-    it is wrong, so the largest weight is lost entirely."""
-    clean = score_confidence(content, _routing()).overall
+def test_broken_part_viii_halves_the_arithmetic_score(content):
+    """Two independent checks. Failing one is worse than failing neither and
+    better than failing both."""
+    clean = score_confidence(content, _routing())
+    assert clean.components["arithmetic_integrity"] == 1.0
+
     content["partVIII_totalRevenue"] = 99999.99
-    broken = score_confidence(content, _routing()).overall
-    assert broken < clean - 0.3
-    assert score_confidence(content, _routing()).components["arithmetic_integrity"] == 0.0
+    broken = score_confidence(content, _routing())
+    assert broken.components["arithmetic_integrity"] == 0.5
+    assert broken.overall < clean.overall
+    assert any("Part VIII line items sum to" in n for n in broken.notes)
+
+
+def test_unallocated_part_ix_expenses_are_caught(content):
+    """The columns must account for the total. An expense in the total and in
+    no column is a wrong return that reads as complete, because the total is
+    right and nothing obviously looks amiss.
+
+    Found on a real organization's data: 67,306 unallocated while the
+    arithmetic check still scored full marks.
+    """
+    content["partIX_totals"] = {
+        "totalExpenses": 273306.00,
+        "totalProgramServices": 138000.00,
+        "totalManagementAndGeneral": 68000.00,
+        "totalFundraising": 0.00,
+    }
+    score = score_confidence(content, _routing())
+    assert score.components["arithmetic_integrity"] == 0.5
+    problem = next(n for n in score.notes if "Part IX columns" in n)
+    assert "67,306.00" in problem
+    assert "unallocated" in problem
+
+
+def test_both_arithmetic_checks_failing_scores_zero(content):
+    content["partVIII_totalRevenue"] = 99999.99
+    content["partIX_totals"] = {
+        "totalExpenses": 273306.00,
+        "totalProgramServices": 1.00,
+        "totalManagementAndGeneral": 0.00,
+        "totalFundraising": 0.00,
+    }
+    score = score_confidence(content, _routing())
+    assert score.components["arithmetic_integrity"] == 0.0
+
+
+def test_over_allocated_columns_are_named_as_such(content):
+    content["partIX_totals"] = {
+        "totalExpenses": 100000.00,
+        "totalProgramServices": 90000.00,
+        "totalManagementAndGeneral": 30000.00,
+        "totalFundraising": 0.00,
+    }
+    score = score_confidence(content, _routing())
+    assert any("over-allocated" in n for n in score.notes)
+
+
+def test_no_reported_expenses_is_not_a_failure(content):
+    """Nothing reported cannot contradict anything."""
+    content["partIX_totals"] = {}
+    score = score_confidence(content, _routing())
+    assert score.components["arithmetic_integrity"] == 1.0
 
 
 def test_failed_reconciliation_lowers_the_score(content):
