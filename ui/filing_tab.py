@@ -29,6 +29,7 @@ FILING_STATE_DEFAULTS = {
         "website": "",
         "officer_name": "",
         "officer_title": "",
+        "taxExemptStatus": "",
     },
     "filing_lookup": None,
     "filing_age_years": None,
@@ -57,15 +58,27 @@ _STAGE_LABEL = {
 }
 
 
-def filing_window(as_of: Optional[date] = None) -> list[int]:
-    """The tax years currently fileable, most recent first.
+# How far back the year dropdown offers. Preparing a return for an older
+# period is useful even when it cannot be submitted: the routing decision,
+# the figures and the classification are all worth seeing.
+YEARS_OFFERED = 10
 
-    A return cannot be filed before its year has ended, so the newest
-    available is the year before this one. Mirrors the rule the API enforces;
-    the API remains the authority and will refuse anything outside it.
+
+def fileable_years(as_of: Optional[date] = None) -> list[int]:
+    """The tax years Tax990 will accept, most recent first.
+
+    A return cannot be filed before its year has ended, so the newest is the
+    year before this one. Probing their sandbox in August 2026 confirmed the
+    window: 2023 through 2025 accepted, 2022 and 2026 refused.
     """
     newest = (as_of or date.today()).year - 1
     return [newest, newest - 1, newest - 2]
+
+
+def selectable_years(as_of: Optional[date] = None) -> list[int]:
+    """Every year offered in the dropdown, most recent first."""
+    newest = (as_of or date.today()).year - 1
+    return [newest - n for n in range(YEARS_OFFERED)]
 
 
 def _digits(value: Any) -> str:
@@ -232,6 +245,8 @@ def render(
                 for field in ("street", "city", "state", "zip"):
                     if address.get(field):
                         org["address"][field] = address[field]
+                if result.get("tax_exempt_status"):
+                    org["taxExemptStatus"] = result["tax_exempt_status"]
                 st.session_state.filing_age_years = result.get("age_years")
                 st.session_state.filing_priors = result.get("prior_year_gross_receipts") or []
         except Exception as exc:  # noqa: BLE001
@@ -250,10 +265,14 @@ def render(
             # real record for the wrong one, so the name is the check that
             # matters. The ruling date and filing count are diagnostics and
             # belong with the history they came from.
-            st.success(f"Found **{lookup.get('legal_name')}**.")
+            status = lookup.get("tax_exempt_status")
+            st.success(
+                f"Found **{lookup.get('legal_name')}**"
+                + (f" \u00b7 {status}" if status else "")
+                + "."
+            )
             if filings:
-              
-                with st.expander(f"Filing history from ProPublica \u00b7 {len(filings)} year(s)"):
+                with st.expander("Filing history from ProPublica"):
                     st.dataframe(
                         [
                             {
@@ -298,12 +317,12 @@ def render(
     st.divider()
 
     # ── prepare ──────────────────────────────────────────────────────────
-    st.markdown("### Step 2 \u00b7 Prepare the return ")# `/api/filing/prepare`")
-    # st.caption(
-    #     f"QuickBooks **{quickbooks_realm_id}** \u00b7 "
-    #     f"**{start_date}** to **{end_date}**. No model is called, so this "
-    #     f"takes about a second."
-    # )
+    st.markdown("### Step 2 \u00b7 Prepare the return  `/api/filing/prepare`")
+    st.caption(
+        f"QuickBooks **{quickbooks_realm_id}** \u00b7 "
+        f"**{start_date}** to **{end_date}**. No model is called, so this "
+        f"takes about a second."
+    )
 
     age = st.session_state.filing_age_years
     priors = st.session_state.filing_priors
@@ -325,24 +344,37 @@ def render(
             "990-EZ and full 990 do."
         )
 
-    years = filing_window()
-    default_year = str(years[0])
+    years = selectable_years()
+    fileable = set(fileable_years())
     ledger_year = (end_date or "")[:4]
+
+    # Default to the year of the accounting period when it is on the list, so
+    # a 2019 ledger produces a 2019 return rather than one dated years later.
+    try:
+        default_index = [str(y) for y in years].index(ledger_year)
+    except ValueError:
+        default_index = 0
 
     year_col, note_col = st.columns([1, 3])
     with year_col:
         selected_year = st.selectbox(
             "Tax year on the return",
             [str(y) for y in years],
-            index=0,
+            index=default_index,
             help=(
-                "A return cannot be filed before its year has ended, so the "
-                "current year is never available."
+                "Any year can be prepared and reviewed. Tax990 accepts only "
+                "the last three completed years for submission."
             ),
         )
     with note_col:
         st.write("")
-        if ledger_year and ledger_year != selected_year:
+        if int(selected_year) not in fileable:
+            first, last = min(fileable), max(fileable)
+            st.caption(
+                f"\u00b7 {selected_year} can be prepared but not submitted. "
+                f"Tax990 accepts {first} to {last}."
+            )
+        elif ledger_year and ledger_year != selected_year:
             st.caption(
                 f"\u00b7 The accounting period is {ledger_year}; the return "
                 f"will be dated {selected_year}."
@@ -360,6 +392,7 @@ def render(
                 "address": dict(org.get("address") or {}),
                 "telephone": org.get("telephone", ""),
                 "website": org.get("website", ""),
+                "taxExemptStatus": org.get("taxExemptStatus", ""),
                 "principalOfficer": {
                     "name": org.get("officer_name", ""),
                     "title": org.get("officer_title", ""),
@@ -456,7 +489,9 @@ def render(
                 st.json(detail["payload"])
 
         if detail.get("filing_available") and status == "ready":
-            _render_filing(base_url, headers, detail["payload"], format_request_error)
+            _render_filing(
+                base_url, headers, detail["payload"], format_request_error
+            )
 
 
 def _render_filing(
@@ -477,6 +512,24 @@ def _render_filing(
         "Sends the payload above to Tax990, runs their validation, and "
         "retrieves the completed form."
     )
+
+    # The filing window is enforced here rather than at preparation, because
+    # a return for an older year is still worth preparing and reviewing.
+    year = ""
+    try:
+        year = payload["Form990NRecords"][0]["Form990N"]["TaxYr"]
+    except (KeyError, IndexError, TypeError):
+        pass
+
+    fileable = fileable_years()
+    if year and int(year) not in set(fileable):
+        st.info(
+            f"**{year} cannot be submitted.** Tax990 accepts "
+            f"{min(fileable)} through {max(fileable)} \u2014 a year cannot be "
+            f"filed before it has ended. The return above is complete and can "
+            f"be reviewed; choose a year in range to file it."
+        )
+        return
 
     if st.button("File with Tax990", type="primary"):
         try:

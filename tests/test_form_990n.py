@@ -279,19 +279,32 @@ def test_the_window_is_three_years_ending_last_year():
     assert (earliest, latest) == (2023, 2025)
 
 
-def test_the_current_year_cannot_be_filed(content, eligible_routing):
+def test_a_year_outside_the_window_still_prepares(content, eligible_routing):
+    """Routing, the figures and the classification are all worth seeing for a
+    year that cannot be submitted. Only the submission is constrained."""
     from datetime import date
     content["organization_summary"]["tax_year"] = str(date.today().year)
     result = build_form_990n_payload(content, eligible_routing)
-    assert result.payload is None
-    assert any("outside the filing window" in e for e in result.blocking_errors)
+    assert result.payload is not None
+    assert result.is_submittable
+    assert any("OUTSIDE_FILING_WINDOW" in w for w in result.warnings)
 
 
-def test_a_year_too_old_cannot_be_filed(content, eligible_routing):
+def test_an_old_year_prepares_with_a_warning(content, eligible_routing):
     earliest, _ = filing_window()
-    content["organization_summary"]["tax_year"] = str(earliest - 1)
+    content["organization_summary"]["tax_year"] = str(earliest - 4)
     result = build_form_990n_payload(content, eligible_routing)
-    assert result.payload is None
+    assert result.payload is not None
+    assert any("OUTSIDE_FILING_WINDOW" in w for w in result.warnings)
+
+
+def test_is_fileable_year_marks_the_boundary():
+    from app.utils.form_990n import is_fileable_year
+    earliest, latest = filing_window()
+    assert is_fileable_year(latest)
+    assert is_fileable_year(earliest)
+    assert not is_fileable_year(latest + 1)
+    assert not is_fileable_year(earliest - 1)
 
 
 def test_the_window_boundaries_are_accepted(content, eligible_routing):
@@ -302,10 +315,11 @@ def test_the_window_boundaries_are_accepted(content, eligible_routing):
         assert result.is_submittable, f"{year} should be fileable"
 
 
-def test_the_rejection_names_the_years_available(content, eligible_routing):
+def test_the_warning_names_the_years_available(content, eligible_routing):
     """A preparer should be told what they can file, not only what they cannot."""
     earliest, latest = filing_window()
-    content["organization_summary"]["tax_year"] = "2026"
+    content["organization_summary"]["tax_year"] = str(latest + 1)
     result = build_form_990n_payload(content, eligible_routing)
-    message = next(e for e in result.blocking_errors if "filing window" in e)
+    message = next(w for w in result.warnings if "OUTSIDE_FILING_WINDOW" in w)
     assert str(earliest) in message and str(latest) in message
+    assert "can still be prepared" in message

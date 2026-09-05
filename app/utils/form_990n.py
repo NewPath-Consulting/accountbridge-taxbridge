@@ -38,6 +38,8 @@ __all__ = [
     "Form990NPayload",
     "build_form_990n_payload",
     "normalise_ein",
+    "filing_window",
+    "is_fileable_year",
 ]
 
 # Tax990 rejects a phone that is not exactly ten digits. This is the reserved
@@ -98,6 +100,15 @@ def filing_window(as_of: Any = None) -> tuple[int, int]:
     today = as_of or date.today()
     newest = today.year - 1
     return newest - (FILING_WINDOW_YEARS - 1), newest
+
+
+def is_fileable_year(year: Any) -> bool:
+    """Whether a tax year can be submitted, as opposed to merely prepared."""
+    try:
+        earliest, latest = filing_window()
+        return earliest <= int(str(year)[:4]) <= latest
+    except (TypeError, ValueError):
+        return False
 
 
 def normalise_ein(value: Any) -> str:
@@ -167,12 +178,17 @@ def build_form_990n_payload(
     if not re.fullmatch(r"\d{4}", year):
         blocking.append(f"Tax year must be four digits; got {year!r}.")
     else:
+        # Preparing a return for any year is useful: routing, the financial
+        # figures and the classification are all worth seeing for a year that
+        # cannot be submitted. Only the submission is constrained, so this is
+        # a warning here and enforced at the point of filing.
         earliest, latest = filing_window()
         if not earliest <= int(year) <= latest:
-            blocking.append(
-                f"Tax year {year} is outside the filing window. Returns can be "
-                f"filed for {earliest} through {latest}; a year cannot be filed "
-                f"before it has ended."
+            warnings.append(
+                f"OUTSIDE_FILING_WINDOW: tax year {year} cannot be submitted. "
+                f"Tax990 accepts {earliest} through {latest}; a year cannot be "
+                f"filed before it has ended. The return can still be prepared "
+                f"and reviewed."
             )
 
     # --- element 3: legal name and address -------------------------------
