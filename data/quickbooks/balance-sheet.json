@@ -1,6 +1,6 @@
 {
   "Header": {
-    "Time": "2026-08-20T16:28:06-07:00",
+    "Time": "2026-07-08T09:50:24-07:00",
     "ReportName": "BalanceSheet",
     "ReportBasis": "Accrual",
     "StartPeriod": "2025-01-01",
@@ -14,7 +14,7 @@
       },
       {
         "Name": "NoReportData",
-        "Value": "true"
+        "Value": "false"
       }
     ]
   },
@@ -29,6 +29,16 @@
             "Value": "account"
           }
         ]
+      },
+      {
+        "ColTitle": "Total",
+        "ColType": "Money",
+        "MetaData": [
+          {
+            "Name": "ColKey",
+            "Value": "total"
+          }
+        ]
       }
     ]
   },
@@ -39,6 +49,369 @@
           "ColData": [
             {
               "value": "ASSETS"
+            },
+            {
+              "value": ""
+            }
+          ]
+        },
+        "Rows": {
+          "Row": [
+            {
+              "Header": {
+                "ColData": [
+                  {
+                    "value": "Current Assets"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Rows": {
+                "Row": [
+                  {
+                    "Header": {
+                      "ColData": [
+                        {
+                          "value": "Bank Accounts"
+                        },
+                        {
+                          "value": ""
+                        }
+                      ]
+                    },
+                    "Rows": {
+                      "Row": [
+                        {
+                          "ColData": [
+                            {
+                              "value": "1000 Commerce Checking (5831) - 1",
+                              "id": "102"
+                            },
+                            {
+                              "value": "33437.92"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1001 Commerce Savings (2467) - 1",
+                              "id": "103"
+                            },
+                            {
+                              "value": "10192.15"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1002 Northwestern Mutual Investment Services",
+                              "id": "1150040001"
+                            },
+                            {
+                              "value": "317374.28"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1003 Cash",
+                              "id": "16"
+                            },
+                            {
+                              "value": "57.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "Amazon Credit",
+                              "id": "182"
+                            },
+                            {
+                              "value": "0.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "PayPal Bank",
+                              "id": "158"
+                            },
+                            {
+                              "value": "5064.37"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "Stripe Bank Account",
+                              "id": "163"
+                            },
+                            {
+                              "value": "47.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "Stripe BNPL Bank Account",
+                              "id": "1150040004"
+                            },
+                            {
+                              "value": "0.00"
+                            }
+                          ],
+                          "type": "Data"
+                        }
+                      ]
+                    },
+                    "Summary": {
+                      "ColData": [
+                        {
+                          "value": "Total Bank Accounts"
+                        },
+                        {
+                          "value": "366172.72"
+                        }
+                      ]
+                    },
+                    "type": "Section",
+                    "group": "BankAccounts"
+                  },
+                  {
+                    "Header": {
+                      "ColData": [
+                        {
+                          "value": "Accounts Receivable"
+                        },
+                        {
+                          "value": ""
+                        }
+                      ]
+                    },
+                    "Rows": {
+                      "Row": [
+                        {
+                          "ColData": [
+                            {
+                              "value": "1100 Accounts Receivable (A/R)",
+                              "id": "10"
+                            },
+                            {
+                              "value": "21900.00"
+                            }
+                          ],
+                          "type": "Data"
+                        }
+                      ]
+                    },
+                    "Summary": {
+                      "ColData": [
+                        {
+                          "value": "Total Accounts Receivable"
+                        },
+                        {
+                          "value": "21900.00"
+                        }
+                      ]
+                    },
+                    "type": "Section",
+                    "group": "AR"
+                  },
+                  {
+                    "Header": {
+                      "ColData": [
+                        {
+                          "value": "Other Current Assets"
+                        },
+                        {
+                          "value": ""
+                        }
+                      ]
+                    },
+                    "Rows": {
+                      "Row": [
+                        {
+                          "ColData": [
+                            {
+                              "value": "1200 Lease Deposits",
+                              "id": "3"
+                            },
+                            {
+                              "value": "12500.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1201 Prepaid Rents",
+                              "id": "164"
+                            },
+                            {
+                              "value": "12500.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1203 Prepaid Expenses",
+                              "id": "166"
+                            },
+                            {
+                              "value": "300.00"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1204 Prepaid Insurance",
+                              "id": "167"
+                            },
+                            {
+                              "value": "4135.37"
+                            }
+                          ],
+                          "type": "Data"
+                        },
+                        {
+                          "ColData": [
+                            {
+                              "value": "1220 Payments to deposit",
+                              "id": "32"
+                            },
+                            {
+                              "value": "1170.00"
+                            }
+                          ],
+                          "type": "Data"
+                        }
+                      ]
+                    },
+                    "Summary": {
+                      "ColData": [
+                        {
+                          "value": "Total Other Current Assets"
+                        },
+                        {
+                          "value": "30605.37"
+                        }
+                      ]
+                    },
+                    "type": "Section",
+                    "group": "OtherCurrentAssets"
+                  }
+                ]
+              },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Current Assets"
+                  },
+                  {
+                    "value": "418678.09"
+                  }
+                ]
+              },
+              "type": "Section",
+              "group": "CurrentAssets"
+            },
+            {
+              "Header": {
+                "ColData": [
+                  {
+                    "value": "Fixed Assets"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Rows": {
+                "Row": [
+                  {
+                    "ColData": [
+                      {
+                        "value": "1300 Woodworking Shop Assets",
+                        "id": "21"
+                      },
+                      {
+                        "value": "183956.52"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "1310 Leasehold Improvements",
+                        "id": "160"
+                      },
+                      {
+                        "value": "122389.98"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "1400 Accumulated Depreciation - Shop Assets",
+                        "id": "174"
+                      },
+                      {
+                        "value": "-160065.84"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "1410 Accumulated Depreciation - Leasehold Improvements",
+                        "id": "177"
+                      },
+                      {
+                        "value": "-33308.29"
+                      }
+                    ],
+                    "type": "Data"
+                  }
+                ]
+              },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Fixed Assets"
+                  },
+                  {
+                    "value": "112972.37"
+                  }
+                ]
+              },
+              "type": "Section",
+              "group": "FixedAssets"
             }
           ]
         },
@@ -46,6 +419,9 @@
           "ColData": [
             {
               "value": "TOTAL ASSETS"
+            },
+            {
+              "value": "531650.46"
             }
           ]
         },
@@ -57,6 +433,9 @@
           "ColData": [
             {
               "value": "LIABILITIES AND EQUITY"
+            },
+            {
+              "value": ""
             }
           ]
         },
@@ -67,6 +446,281 @@
                 "ColData": [
                   {
                     "value": "Liabilities"
+                  },
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              "Rows": {
+                "Row": [
+                  {
+                    "Header": {
+                      "ColData": [
+                        {
+                          "value": "Current Liabilities"
+                        },
+                        {
+                          "value": ""
+                        }
+                      ]
+                    },
+                    "Rows": {
+                      "Row": [
+                        {
+                          "Header": {
+                            "ColData": [
+                              {
+                                "value": "Accounts Payable"
+                              },
+                              {
+                                "value": ""
+                              }
+                            ]
+                          },
+                          "Rows": {
+                            "Row": [
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2000 Accounts Payable (A/P)",
+                                    "id": "9"
+                                  },
+                                  {
+                                    "value": "3092.28"
+                                  }
+                                ],
+                                "type": "Data"
+                              }
+                            ]
+                          },
+                          "Summary": {
+                            "ColData": [
+                              {
+                                "value": "Total Accounts Payable"
+                              },
+                              {
+                                "value": "3092.28"
+                              }
+                            ]
+                          },
+                          "type": "Section",
+                          "group": "AP"
+                        },
+                        {
+                          "Header": {
+                            "ColData": [
+                              {
+                                "value": "Credit Cards"
+                              },
+                              {
+                                "value": ""
+                              }
+                            ]
+                          },
+                          "Rows": {
+                            "Row": [
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "CHUCK SAUNDERS (0698)",
+                                    "id": "152"
+                                  },
+                                  {
+                                    "value": "348.25"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "GARY MIELKE (5372)",
+                                    "id": "151"
+                                  },
+                                  {
+                                    "value": "59.81"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "JOHN STEYER (3649)",
+                                    "id": "150"
+                                  },
+                                  {
+                                    "value": "433.58"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "RICHARD HIGGASON (3583)",
+                                    "id": "1150040000"
+                                  },
+                                  {
+                                    "value": "0.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              }
+                            ]
+                          },
+                          "Summary": {
+                            "ColData": [
+                              {
+                                "value": "Total Credit Cards"
+                              },
+                              {
+                                "value": "841.64"
+                              }
+                            ]
+                          },
+                          "type": "Section",
+                          "group": "CreditCards"
+                        },
+                        {
+                          "Header": {
+                            "ColData": [
+                              {
+                                "value": "Other Current Liabilities"
+                              },
+                              {
+                                "value": ""
+                              }
+                            ]
+                          },
+                          "Rows": {
+                            "Row": [
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2200 Membership Dues Payable - KC Woodturners",
+                                    "id": "139"
+                                  },
+                                  {
+                                    "value": "2197.36"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2201 Lease Deposit Payable - KC Woodturners",
+                                    "id": "173"
+                                  },
+                                  {
+                                    "value": "1500.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2210 Unearned Skills Education Fees",
+                                    "id": "168"
+                                  },
+                                  {
+                                    "value": "8219.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2211 Unearned Storage Fees",
+                                    "id": "169"
+                                  },
+                                  {
+                                    "value": "3366.25"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2212 Unearned Membership Dues",
+                                    "id": "171"
+                                  },
+                                  {
+                                    "value": "59130.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2213 Unearned Sponsor Revenue",
+                                    "id": "172"
+                                  },
+                                  {
+                                    "value": "0.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2214 Unearned Fundraising Revenue",
+                                    "id": "1150040002"
+                                  },
+                                  {
+                                    "value": "0.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              },
+                              {
+                                "ColData": [
+                                  {
+                                    "value": "2215 Unearned Revenue",
+                                    "id": "1150040003"
+                                  },
+                                  {
+                                    "value": "950.00"
+                                  }
+                                ],
+                                "type": "Data"
+                              }
+                            ]
+                          },
+                          "Summary": {
+                            "ColData": [
+                              {
+                                "value": "Total Other Current Liabilities"
+                              },
+                              {
+                                "value": "75362.61"
+                              }
+                            ]
+                          },
+                          "type": "Section",
+                          "group": "OtherCurrentLiabilities"
+                        }
+                      ]
+                    },
+                    "Summary": {
+                      "ColData": [
+                        {
+                          "value": "Total Current Liabilities"
+                        },
+                        {
+                          "value": "79296.53"
+                        }
+                      ]
+                    },
+                    "type": "Section",
+                    "group": "CurrentLiabilities"
                   }
                 ]
               },
@@ -74,10 +728,13 @@
                 "ColData": [
                   {
                     "value": "Total Liabilities"
+                  },
+                  {
+                    "value": "79296.53"
                   }
                 ]
               },
-              "type": "Data",
+              "type": "Section",
               "group": "Liabilities"
             },
             {
@@ -85,6 +742,9 @@
                 "ColData": [
                   {
                     "value": "Equity"
+                  },
+                  {
+                    "value": ""
                   }
                 ]
               },
@@ -93,8 +753,11 @@
                   {
                     "ColData": [
                       {
-                        "value": "Retained Earnings",
-                        "id": "2"
+                        "value": "Opening balance equity",
+                        "id": "30"
+                      },
+                      {
+                        "value": "312303.13"
                       }
                     ],
                     "type": "Data"
@@ -102,7 +765,22 @@
                   {
                     "ColData": [
                       {
-                        "value": "Net Income"
+                        "value": "Retained Earnings",
+                        "id": "4"
+                      },
+                      {
+                        "value": "95091.80"
+                      }
+                    ],
+                    "type": "Data"
+                  },
+                  {
+                    "ColData": [
+                      {
+                        "value": "Net Revenue"
+                      },
+                      {
+                        "value": "44959.00"
                       }
                     ],
                     "type": "Data",
@@ -110,29 +788,32 @@
                   }
                 ]
               },
+              "Summary": {
+                "ColData": [
+                  {
+                    "value": "Total Equity"
+                  },
+                  {
+                    "value": "452353.93"
+                  }
+                ]
+              },
               "type": "Section",
-              "group": "Equity"
-            },
-            {
-              "ColData": [
-                {
-                  "value": "Total Equity"
-                }
-              ],
-              "type": "Data",
               "group": "Equity"
             }
           ]
         },
+        "Summary": {
+          "ColData": [
+            {
+              "value": "TOTAL LIABILITIES AND EQUITY"
+            },
+            {
+              "value": "531650.46"
+            }
+          ]
+        },
         "type": "Section",
-        "group": "TotalLiabilitiesAndEquity"
-      },
-      {
-        "ColData": [
-          {
-            "value": "TOTAL LIABILITIES AND EQUITY"
-          }
-        ],
         "group": "TotalLiabilitiesAndEquity"
       }
     ]
