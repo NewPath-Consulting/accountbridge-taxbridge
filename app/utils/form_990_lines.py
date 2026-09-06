@@ -27,8 +27,13 @@ __all__ = [
     "PART_VI_SECTION_A",
     "PART_VI_SECTION_B",
     "PART_VI_SECTION_C",
+    "PART_VIII_LINES",
+    "PART_VIII_ASSIGNABLE_KINDS",
     "PART_IX_LINES",
     "part_iv_line_numbers",
+    "part_viii_line_numbers",
+    "part_viii_assignable_lines",
+    "part_viii_kind",
 ]
 
 # Form 990 schedules run A to R. Nothing beyond R exists.
@@ -177,6 +182,81 @@ PART_VI_SECTION_C: tuple[tuple[str, str], ...] = (
 )
 
 
+# --- Part VIII, Statement of Revenue ------------------------------------
+# (line, kind, label)
+#
+# Unlike Parts IV, V and VI, not every Part VIII line takes an amount, and
+# of those that do, not all take a gross one. The kind records which:
+#
+#   amount     fixed label; a ledger amount is entered here as reported and
+#              is not netted against anything
+#   described  the filer supplies the label and a business code; the amount
+#              is likewise entered as reported
+#   gross      a gross figure that is reduced by the "less" line beneath it
+#              before anything reaches column (A)
+#   less       the subtraction
+#   net        the computed result of a gross/less pair
+#   total      a computed sum of other lines
+#   memo       a disclosure box that is not itself revenue
+#
+# The distinction matters because the enforcement engine puts one gross
+# QuickBooks income account amount into column (A). That is correct on an
+# "amount" or "described" line and wrong everywhere else: on line 7a the
+# entry is gross sale proceeds, and what reaches column (A) is the gain
+# after cost basis. Recording lines 6 through 10 as existing but not
+# assignable lets a validator say so, rather than claiming a real IRS line
+# does not exist.
+PART_VIII_LINES: tuple[tuple[str, str, str], ...] = (
+    # Contributions, Gifts, Grants, and Other Similar Amounts
+    ("1a", "amount", "Federated campaigns"),
+    ("1b", "amount", "Membership dues"),
+    ("1c", "amount", "Fundraising events"),
+    ("1d", "amount", "Related organizations"),
+    ("1e", "amount", "Government grants (contributions)"),
+    ("1f", "amount", "All other contributions, gifts, grants, and similar amounts not included above"),
+    ("1g", "memo", "Noncash contributions included in lines 1a-1f"),
+    ("1h", "total", "Total. Add lines 1a-1f"),
+    # Program Service Revenue
+    ("2a", "described", "Program service revenue"),
+    ("2b", "described", "Program service revenue"),
+    ("2c", "described", "Program service revenue"),
+    ("2d", "described", "Program service revenue"),
+    ("2e", "described", "Program service revenue"),
+    ("2f", "amount", "All other program service revenue"),
+    ("2g", "total", "Total. Add lines 2a-2f"),
+    # Other Revenue
+    ("3", "amount", "Investment income (including dividends, interest, and other similar amounts)"),
+    ("4", "amount", "Income from investment of tax-exempt bond proceeds"),
+    ("5", "amount", "Royalties"),
+    ("6a", "gross", "Gross rents"),
+    ("6b", "less", "Less: rental expenses"),
+    ("6c", "net", "Rental income or (loss)"),
+    ("6d", "net", "Net rental income or (loss)"),
+    ("7a", "gross", "Gross amount from sales of assets other than inventory"),
+    ("7b", "less", "Less: cost or other basis and sales expenses"),
+    ("7c", "net", "Gain or (loss)"),
+    ("7d", "net", "Net gain or (loss)"),
+    ("8a", "gross", "Gross income from fundraising events, not including contributions reported on line 1c"),
+    ("8b", "less", "Less: direct expenses"),
+    ("8c", "net", "Net income or (loss) from fundraising events"),
+    ("9a", "gross", "Gross income from gaming activities"),
+    ("9b", "less", "Less: direct expenses"),
+    ("9c", "net", "Net income or (loss) from gaming activities"),
+    ("10a", "gross", "Gross sales of inventory, less returns and allowances"),
+    ("10b", "less", "Less: cost of goods sold"),
+    ("10c", "net", "Net income or (loss) from sales of inventory"),
+    # Miscellaneous Revenue
+    ("11a", "described", "Miscellaneous revenue"),
+    ("11b", "described", "Miscellaneous revenue"),
+    ("11c", "described", "Miscellaneous revenue"),
+    ("11d", "amount", "All other revenue"),
+    ("11e", "total", "Total. Add lines 11a-11d"),
+    ("12", "total", "Total revenue. See instructions"),
+)
+
+# The kinds a single ledger income account may be classified onto.
+PART_VIII_ASSIGNABLE_KINDS = frozenset({"amount", "described"})
+
 # --- Part IX, Statement of Functional Expenses --------------------------
 PART_IX_LINES: tuple[tuple[str, str], ...] = (
     ("1", "Grants and other assistance to domestic organizations and domestic governments"),
@@ -216,3 +296,30 @@ PART_IX_LINES: tuple[tuple[str, str], ...] = (
 def part_iv_line_numbers() -> tuple[str, ...]:
     """Every answer box on Part IV, sub-lines included."""
     return tuple(line for line, _, _ in PART_IV_CHECKLIST)
+
+def part_viii_line_numbers() -> tuple[str, ...]:
+    """Every line number printed on Part VIII, sub-letters included."""
+    return tuple(line for line, _, _ in PART_VIII_LINES)
+
+
+def part_viii_assignable_lines() -> tuple[str, ...]:
+    """The lines a single gross ledger income account may be placed on.
+
+    Excludes the netted families -- 6, 7, 8, 9 and 10 -- whose column (A)
+    figure is a gross amount less an expense amount, and the computed
+    totals. An account carrying one figure has no business on any of them.
+    """
+    return tuple(
+        line
+        for line, kind, _ in PART_VIII_LINES
+        if kind in PART_VIII_ASSIGNABLE_KINDS
+    )
+
+
+def part_viii_kind(line_number: str) -> str | None:
+    """The kind of a Part VIII line, or None when no such line exists."""
+    target = str(line_number or "").strip()
+    for line, kind, _ in PART_VIII_LINES:
+        if line == target:
+            return kind
+    return None

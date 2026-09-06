@@ -2,6 +2,11 @@
 import json
 from typing import Dict, Any, Optional
 from app.config.settings import settings
+from app.utils.form_990_enforce import (
+    part_viii_prompt_categories,
+    part_viii_prompt_lines,
+)
+
 
 
 _MANDATORY_STRUCTURAL_LINE_ITEMS_RULE = """
@@ -644,21 +649,18 @@ def build_tax_return_part_viii_prompt(
 
 **JURISDICTION:** United States Federal Tax Filing | **FORM:** IRS Form 990
 
-Classify all incoming revenue into exactly one category.
+Classify all incoming revenue into exactly one category, and report it on a line that belongs to that category.
 
-**CATEGORY 1: Contributions, Gifts, Grants** — Part VIII Line 1
-**CATEGORY 2: Program Service Revenue** — Part VIII Line 2
-  WildApricot: Membership, Membership Renewal, Event Registration → Program Service Revenue
-**CATEGORY 3: Investment Income** — Part VIII Line 3
-**CATEGORY 4: Royalties** — Part VIII Line 5
-**CATEGORY 5: Fundraising Event Revenue** — Part VIII Line 8
-**CATEGORY 6: Gaming Revenue** — Part VIII Line 9
-**CATEGORY 7: Other Revenue** — Part VIII Line 11
+{part_viii_prompt_lines()}
 
 **NONPROFIT COMPLIANCE:**
+- WildApricot Membership, Membership Renewal and Event Registration → Program Service Revenue
 - Membership dues default to Program Service Revenue unless a charitable component is documented
 - Event revenue with substantial benefit → Program Service Revenue; excess over FMV → Contributions
 - Donor contributions → always Contributions, Gifts, Grants (never Program Revenue)
+- Sponsorship payments → Contributions. Only a portion buying advertising or other substantial return benefit is Other Revenue; absent evidence of such a benefit in the account detail, treat the payment as a contribution.
+- Exhibitor, booth and trade show fees from a convention or trade show the organization runs in furtherance of its exempt purpose → Program Service Revenue
+- Other Revenue is a residual. Before using it, rule out contributions, exempt-function services and investment income.
 
 **VALIDATION:**
 - Every revenue item in exactly one category
@@ -683,7 +685,7 @@ Each revenue line item must include: `lineNumber`, `category`, `label`, `totalRe
   "partVIII_revenue": [
     {{
       "lineNumber": "1a",
-      "category": "Contributions, Gifts, Grants | Program Service Revenue | Investment Income | Royalties | Fundraising Event Revenue | Gaming Revenue | Other Revenue",
+      "category": "{part_viii_prompt_categories()}",
       "label": "",
       "totalRevenue": 0.00,
       "programServiceRevenue": 0.00,

@@ -298,3 +298,90 @@ def test_no_expenses_leaves_the_columns_at_zero_and_says_so():
     content = {"partIX_expenses": [], "partIX_totals": {}}
     out, notes = enforce_part_ix_columns(content, 0.0)
     assert _columns(out["partIX_totals"]) == 0.0
+
+
+# --- the model abbreviates; that is not a hallucination -------------------
+# Across an 18-run grid the model wrote "Membership Dues" for the account
+# "Annual Membership Dues" twelve times. Exact matching dropped the line and
+# the classification with it, and the rule classifier re-added the account on
+# the wrong line. Every dues error in that grid came from this path.
+
+def _income_accounts(pl_report):
+    from app.utils.form_990_totals import section_rows
+
+    return section_rows(pl_report, "Income")
+
+
+def _account_with_at_least(pl_report, tokens: int):
+    """An income account whose name has `tokens` words, from the fixture."""
+    for account in _income_accounts(pl_report):
+        if len(account.name.split()) >= tokens:
+            return account
+    pytest.skip(f"fixture has no income account of {tokens}+ words")
+
+
+def test_an_abbreviated_label_keeps_the_model_classification(pl_report):
+    account = _account_with_at_least(pl_report, 3)
+    abbreviation = " ".join(account.name.split()[-2:])
+
+    content = {
+        "partVIII_revenue": [
+            {"lineNumber": "2a", "category": "Program Service Revenue",
+             "label": abbreviation, "totalRevenue": 1.0},
+        ],
+    }
+    out, notes = enforce_part_viii_amounts(content, pl_report)
+
+    line = next(i for i in out["partVIII_revenue"] if i["label"] == account.name)
+    assert line["category"] == "Program Service Revenue"
+    assert any("PART_VIII_LABEL_MATCHED" in n and account.name in n for n in notes)
+    assert not any("PART_VIII_DROPPED" in n and abbreviation in n for n in notes)
+
+
+def test_an_abbreviation_cannot_take_an_account_named_outright(pl_report):
+    """Exact matches resolve first, whatever order the model listed them in."""
+    account = _account_with_at_least(pl_report, 3)
+    abbreviation = " ".join(account.name.split()[-2:])
+
+    content = {
+        "partVIII_revenue": [
+            {"lineNumber": "11d", "category": "Other Revenue",
+             "label": abbreviation, "totalRevenue": 1.0},
+            {"lineNumber": "2a", "category": "Program Service Revenue",
+             "label": account.name, "totalRevenue": 2.0},
+        ],
+    }
+    out, _ = enforce_part_viii_amounts(content, pl_report)
+
+    lines = [i for i in out["partVIII_revenue"] if i["label"] == account.name]
+    assert len(lines) == 1
+    assert lines[0]["category"] == "Program Service Revenue"
+
+
+def test_a_label_naming_nothing_is_still_dropped(pl_report):
+    content = {
+        "partVIII_revenue": [
+            {"lineNumber": "11d", "category": "Other Revenue",
+             "label": "Zzz Nonexistent Ledger Account", "totalRevenue": 999.0},
+        ],
+    }
+    out, notes = enforce_part_viii_amounts(content, pl_report)
+
+    labels = [i["label"] for i in out["partVIII_revenue"]]
+    assert "Zzz Nonexistent Ledger Account" not in labels
+    dropped = next(n for n in notes if "PART_VIII_DROPPED" in n)
+    # The note records what classification was discarded, not just the amount.
+    assert "11d" in dropped and "Other Revenue" in dropped
+
+
+def test_an_ambiguous_abbreviation_is_not_guessed():
+    from app.utils.form_990_enforce import _near_matches
+    from app.utils.form_990_totals import PLAccount
+
+    def account(name):
+        return PLAccount(name, None, 0.0, 1, (name,), False)
+
+    shared = [account("Spring Gala Income"), account("Autumn Gala Income")]
+    assert len(_near_matches("Gala Income", shared)) == 2
+
+    assert _near_matches("Income", shared) == []  # one word is never enough

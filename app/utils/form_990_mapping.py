@@ -6,10 +6,22 @@ import re
 from typing import Any
 
 # (pattern, revenue_field, part_viii_line_hint)
+#
+# These must agree with the NONPROFIT COMPLIANCE rules in
+# `build_tax_return_part_viii_prompt`. The list is read twice: as the fallback
+# for accounts the model omitted entirely, and -- through
+# `suggest_part_viii_buckets_from_quickbooks` -- as the mapping hints the
+# prompt hands the model under the heading "use when classifying accounts".
+# So a rule here that contradicts the prompt does not merely disagree with it,
+# it argues with it in the same request.
+#
+# First match wins, which is why `sponsor` sits in the contributions rule
+# rather than after `gala`: a sponsorship received at a fundraising event is
+# still a qualified sponsorship payment.
 _REVENUE_ACCOUNT_RULES: list[tuple[re.Pattern[str], str, str]] = [
-    (re.compile(r"contribution|gift|grant|donat", re.I), "contributions", "1"),
+    (re.compile(r"contribution|gift|grant|donat|sponsor", re.I), "contributions", "1"),
     (re.compile(r"membership|dues|renewal", re.I), "membership_dues", "2"),
-    (re.compile(r"program|conference|education|event registr|workshop|class", re.I), "program_service_revenue", "2"),
+    (re.compile(r"program|conference|education|event registr|workshop|class|trade\s*show|exhibit|booth", re.I), "program_service_revenue", "2"),
     (re.compile(r"interest|dividend|investment|brokerage|mutual|nw mutual", re.I), "investment_income", "3"),
     (re.compile(r"royalt", re.I), "other_revenue", "5"),
     (re.compile(r"fundraising|gala|auction", re.I), "other_revenue", "8"),
