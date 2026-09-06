@@ -50,7 +50,39 @@ ACCOUNT_TYPES = {
     "income": ("Income", "SalesOfProductIncome"),
     "expense": ("Expense", "OtherMiscellaneousServiceCost"),
     "bank": ("Bank", "Checking"),
+    "equity": ("Equity", "OpeningBalanceEquity"),
 }
+
+# Where the organization's position before the first year is parked. Every
+# balance sheet needs a credit side, and this is the one QuickBooks itself
+# uses when you open an account with a balance.
+OPENING_EQUITY = "Opening Balance Equity"
+
+
+def net_income(year: dict) -> float:
+    return round(sum(year["revenue"].values()) - sum(year["expenses"].values()), 2)
+
+
+def opening_balances(definition: dict) -> dict[str, float]:
+    """What each asset account held before the first year.
+
+    Without this the sandbox balance sheet was cumulative net income from a
+    zero start: 2019 total assets came out as 12,006 against a filed 197,481,
+    and every year was short by the same 185,475, which is the organization's
+    opening equity. Two of the six years went negative.
+
+    The first year's activity lands in the primary bank, so its opening
+    balance is that year's closing figure less the year's net income. Every
+    other asset account opens at its first-year closing figure, because
+    nothing has moved it yet.
+    """
+    first = definition["years"][0]
+    assets = first["assets"]
+    primary = next(iter(assets))
+    return {
+        name: round(amount - (net_income(first) if name == primary else 0.0), 2)
+        for name, amount in assets.items()
+    }
 
 
 class Loader:
@@ -58,6 +90,9 @@ class Loader:
         self.realm = realm_id
         self.token = token
         self.dry_run = dry_run
+        # Running asset balances, so each year can be adjusted to the closing
+        # position the filed return reports rather than drifting.
+        self._balances: dict[str, float] = {}
         self.base = f"{SANDBOX_BASE}/v3/company/{realm_id}"
         self._accounts: dict[str, str] = {}   # name -> Id
         self.created = 0
@@ -131,12 +166,58 @@ class Loader:
 
     # --- journal entries -----------------------------------------------
 
+    def post_opening(self, client: httpx.Client, definition: dict) -> None:
+        """The position before the first year, dated the day before it."""
+        opening = opening_balances(definition)
+        self._balances = dict(opening)
+
+        total = round(sum(opening.values()), 2)
+        year_one = definition["years"][0]["year"]
+        date = f"{year_one - 1}-12-31"
+
+        lines = [
+            self._line("Debit", self._accounts[name], name, amount)
+            for name, amount in opening.items()
+            if amount
+        ]
+        lines.append(
+            self._line("Credit", self._accounts[OPENING_EQUITY], OPENING_EQUITY, total)
+        )
+
+        body = {
+            "TxnDate": date,
+            "DocNumber": "CRN-OPENING",
+            "PrivateNote": (
+                f"Opening position at {date}, so the balance sheet does not "
+                f"start from zero. Derived from published Form 990 totals for "
+                f"EIN 99-0370960. Not real bookkeeping."
+            ),
+            "Line": lines,
+        }
+
+        detail = "  ".join(f"{n} {a:,.2f}" for n, a in opening.items())
+        if self.dry_run:
+            print(f"    would post  opening  {detail}   equity {total:,.2f}")
+            return
+
+        created = self._post(client, "journalentry", body)
+        print(f"    posted  opening  {detail}   equity {total:,.2f}   "
+              f"(id {created['JournalEntry']['Id']})")
+
     def post_year(self, client: httpx.Client, year: dict) -> None:
         """One entry per year, dated the last day of the year.
 
         Revenue is credited to income accounts and debited to the bank, so
         the bank balance carries the year's activity onto the balance sheet.
         Expenses are the mirror.
+
+        The year's activity all lands in the primary bank, but the filed
+        returns split the closing position across accounts differently -- money
+        was moved to and from savings. So each asset account is then adjusted
+        to the figure the filing reports. Those adjustments necessarily sum to
+        zero, because the fixture's total assets always equal the prior total
+        plus the year's net income; the entry stays balanced without touching
+        equity.
         """
         y = year["year"]
         date = f"{y}-12-31"
@@ -154,6 +235,17 @@ class Loader:
         for name, amount in year["expenses"].items():
             lines.append(self._line("Debit", self._accounts[name], name, amount))
         lines.append(self._line("Credit", bank_id, bank_name, expense_total))
+
+        projected = dict(self._balances)
+        projected[bank_name] = round(projected.get(bank_name, 0.0) + net_income(year), 2)
+        for name, target in year["assets"].items():
+            move = round(target - projected.get(name, 0.0), 2)
+            if move:
+                lines.append(
+                    self._line("Debit" if move > 0 else "Credit",
+                               self._accounts[name], name, abs(move))
+                )
+            self._balances[name] = round(target, 2)
 
         body = {
             "TxnDate": date,
@@ -268,6 +360,7 @@ def main() -> int:
         for kind, names in definition["accounts"].items():
             for name in names:
                 loader.ensure_account(client, name, kind)
+        loader.ensure_account(client, OPENING_EQUITY, "equity")
         print(f"  {loader.created} created, {loader.reused} already present")
 
         if args.accounts_only:
@@ -275,6 +368,7 @@ def main() -> int:
             return 0
 
         print("\n  Journal entries")
+        loader.post_opening(client, definition)
         for year in definition["years"]:
             loader.post_year(client, year)
 
