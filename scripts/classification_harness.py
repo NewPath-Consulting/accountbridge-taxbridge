@@ -108,7 +108,11 @@ def _print_report(report) -> None:
         )
     print("-" * 60)
     print(f"{'all':<7}{'':>6}{'':>11}{'':>14}{'':>14}{report.overall_pct():>7.1f}%")
-    print(f"{'clean':<7}{'':>6}{'':>11}{'':>14}{'':>14}{report.overall_pct(clean_only=True):>7.1f}%")
+    # No uncontaminated year is scored as "nothing to report", not as zero.
+    if any(y.year not in report.contaminated_years for y in report.years):
+        print(f"{'clean':<7}{'':>6}{'':>11}{'':>14}{'':>14}{report.overall_pct(clean_only=True):>7.1f}%")
+    else:
+        print(f"{'clean':<7}{'':>6}{'':>11}{'':>14}{'':>14}{'n/a':>8}")
     print("\ndollars are the mean per run, so a year runs N times counts once, not N times.")
     print("\n* rules in the Part VIII prompt were written from this year's filed return.")
 
