@@ -251,3 +251,4 @@ data/quickbooks_crn/
 # Classification harness runs and scores
 data/classification_runs/
 data/classification_harness/
+scripts/run_classification_grid.py
