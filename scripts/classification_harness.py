@@ -15,6 +15,30 @@ directory and will be aggregated rather than overwriting each other -- which is
 the point: one run per year cannot tell a wrong classification from an
 inconsistent one. See `app/utils/classification_harness` for why.
 
+**Producing the runs.** The generator is a local tool and is not in the repo,
+because it reads .env directly and assumes a backend on localhost:8000. It is
+a loop of one POST per run, saved as `<year>-<n>.json`:
+
+    POST http://localhost:8000/api/reports
+    {"wildapricot_account_id": ..., "quickbooks_realm_id": ...,
+     "start_date": "2021-01-01", "end_date": "2021-12-31"}
+
+Three things that loop has to get right, each learned by getting it wrong:
+
+  * Serially, never in parallel. QuickBooks refresh tokens rotate on every
+    use, so concurrent runs race for the same token and the loser gets a 401
+    that reads like bad credentials.
+  * Check the backend answers /api/health/ first. A grid is ~90s a run, and a
+    wrong precondition should fail in the first second, not the last.
+  * Start the backend with QUICKBOOKS_OUTPUT_DIR set to a scratch directory,
+    or every run rewrites data/quickbooks/*.json, which two tests read as
+    fixtures. That is the server's environment, not the loop's.
+
+A backend left running does not re-read .env, and the QuickBooks adapter
+writes rotated tokens back to it. So a long grid can end in 401s saying the
+token was spent while a valid one sits in the file the app itself just wrote;
+restarting the backend is the first thing to try, not a new token.
+
 **Keep one directory per code revision.** Nothing in a saved response records
 which version of the classifier produced it, and mixing revisions quietly
 corrupts the verdicts: scoring pre- and post-change 2024 runs together made
