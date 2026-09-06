@@ -48,6 +48,7 @@ from app.utils.form_990_enforce import part_viii_family_for_line
 
 __all__ = [
     "AnswerKey",
+    "FiledTotals",
     "Placement",
     "AccountVerdict",
     "YearScore",
@@ -70,11 +71,29 @@ _KEY_TO_FAMILY = {
 
 
 @dataclass(frozen=True)
+class FiledTotals:
+    """What the filed return reports, or what a run stated. None = absent."""
+
+    revenue: float | None = None
+    expenses: float | None = None
+    assets: float | None = None
+
+    def gap_from(self, other: "FiledTotals") -> dict[str, float]:
+        """Signed differences from `other`, for figures both of us carry."""
+        gaps = {}
+        for name in ("revenue", "expenses", "assets"):
+            mine, theirs = getattr(self, name), getattr(other, name)
+            if mine is not None and theirs is not None:
+                gaps[name] = round(mine - theirs, 2)
+        return gaps
+
+
+@dataclass(frozen=True)
 class AnswerKey:
     """Account name -> the Part VIII family the filed return puts it on."""
 
     families: Mapping[str, str]
-    published_revenue: Mapping[int, float] = field(default_factory=dict)
+    published: Mapping[int, FiledTotals] = field(default_factory=dict)
 
     def family_for(self, account: str) -> str | None:
         return self.families.get(_norm(account))
@@ -108,7 +127,7 @@ class Run:
     run_id: str
     source: str
     placements: list[Placement]
-    stated_total: float
+    stated: FiledTotals
 
 
 @dataclass
@@ -159,7 +178,8 @@ class YearScore:
     dollars: float = 0.0
     dollars_correct: float = 0.0
     unscored: list[str] = field(default_factory=list)
-    total_mismatch: float | None = None
+    # figure -> (mean stated across this year's runs, what the filed return says)
+    totals: dict[str, tuple[float, float]] = field(default_factory=dict)
 
     @property
     def pct(self) -> float:
@@ -187,7 +207,11 @@ class YearScore:
             "mean_dollars_correct": round(self.mean_dollars_correct, 2),
             "pct": self.pct,
             "unscored_accounts": sorted(set(self.unscored)),
-            "total_vs_published": self.total_mismatch,
+            "totals": {
+                name: {"stated": round(stated, 2), "filed": round(filed, 2),
+                       "gap": round(stated - filed, 2)}
+                for name, (stated, filed) in self.totals.items()
+            },
         }
 
 
@@ -244,6 +268,14 @@ def _amount(value: Any) -> float:
         return 0.0
 
 
+def _maybe(value: Any) -> float | None:
+    """A figure, or None when the fixture does not carry it."""
+    try:
+        return round(float(value), 2) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
 def load_answer_key(fixture: Path | str = DEFAULT_FIXTURE) -> AnswerKey:
     """Read `expected_classification.line_mapping` out of the fixture."""
     data = json.loads(Path(fixture).read_text(encoding="utf-8"))
@@ -257,47 +289,69 @@ def load_answer_key(fixture: Path | str = DEFAULT_FIXTURE) -> AnswerKey:
         for account in accounts:
             families[_norm(account)] = family
 
-    published = {
-        int(year["year"]): float((year.get("published") or {}).get("revenue") or 0.0)
-        for year in data.get("years") or []
-        if year.get("year")
-    }
-    return AnswerKey(families=families, published_revenue=published)
+    published = {}
+    for year in data.get("years") or []:
+        if not year.get("year"):
+            continue
+        filed = year.get("published") or {}
+        published[int(year["year"])] = FiledTotals(
+            revenue=_maybe(filed.get("revenue")),
+            expenses=_maybe(filed.get("expenses")),
+            assets=_maybe(filed.get("assets")),
+        )
+    return AnswerKey(families=families, published=published)
+
+
+# Saved responses have been handed to this harness at several nesting depths.
+_CONTENT_ROOTS = (
+    ("reports", "tax_return", "content"),
+    ("tax_return", "content"),
+    ("content",),
+    (),
+)
+
+
+def _dig(node: Any, *path: str) -> Any:
+    for step in path:
+        node = node.get(step) if isinstance(node, Mapping) else None
+        if node is None:
+            return None
+    return node
+
+
+def _content(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+    """The tax return content, wherever this payload keeps it."""
+    for root in _CONTENT_ROOTS:
+        node = _dig(payload, *root)
+        if isinstance(node, Mapping) and "partVIII_revenue" in node:
+            return node
+    return {}
 
 
 def _revenue_items(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Part VIII line items, wherever this payload keeps them."""
-    for path in (
-        ("reports", "tax_return", "content", "partVIII_revenue"),
-        ("tax_return", "content", "partVIII_revenue"),
-        ("content", "partVIII_revenue"),
-        ("partVIII_revenue",),
-    ):
-        node: Any = payload
-        for step in path:
-            node = node.get(step) if isinstance(node, Mapping) else None
-            if node is None:
-                break
-        if isinstance(node, list):
-            return [i for i in node if isinstance(i, dict)]
-    return []
+    node = _content(payload).get("partVIII_revenue")
+    return [i for i in node if isinstance(i, dict)] if isinstance(node, list) else []
 
 
-def _stated_total(payload: Mapping[str, Any]) -> float:
-    for path in (
-        ("reports", "tax_return", "content", "partVIII_totalRevenue"),
-        ("tax_return", "content", "partVIII_totalRevenue"),
-        ("content", "partVIII_totalRevenue"),
-        ("partVIII_totalRevenue",),
-    ):
-        node: Any = payload
-        for step in path:
-            node = node.get(step) if isinstance(node, Mapping) else None
-            if node is None:
-                break
-        if node is not None:
-            return _amount(node)
-    return 0.0
+def _stated_totals(payload: Mapping[str, Any]) -> FiledTotals:
+    """What the run says the three headline figures are.
+
+    Part VIII and Part IX are enforced from the ledger, so a gap against the
+    filed return means the ledger and the filing disagree. Part X is read from
+    the QuickBooks balance sheet, and is the one that has been wrong.
+    """
+    content = _content(payload)
+
+    def figure(*path: str) -> float | None:
+        value = _dig(content, *path)
+        return None if value is None else _amount(value)
+
+    return FiledTotals(
+        revenue=figure("partVIII_totalRevenue"),
+        expenses=figure("partIX_totals", "totalExpenses"),
+        assets=figure("partX_balanceSheet", "totalAssets", "endOfYear"),
+    )
 
 
 def load_run(path: Path | str, key: AnswerKey) -> Run | None:
@@ -333,7 +387,7 @@ def load_run(path: Path | str, key: AnswerKey) -> Run | None:
         )
         for item in items
     ]
-    return Run(year, run_id, str(path), placements, _stated_total(payload))
+    return Run(year, run_id, str(path), placements, _stated_totals(payload))
 
 
 def load_runs(paths: Sequence[Path | str], key: AnswerKey) -> list[Run]:
@@ -349,18 +403,17 @@ def score(runs: Sequence[Run], key: AnswerKey) -> Report:
     by_account: dict[str, AccountVerdict] = {}
     placements: list[Placement] = []
     seen_runs: dict[int, set[str]] = defaultdict(set)
+    stated_sums: dict[int, dict[str, list[float]]] = {}
 
     for run in runs:
         year = by_year.setdefault(run.year, YearScore(year=run.year))
         seen_runs[run.year].add(run.run_id)
 
-        published = key.published_revenue.get(run.year)
-        if published:
-            mismatch = round(run.stated_total - published, 2)
-            # Any run of the year disagreeing is worth surfacing, so keep the
-            # largest gap rather than the last one seen.
-            if year.total_mismatch is None or abs(mismatch) > abs(year.total_mismatch):
-                year.total_mismatch = mismatch
+        stated_sums.setdefault(run.year, defaultdict(list))
+        for name in ("revenue", "expenses", "assets"):
+            value = getattr(run.stated, name)
+            if value is not None:
+                stated_sums[run.year][name].append(value)
 
         for p in run.placements:
             placements.append(p)
@@ -392,6 +445,11 @@ def score(runs: Sequence[Run], key: AnswerKey) -> Report:
 
     for year, score_row in by_year.items():
         score_row.runs = len(seen_runs[year])
+        filed = key.published.get(year)
+        for name, values in stated_sums.get(year, {}).items():
+            expected = filed and getattr(filed, name)
+            if values and expected is not None:
+                score_row.totals[name] = (sum(values) / len(values), expected)
 
     return Report(
         years=sorted(by_year.values(), key=lambda y: y.year),

@@ -131,11 +131,19 @@ def _print_report(report) -> None:
             wrong = sorted(set(a.years_wrong)) or "-"
             print(f"  {a.account}: right in {right}, wrong in {wrong}")
 
-    mismatched = [y for y in report.years if y.total_mismatch]
-    if mismatched:
-        print(f"\ntotal revenue disagrees with the filed return:")
-        for y in mismatched:
-            print(f"  {y.year}: {y.total_mismatch:+,.2f}")
+    # Headline totals against the filed return. Part VIII and Part IX are
+    # enforced from the ledger, so a gap there means the ledger and the filing
+    # disagree; Part X is read from the QuickBooks balance sheet.
+    rows = [(y, n, s, f) for y in report.years for n, (s, f) in sorted(y.totals.items())]
+    if rows:
+        print(f"\n{'year':<7}{'figure':<11}{'stated':>14}{'filed':>14}{'gap':>14}")
+        print("-" * 60)
+        for y, name, stated, filed in rows:
+            gap = stated - filed
+            flag = "" if abs(gap) < 0.01 else "  <-"
+            print(f"{y.year:<7}{name:<11}{stated:>14,.0f}{filed:>14,.0f}{gap:>+14,.0f}{flag}")
+        agree = sum(1 for _, _, s, f in rows if abs(s - f) < 0.01)
+        print(f"\n{agree} of {len(rows)} headline totals match the filed return.")
 
     unscored = {a for y in report.years for a in y.unscored}
     if unscored:

@@ -77,12 +77,30 @@ def test_key_covers_every_account_in_every_year(key, fixture_years):
             assert key.family_for(account) is not None, f"{account} missing from the key"
 
 
-def test_published_revenue_matches_the_account_amounts(key, fixture_years):
+def test_published_totals_match_the_account_amounts(key, fixture_years):
     """Guards the fixture: the key is only meaningful if its years add up."""
     for number, year in fixture_years.items():
-        assert round(sum(year["revenue"].values()), 2) == pytest.approx(
-            key.published_revenue[number]
-        )
+        filed = key.published[number]
+        for section, figure in (("revenue", filed.revenue), ("expenses", filed.expenses),
+                                ("assets", filed.assets)):
+            assert round(sum(year[section].values()), 2) == pytest.approx(figure), (
+                f"{number} {section}"
+            )
+
+
+def test_headline_totals_are_compared_against_the_filed_return(tmp_path, key, fixture_years):
+    """Part VIII, IX and X totals are scored, not just the classification."""
+    year = max(fixture_years)
+    path = _write_run(tmp_path, year, fixture_years[year]["revenue"], key.family_for, "totals")
+    report = score(load_runs([path], key), key)
+
+    # The stub payload carries a Part VIII total only, so revenue is compared
+    # and the other two are absent rather than counted as zero.
+    totals = report.years[0].totals
+    assert "revenue" in totals
+    stated, filed = totals["revenue"]
+    assert stated == pytest.approx(filed)
+    assert "expenses" not in totals and "assets" not in totals
 
 
 # --- scoring --------------------------------------------------------------
