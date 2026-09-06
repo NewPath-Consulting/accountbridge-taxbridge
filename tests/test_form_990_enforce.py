@@ -385,3 +385,77 @@ def test_an_ambiguous_abbreviation_is_not_guessed():
     assert len(_near_matches("Gala Income", shared)) == 2
 
     assert _near_matches("Income", shared) == []  # one word is never enough
+
+
+# --- where regulation settles the answer, code decides --------------------
+# Measured over an 18-run grid: sponsorship came out right 10/10 when the rule
+# classifier decided it and about half the time when the model did.
+
+def test_sponsorship_is_moved_to_contributions():
+    from app.utils.form_990_enforce import apply_settled_classifications
+
+    items = [{"label": "Sponsorship Income", "category": "Other Revenue",
+              "lineNumber": "11d", "totalRevenue": 57654.0}]
+    out, notes = apply_settled_classifications(items)
+
+    assert out[0]["category"] == "Contributions, Gifts, Grants"
+    note = next(n for n in notes if "PART_VIII_SETTLED" in n)
+    # The note has to carry what was overridden and the authority for it,
+    # or a preparer cannot tell a decision from a bug.
+    assert "Other Revenue" in note and "513(i)" in note
+
+
+def test_an_already_correct_classification_is_left_silent():
+    from app.utils.form_990_enforce import apply_settled_classifications
+
+    items = [{"label": "Sponsorship Income", "category": "Contributions, Gifts, Grants",
+              "lineNumber": "1f", "totalRevenue": 57654.0}]
+    out, notes = apply_settled_classifications(items)
+
+    assert out[0]["category"] == "Contributions, Gifts, Grants"
+    assert notes == []
+
+
+def test_sponsorship_that_names_advertising_is_not_settled():
+    """513(i) makes advertising the exception, so the account is left alone."""
+    from app.utils.form_990_enforce import apply_settled_classifications
+
+    items = [{"label": "Sponsorship Advertising", "category": "Other Revenue",
+              "lineNumber": "11d", "totalRevenue": 5000.0}]
+    out, notes = apply_settled_classifications(items)
+
+    assert out[0]["category"] == "Other Revenue"
+    assert notes == []
+
+
+def test_accounts_the_regulation_does_not_settle_are_untouched():
+    """The override is narrow on purpose: the model is better at these."""
+    from app.utils.form_990_enforce import apply_settled_classifications
+
+    items = [
+        {"label": "Certification Fees", "category": "Program Service Revenue",
+         "lineNumber": "2a", "totalRevenue": 3000.0},
+        {"label": "Annual Membership Dues", "category": "Contributions, Gifts, Grants",
+         "lineNumber": "1b", "totalRevenue": 214000.0},
+    ]
+    before = [dict(i) for i in items]
+    out, notes = apply_settled_classifications(items)
+
+    assert out == before
+    assert notes == []
+
+
+def test_the_override_reaches_a_contributions_line_number():
+    """Only the category is set; the line number follows from it."""
+    from app.utils.form_990_enforce import (
+        apply_settled_classifications,
+        assign_part_viii_lines,
+        part_viii_family_for_line,
+    )
+
+    items = [{"label": "Sponsorship Income", "category": "Other Revenue",
+              "lineNumber": "11d", "totalRevenue": 57654.0}]
+    items, _ = apply_settled_classifications(items)
+    items, _ = assign_part_viii_lines(items)
+
+    assert part_viii_family_for_line(items[0]["lineNumber"]) == "contributions"

@@ -35,6 +35,7 @@ __all__ = [
     "enforce_part_viii_amounts",
     "enforce_deterministic_amounts",
     "assign_part_viii_lines",
+    "apply_settled_classifications",
     "part_viii_family_for_line",
     "part_viii_prompt_lines",
     "part_viii_prompt_categories",
@@ -255,6 +256,81 @@ def _family_for(item: dict[str, Any]) -> tuple[str, str]:
 
     _, hint = classify_qb_income_account(str(item.get("label") or ""))
     return _ROOT_FAMILY.get(hint, "other"), "account name"
+
+
+# --- where regulation settles the answer ---------------------------------
+# A deliberate, narrow departure from "the model classifies; the code
+# calculates", and the reason is measured rather than assumed. Over an
+# 18-run grid, sponsorship income came out right 10 times out of 10 when the
+# rule classifier decided it and about half the time when the model did. Two
+# prompt wordings, one conditional and one directional, failed to move it.
+#
+# The departure is kept to account names whose Form 990 treatment is settled
+# by regulation rather than by the organization's facts. That test excludes
+# most of what the model handles: membership dues turn on the subsection and
+# on what members receive, conference and certification fees on whether the
+# activity furthers the exempt purpose, and the model is right about all of
+# them. It is not a licence to prefer the regex generally -- applied to
+# certification fees the regex would be wrong 12 times out of 12.
+#
+# Nothing is replaced silently. Every override says what the model answered,
+# what it was changed to, the authority for the change, and the circumstance
+# in which a preparer should change it back.
+
+# (account-name pattern, exception pattern or None, family, authority)
+_SETTLED_CLASSIFICATIONS: list[tuple[re.Pattern[str], re.Pattern[str] | None, str, str]] = [
+    (
+        re.compile(r"sponsor", re.I),
+        # 513(i) makes the exception the thing needing evidence, and the
+        # exception is advertising. An account that names it is not settled.
+        re.compile(r"advertis", re.I),
+        "contributions",
+        "IRC 513(i): a qualified sponsorship payment is a contribution unless "
+        "the sponsor receives a substantial return benefit. Reclassify to "
+        "other revenue if this payment bought advertising",
+    ),
+]
+
+
+def _settled_family(account_name: Any) -> tuple[str, str] | None:
+    """(family, authority) where regulation settles the line, else None."""
+    name = str(account_name or "")
+    for pattern, unless, family, authority in _SETTLED_CLASSIFICATIONS:
+        if pattern.search(name) and not (unless and unless.search(name)):
+            return family, authority
+    return None
+
+
+def apply_settled_classifications(
+    items: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Override the model where the regulation, not the facts, decides.
+
+    Only the category is set; `assign_part_viii_lines` turns that into a line
+    number, so there is one place that knows which line a family lands on.
+    """
+    notes: list[str] = []
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        settled = _settled_family(item.get("label"))
+        if settled is None:
+            continue
+
+        family, authority = settled
+        was_family, _ = _family_for(item)
+        if was_family == family:
+            continue
+
+        was = item.get("category") or "uncategorised"
+        item["category"] = _FAMILY_CATEGORY[family]
+        notes.append(
+            f"PART_VIII_SETTLED: '{item.get('label')}' was classified as "
+            f"{was}; reported as {item['category']}. {authority}."
+        )
+
+    return items, notes
 
 
 def assign_part_viii_lines(
@@ -544,6 +620,9 @@ def enforce_part_viii_amounts(
             f"PART_VIII_ADDED: '{account.name}' {account.amount:.2f} was missing "
             f"from the model output; {reason}"
         )
+
+    enforced, settled_notes = apply_settled_classifications(enforced)
+    notes.extend(settled_notes)
 
     enforced, line_notes = assign_part_viii_lines(enforced)
     notes.extend(line_notes)
