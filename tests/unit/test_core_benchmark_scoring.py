@@ -120,9 +120,14 @@ def test_confound_flag_from_qb_data_suspect():
     codes = {f["code"] for f in scorecard["confound_flags"]}
     assert "DATA_INTEGRITY_QB" in codes
     assert scorecard["accuracy_unreliable"] is True
-    # Fields are present so accuracy stays high; confound penalty reduces adjusted score
-    assert scorecard["dimensions"]["accuracy"]["score"] >= 70
     assert scorecard["adjusted_composite_score"] <= scorecard["composite_score"]
+
+    # This fixture reports 260 against a reference of 356,000. It used to score
+    # 100 for accuracy, because the score counted a field as matched whenever
+    # the AI had the field at all. Figures this far apart must score near zero;
+    # the confound flag says the input was suspect, not that the output was
+    # right.
+    assert scorecard["dimensions"]["accuracy"]["score"] == 0.0
 
 
 def test_blend_year_composite():

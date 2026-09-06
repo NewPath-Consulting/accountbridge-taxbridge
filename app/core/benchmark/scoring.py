@@ -1,7 +1,20 @@
-"""Deterministic field-alignment scorecard for Form 990 and cash flow benchmarking.
+"""Deterministic scorecard for Form 990 and cash flow benchmarking.
 
-Compares AI-generated report JSON against manual reference extraction JSON.
-Scores field presence and structural alignment — not strict numeric equality.
+Compares AI-generated report JSON against reference extraction JSON. A field
+counts as matched when it is present *and* its value agrees within
+`_VALUE_MATCH_TOLERANCE`; where the reference field is not numeric there is
+nothing to compare and presence is all that can be asked.
+
+It used to score presence alone. An output of all zeros therefore scored as
+well as a correct one, and the project's accuracy target could not be measured
+at all -- value similarity was computed, put in the output row, and then left
+out of the score.
+
+One thing this cannot tell you: the reference is itself extracted from a PDF by
+a model, so a disagreement says the two readings differ, not which one is
+wrong. Where a hand-checked answer key exists -- as it does for Part VIII in
+`data/crn_synthetic.json` -- that is the better measurement, and
+`app/utils/classification_harness.py` uses it.
 """
 
 from __future__ import annotations
@@ -95,6 +108,13 @@ _CONFOUND_PATTERNS = (
 # Lenient similarity threshold for confound detection only (not scoring)
 _VALUE_DIVERGENCE_THRESHOLD = 0.50
 
+# Scoring tolerance. Both sides describe the same organization's same year, so
+# they should agree closely; the slack is for a reference figure read out of a
+# PDF rather than for genuine disagreement. A field counts as matched only if
+# it is present AND its value agrees within this.
+_VALUE_MATCH_TOLERANCE = 0.01
+_VALUE_MATCH_ABSOLUTE = 1.0
+
 
 def _num(value: Any) -> Optional[float]:
     if value is None:
@@ -135,6 +155,22 @@ def _roughly_similar(manual: Optional[float], ai: Optional[float]) -> bool:
         return abs(ai) < 1.0
     base = max(abs(manual), 1.0)
     return abs(manual - ai) / base <= _VALUE_DIVERGENCE_THRESHOLD
+
+
+def _values_agree(manual: Optional[float], ai: Optional[float]) -> bool:
+    """Do the two figures agree closely enough to call the field matched?
+
+    This is the scoring predicate. It exists because the score used to count a
+    field as matched when the AI merely had the field at all, which meant an
+    output of all zeros scored the same as a correct one and the project's
+    accuracy target could not be measured.
+    """
+    if manual is None or ai is None:
+        return False
+    difference = abs(manual - ai)
+    if difference <= _VALUE_MATCH_ABSOLUTE:
+        return True
+    return difference / max(abs(manual), 1.0) <= _VALUE_MATCH_TOLERANCE
 
 
 def _section(extraction: Dict[str, Any], name: str) -> Dict[str, Any]:
@@ -333,15 +369,25 @@ def _compare_fields(
         expected += 1
         manual_num = _num(manual_val)
         ai_present, ai_val = _ai_field_present(ai_report, section, field)
-        if ai_present:
+
+        # A numeric reference field has to be matched on its value. Where the
+        # reference is not a number there is nothing to compare, so presence
+        # is all that can be asked.
+        if manual_num is None:
+            is_match = ai_present
+        else:
+            is_match = ai_present and _values_agree(manual_num, _num(ai_val))
+        if is_match:
             matched += 1
+
         rows.append(
             {
                 "field": f"{section}.{field}",
                 "manual": manual_num if manual_num is not None else manual_val,
                 "ai": ai_val,
                 "ai_field_present": ai_present,
-                "field_match": ai_present,
+                "field_match": is_match,
+                "value_matches": is_match,
                 "value_roughly_similar": _roughly_similar(manual_num, ai_val),
             }
         )
