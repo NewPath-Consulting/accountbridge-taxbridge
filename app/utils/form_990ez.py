@@ -78,7 +78,7 @@ _REVENUE_ORDER = [
 class Form990EZ:
     """A 990-EZ, the checks run against it, and whether they held."""
 
-    __slots__ = ("part_i", "part_ii", "warnings", "check_failures")
+    __slots__ = ("part_i", "part_ii", "warnings", "check_failures", "limitations")
 
     def __init__(
         self,
@@ -86,11 +86,17 @@ class Form990EZ:
         part_ii: dict[str, Any],
         warnings: list[str],
         check_failures: list[str],
+        limitations: list[str] | None = None,
     ) -> None:
         self.part_i = part_i
         self.part_ii = part_ii
         self.warnings = warnings
         self.check_failures = check_failures
+        # Standing properties of the system rather than findings about this
+        # return: they hold for every 990-EZ we produce, so they are recorded
+        # in the payload but kept out of the per-return warnings a preparer
+        # reads. Not hidden -- filed under what they actually are.
+        self.limitations = limitations if limitations is not None else []
 
     @property
     def is_internally_consistent(self) -> bool:
@@ -104,6 +110,7 @@ class Form990EZ:
             "warnings": list(self.warnings),
             "check_failures": list(self.check_failures),
             "is_internally_consistent": self.is_internally_consistent,
+            "limitations": list(self.limitations),
         }
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
@@ -139,6 +146,7 @@ def build_form_990ez(
     """
     warnings: list[str] = []
     failures: list[str] = []
+    limitations: list[str] = []
 
     # --- Part I revenue ---------------------------------------------------
     revenue: dict[str, float] = {key: 0.0 for key, _ in _REVENUE_ORDER}
@@ -200,7 +208,7 @@ def build_form_990ez(
         "line_16_other_expenses": total_expenses,
     }
     if total_expenses:
-        warnings.append(
+        limitations.append(
             "EZ_EXPENSES_NOT_ITEMISED: lines 13 and 15 require expense detail "
             "the current QuickBooks report endpoints do not provide; the total "
             "is carried on line 16."
@@ -270,4 +278,4 @@ def build_form_990ez(
     if not balance_sheet:
         warnings.append("EZ_PART_II_EMPTY: no Part X balance sheet available.")
 
-    return Form990EZ(part_i, part_ii, warnings, failures)
+    return Form990EZ(part_i, part_ii, warnings, failures, limitations)

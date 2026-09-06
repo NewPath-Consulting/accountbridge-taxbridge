@@ -255,6 +255,7 @@ class FilingPreparationService:
                 warnings=ez.warnings,
                 payload=draft.payload,
                 filing_available=False,
+                limitations=ez.limitations,
             ), draft.payload
 
         if not report_content:

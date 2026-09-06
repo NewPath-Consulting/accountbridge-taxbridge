@@ -151,7 +151,11 @@ def test_unitemised_expenses_are_declared_not_hidden(enforced_content):
     ez = build_form_990ez(enforced_content)
     assert ez.part_i["line_16_other_expenses"] == 8558.31
     assert ez.part_i["line_13_professional_fees"] == 0.0
-    assert any("EZ_EXPENSES_NOT_ITEMISED" in w for w in ez.warnings)
+    assert any("EZ_EXPENSES_NOT_ITEMISED" in n for n in ez.limitations)
+    # It holds for every EZ we produce, so it is a standing limitation rather
+    # than a warning about this return. Keeping it out of `warnings` is what
+    # keeps it out of the UI.
+    assert not any("EZ_EXPENSES_NOT_ITEMISED" in w for w in ez.warnings)
 
 
 def test_expenses_fall_back_to_the_ledger(enforced_content, pl_report):
