@@ -735,6 +735,39 @@ def _benchmark_overall_score(synthesis: dict) -> Optional[float]:
     return None
 
 
+def _one_type_per_column(rows: list) -> list:
+    """Give every column a single type before it reaches st.dataframe.
+
+    The benchmark's comparison rows carry a number in `manual` for the money
+    fields and a string for the fields that are not numbers -- the EIN, most
+    visibly. Pandas types such a column `object`, pyarrow infers `double`
+    from the majority and refuses the string, and Streamlit recovers by
+    casting the column itself, after printing the traceback. Casting here is
+    the same rendered table without the noise.
+    """
+    if not rows or not all(isinstance(r, dict) for r in rows):
+        return rows
+
+    def kind(value):
+        if isinstance(value, bool):
+            return "bool"
+        if isinstance(value, (int, float)):
+            return "number"
+        return "other"
+
+    mixed = {
+        key
+        for key in {k for row in rows for k in row}
+        if len({kind(row[key]) for row in rows if row.get(key) is not None}) > 1
+    }
+    if not mixed:
+        return rows
+    return [
+        {k: (str(v) if k in mixed and v is not None else v) for k, v in row.items()}
+        for row in rows
+    ]
+
+
 def render_benchmark_section(title: str, review: dict) -> None:
     """Render a compact section review (Form 990 or Cash Flow)."""
     score = review.get("score")
@@ -774,7 +807,7 @@ def render_benchmark_section(title: str, review: dict) -> None:
     diffs = review.get("key_differences") or []
     if diffs:
         st.markdown("Key differences")
-        st.dataframe(diffs, use_container_width=True, hide_index=True)
+        st.dataframe(_one_type_per_column(diffs), use_container_width=True, hide_index=True)
     issues = review.get("issues") or []
     if issues:
         st.markdown("Issues")

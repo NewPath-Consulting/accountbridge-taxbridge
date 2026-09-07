@@ -1,2 +1,9 @@
-streamlit
+# Pinned, against the convention of the root requirements.txt, for one
+# reason: App Platform builds this image fresh on every deploy, so an
+# unpinned dependency installs whatever is latest on build day and a
+# breaking change arrives with no local signal. Streamlit is the volatile
+# one -- `use_container_width`, used at 17 call sites here, was announced
+# for removal after 2025-12-31 and survives only because the removal has
+# not landed yet.
+streamlit==1.61.1
 requests
