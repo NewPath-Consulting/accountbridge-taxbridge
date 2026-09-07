@@ -4,7 +4,7 @@ This is the single most consequential decision the system makes. Filing the
 wrong variant is a compliance failure, not a formatting one, so the decision
 is made here in code from validated figures -- never by the model.
 
-The IRS thresholds:
+The IRS thresholds: 
 
     Form 990-N    gross receipts *normally* at or below the age-based limit
     Form 990-EZ   gross receipts < $200,000 *for the tax year*
@@ -30,7 +30,7 @@ Two details that are easy to get wrong and expensive to get wrong:
     receipts and $800,000 of assets files the full 990, not the EZ. The
     demo intake form asks only about revenue and would route it wrongly.
 
-  * "Normally" is a multi-year test, not a single year. A one-off bequest
+  ** "Normally" is a multi-year test, not a single year. A one-off bequest
     does not by itself move an organization off the 990-N.
 
 Anything close to a boundary is not routed automatically. The specification
