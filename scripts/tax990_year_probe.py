@@ -8,7 +8,7 @@ and it is not something their documentation states.
 Sends a minimal, well-formed 990-N for each year and reports what comes back.
 The organization details are the sandbox test values used elsewhere.
 
-   * python scripts/tax990_year_probe.py
+    python scripts/tax990_year_probe.py
 """
 
 from __future__ import annotations
