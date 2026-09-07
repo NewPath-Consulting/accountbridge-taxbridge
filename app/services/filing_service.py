@@ -27,6 +27,7 @@ import time
 from typing import Any, Mapping, Optional
 
 from app.utils.draft_payload import build_draft_payload
+from app.utils.form_990_structure import apply_static_line_inventories
 from app.utils.form_990_totals import section_rows, section_totals
 from app.utils.form_990ez import build_form_990ez
 from app.utils.form_990n import build_form_990n_payload
@@ -240,7 +241,13 @@ class FilingPreparationService:
                     variant=FORM_990EZ, filing_available=False,
                 ), None
             ez = build_form_990ez(content)
-            draft = build_draft_payload(content, routing, form_990ez=ez)
+            # The checklist parts are rebuilt from the static IRS inventories
+            # so the payload's confidence reflects what is actually determined
+            # rather than counting an absent Part V as complete.
+            structure = apply_static_line_inventories(content)
+            draft = build_draft_payload(
+                content, routing, form_990ez=ez, structure_report=structure
+            )
             return _stage(
                 "payload",
                 "ready" if ez.is_internally_consistent else "blocked",
@@ -265,7 +272,9 @@ class FilingPreparationService:
                 variant=FORM_990, filing_available=False,
             ), None
 
-        draft = build_draft_payload(content, routing)
+        draft = build_draft_payload(
+            content, routing, structure_report=apply_static_line_inventories(content)
+        )
         return _stage(
             "payload", "ready",
             "Full Form 990 prepared. Awaiting Tax990 endpoint support before it "

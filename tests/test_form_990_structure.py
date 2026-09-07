@@ -237,3 +237,45 @@ def test_empty_content_produces_a_full_skeleton():
     report = apply_static_line_inventories({})
     assert len(report.content["partIV_checklistOfRequiredSchedules"]) == len(PART_IV_CHECKLIST)
     assert not report.is_complete
+
+
+# --- the pass has to actually be wired in ---------------------------------
+# It was written, tested, and then never called from the application. Reports
+# shipped with Part V and Part VI entirely absent and nothing said so, because
+# every test here exercised the function directly.
+
+def test_the_reports_pipeline_applies_the_inventories():
+    import inspect
+    from app.services import reports_service
+
+    source = inspect.getsource(reports_service)
+    assert "apply_static_line_inventories" in source, (
+        "reports_service no longer applies the static line inventories; "
+        "Parts IV, V and VI would ship as whatever the model happened to emit"
+    )
+
+
+def test_the_filing_payload_receives_a_structure_report():
+    import inspect
+    from app.services import filing_service
+
+    source = inspect.getsource(filing_service)
+    assert "structure_report=" in source, (
+        "build_draft_payload is being called without a structure_report, so "
+        "confidence scores an absent Part V as complete"
+    )
+
+
+def test_the_prompt_does_not_ask_for_the_question_text():
+    """The questions are static data; asking for them is what invents them."""
+    from app.core.prompts.report_prompts import (
+        build_tax_return_parts_i_vii_xi_xii_prompt,
+    )
+
+    prompt = build_tax_return_parts_i_vii_xi_xii_prompt(
+        {}, {}, {}, {}, "2024-01-01", "2024-12-31"
+    )["messages"][0]["content"]
+    start = prompt.index("partIV_checklistOfRequiredSchedules")
+    template = prompt[start : start + 400]
+    assert '"question"' not in template
+    assert '"line"' in template and '"answer"' in template

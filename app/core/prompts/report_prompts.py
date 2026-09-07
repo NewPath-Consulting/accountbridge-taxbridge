@@ -922,11 +922,16 @@ Three largest program services by expense (from Part IX program column), plus li
 
 ## PART IV - CHECKLIST OF REQUIRED SCHEDULES
 
-Answer lines 1-38 Yes/No from derivable facts. Line 38 is always Yes (Schedule O required).
+The questions are printed on the form and are supplied by the application, so
+emit a line number and an answer only -- never the question text. Answer only
+the lines the source data actually settles and omit the rest; every line you
+leave out is marked undetermined for a preparer, which is more useful than a
+guess. Line 38 is always Yes (Schedule O required).
 
 ## PART V - OTHER IRS FILINGS AND TAX COMPLIANCE
 
-Answer from QuickBooks vendor/payroll indicators where available; default to 0/No.
+Line number and value only, on the same terms: omit what the data does not
+settle rather than defaulting it to 0 or No.
 
 ## PART VI - GOVERNANCE, MANAGEMENT, AND DISCLOSURE
 
@@ -1048,17 +1053,17 @@ Return JSON only. Include every section below. Do not include Part VIII, IX, or 
     "line4e_totalProgramServiceExpenses": 0.00
   }},
   "partIV_checklistOfRequiredSchedules": [
-    {{ "line": "1", "question": "Section 501(c)(3) or 4947(a)(1) organization?", "answer": "Yes | No" }}
+    {{ "line": "1", "answer": "Yes | No" }}
   ],
   "partV_statementsRegardingOtherIRSFilings": [
-    {{ "line": "1a", "label": "Number reported in box 3 of Form 1096", "value": 0 }}
+    {{ "line": "1a", "value": 0 }}
   ],
   "partVI_governance": {{
     "sectionA": [
-      {{ "line": "1a", "label": "Voting members of governing body", "value": 0 }}
+      {{ "line": "1a", "value": 0 }}
     ],
     "sectionB_policies": [
-      {{ "line": "12a", "label": "Written conflict of interest policy?", "answer": "Yes | No" }}
+      {{ "line": "12a", "answer": "Yes | No" }}
     ],
     "sectionC_disclosure": {{
       "line17_statesFiledIn": [],
@@ -1731,17 +1736,17 @@ Every numeric line item must include `sourceSystem` for traceability.
     "line4e_totalProgramServiceExpenses": 0.00
   }},
   "partIV_checklistOfRequiredSchedules": [
-    {{ "line": "1", "question": "Section 501(c)(3) or 4947(a)(1) organization?", "answer": "Yes | No" }}
+    {{ "line": "1", "answer": "Yes | No" }}
   ],
   "partV_statementsRegardingOtherIRSFilings": [
-    {{ "line": "1a", "label": "Number reported in box 3 of Form 1096", "value": 0 }}
+    {{ "line": "1a", "value": 0 }}
   ],
   "partVI_governance": {{
     "sectionA": [
-      {{ "line": "1a", "label": "Voting members of governing body", "value": 0 }}
+      {{ "line": "1a", "value": 0 }}
     ],
     "sectionB_policies": [
-      {{ "line": "12a", "label": "Written conflict of interest policy?", "answer": "Yes | No" }}
+      {{ "line": "12a", "answer": "Yes | No" }}
     ],
     "sectionC_disclosure": {{
       "line17_statesFiledIn": [],

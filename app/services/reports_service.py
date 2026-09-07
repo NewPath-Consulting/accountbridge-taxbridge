@@ -39,6 +39,7 @@ from app.utils.llm_source_summary import (
 )
 from app.utils.form_990_enforce import enforce_deterministic_amounts
 from app.utils.form_990_propagate import propagate_enforced_totals
+from app.utils.form_990_structure import apply_static_line_inventories
 from app.utils.form_990_mapping import build_qb_mapping_hints
 from app.utils.quickbooks_periods import prior_year_balance_sheet_period
 from app.utils.report_normalization import (
@@ -847,6 +848,20 @@ class ReportsService:
         if propagation_notes:
             existing = content.get("validationErrors") or []
             content["validationErrors"] = list(existing) + propagation_notes
+
+        # Parts IV, V and VI are fixed checklists -- 53, 39 and 28 answer boxes
+        # printed on the form. Asked to write them out, the model produced 38
+        # Part IV rows and nothing at all for V and VI, and nothing said so: a
+        # return arrived with two parts silently absent. They are rebuilt from
+        # the static inventories here, keeping whatever answers the model gave
+        # and marking the rest undetermined, so the gap is visible.
+        structure = apply_static_line_inventories(content)
+        content = structure.content
+        if structure.notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + structure.notes
+        if structure.missing:
+            content["structural_gaps"] = list(structure.missing)
 
         content = normalize_tax_return_content(
             content, quickbooks_data=quickbooks_data
