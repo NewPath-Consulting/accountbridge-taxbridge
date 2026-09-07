@@ -218,7 +218,7 @@ class ReportsService:
         wildapricot_data: Optional[Dict[str, Any]] = None,
         quickbooks_credentials: Optional["QuickBooksCredentialsInline"] = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        """Fetch QuickBooks first, then WildApricot (or reuse cached WA on QB retry)."""
+        """Fetch QuickBooks and WildApricot concurrently (WA reused on a QB retry)."""
         qb_client_kwargs: Dict[str, Any] = {}
         if quickbooks_credentials is not None:
             qb_client_kwargs = {
@@ -277,27 +277,46 @@ class ReportsService:
                 qb_payload["prior_year_balance_sheet"] = prior_year_balance_sheet
             return qb_payload
 
+        # WildApricot starts before QuickBooks rather than after it. They are
+        # separate APIs with separate credentials and nothing shared, so there
+        # is no token to race over -- unlike the three QuickBooks report calls,
+        # which stay sequential because a refresh mid-flight would have three
+        # callers competing for a refresh token that rotates on every use.
+        #
+        # Fetching was about a third of a run that has to finish inside
+        # DigitalOcean's hard 100-second HTTP limit.
+        wildapricot_task: Optional[asyncio.Task] = None
+        if wildapricot_data is None:
+            logger.info("Fetching WildApricot data")
+            wildapricot_task = asyncio.create_task(fetch_wildapricot())
+        else:
+            logger.info("Using cached WildApricot data (QuickBooks retry)")
+
+        async def settle_wildapricot() -> Optional[Dict[str, Any]]:
+            """Whatever WildApricot returned, however QuickBooks ended."""
+            if wildapricot_task is None:
+                return wildapricot_data
+            try:
+                return await wildapricot_task
+            except Exception as exc:  # noqa: BLE001 - reported, never fatal here
+                logger.warning("WildApricot fetch failed: %s", exc)
+                return wildapricot_data
+
         try:
             await asyncio.to_thread(qb_client._token_manager.get_valid_token)
             logger.info("Fetching QuickBooks data")
             qb_data = await fetch_quickbooks()
-        except QuickBooksRefreshTokenRequiredError as exc:
+        except (QuickBooksRefreshTokenRequiredError, QuickBooksAuthError) as exc:
+            # The WildApricot call is already in flight. Let it finish and
+            # carry the result, so entering a new token does not pay for the
+            # WildApricot fetch a second time -- and so the task is not left
+            # pending.
             raise QuickBooksRefreshTokenRequiredError(
                 str(exc),
-                wildapricot_data=wildapricot_data,
-            ) from exc
-        except QuickBooksAuthError as exc:
-            raise QuickBooksRefreshTokenRequiredError(
-                str(exc),
-                wildapricot_data=wildapricot_data,
+                wildapricot_data=await settle_wildapricot(),
             ) from exc
 
-        if wildapricot_data is None:
-            logger.info("Fetching WildApricot data")
-            wa_data = await fetch_wildapricot()
-        else:
-            logger.info("Using cached WildApricot data (QuickBooks retry)")
-            wa_data = wildapricot_data
+        wa_data = await settle_wildapricot()
 
         return wa_data, qb_data
 
@@ -693,7 +712,7 @@ class ReportsService:
         error_messages: list[str] = []
         truncated = False
 
-        for step_name, prompt_builder in section_steps:
+        async def run_section(step_name: str, prompt_builder: Callable[..., Dict[str, Any]]):
             step_start = time.time()
             logger.info("Tax Return: generating %s", step_name)
 
@@ -710,6 +729,37 @@ class ReportsService:
                 prompt_body,
                 step_name,
             )
+            logger.info(
+                "Tax Return %s completed in %.2fs status=%s",
+                step_name,
+                time.time() - step_start,
+                "partial" if error_message or step_truncated else "completed",
+            )
+            return content, error_message, step_truncated
+
+        # Parts VIII, IX and X take the same inputs and do not depend on one
+        # another, so they run concurrently rather than one after another.
+        # Serially they were the bulk of a 92-second median, and DigitalOcean
+        # App Platform terminates any HTTP request at 100 seconds -- a
+        # Cloudflare limit that cannot be raised. 21% of 72 measured runs
+        # exceeded it, so the pipeline worked locally and would have failed
+        # one demo in five.
+        sections_started = time.time()
+        outcomes = await asyncio.gather(
+            *(run_section(name, builder) for name, builder in section_steps)
+        )
+        logger.info(
+            "Tax Return: %d sections completed concurrently in %.2fs",
+            len(section_steps),
+            time.time() - sections_started,
+        )
+
+        # Collected in the order the steps are declared rather than the order
+        # they happened to finish, so results and error messages do not vary
+        # between runs.
+        for (step_name, _), (content, error_message, step_truncated) in zip(
+            section_steps, outcomes
+        ):
             if step_name == "part_ix" and content and not content.get("_parse_error"):
                 content = ensure_part_ix_minimum_fields(content, quickbooks_data)
             step_results[step_name] = content
@@ -718,13 +768,6 @@ class ReportsService:
                 error_messages.append(f"{step_name}: {error_message}")
             if step_truncated:
                 truncated = True
-
-            logger.info(
-                "Tax Return %s completed in %.2fs status=%s",
-                step_name,
-                time.time() - step_start,
-                "partial" if error_message or step_truncated else "completed",
-            )
 
         recon_start = time.time()
         logger.info("Tax Return: generating parts_i_vii_xi_xii")
