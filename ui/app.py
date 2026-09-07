@@ -632,7 +632,7 @@ def store_reports_success(resp: dict, elapsed: float) -> None:
 
 
 def fetch_available_reports(base_url: str) -> list:
-    """Fetch the list of available benchmark reference PDFs from the API."""
+    """Fetch the list of available benchmark reference documents from the API."""
     url = f"{base_url.rstrip('/')}/api/benchmark/reports"
     resp = requests.get(url, headers=build_api_headers(json_content=False), timeout=15)
     resp.raise_for_status()
@@ -647,7 +647,7 @@ def format_benchmark_doc_label(doc: dict) -> str:
 
 
 def fiscal_year_document_sets(docs: list) -> dict[int, list[str]]:
-    """Map fiscal year to available reference PDF file names (up to one per doc type)."""
+    """Map fiscal year to available reference file names (up to one per doc type)."""
     by_year: dict[int, dict[str, str]] = {}
     for doc in docs:
         year = doc.get("fiscal_year")
@@ -1032,7 +1032,7 @@ with st.sidebar:
         end_date = st.date_input(
             "End",
             value=date(prior_year, 12, 31),
-            help="Use year-end for benchmark reference PDFs",
+            help="Use year-end for benchmark reference documents",
         )
 
     if start_date.month != 1 or start_date.day != 1 or end_date.month != 12 or end_date.day != 31:
@@ -1050,7 +1050,7 @@ with st.sidebar:
         placeholder="e.g. 2025",
         help=(
             "Leave blank to benchmark the fiscal year(s) implied by the reports "
-            "period (start/end dates). Only matching reference PDFs from the configured source are used."
+            "period (start/end dates). Only matching reference documents from the configured source are used."
         ),
     )
 
@@ -1329,7 +1329,7 @@ with tab_pipeline:
     # ── Step 3: Benchmark ──
     st.markdown("### Step 3 · Run Benchmark  `/api/benchmark`")
     st.caption(
-        "Select up to 3 reference PDFs from the list below, then click **Run Benchmark**. "
+        "Select up to 3 reference documents from the list below, then click **Run Benchmark**. "
         "The selected documents will be extracted and compared against your AI-generated reports."
     )
 
@@ -1373,7 +1373,7 @@ with tab_pipeline:
         if _fy_sets:
             st.caption(
                 f"Quick select a fiscal-year set "
-                f"(up to {MAX_BENCHMARK_REFERENCE_DOCS} PDFs):"
+                f"(up to {MAX_BENCHMARK_REFERENCE_DOCS} documents):"
             )
             _fy_cols = st.columns(min(len(_fy_sets), 4))
             for idx, (year, files) in enumerate(
@@ -1391,12 +1391,12 @@ with tab_pipeline:
                         st.rerun()
 
         _selected_files = st.multiselect(
-            f"Choose 1–{MAX_BENCHMARK_REFERENCE_DOCS} reference PDFs to benchmark against:",
+            f"Choose 1–{MAX_BENCHMARK_REFERENCE_DOCS} reference documents to benchmark against:",
             options=_file_names,
             format_func=lambda file_name: _label_by_file[file_name],
             key="selected_report_files",
             help=(
-                "Select Form 990, Cash Flow, and Financial Position PDFs (same fiscal year). "
+                "Select Form 990, Cash Flow, and Financial Position documents (same fiscal year). "
                 "Each PDF is extracted to JSON and compared to the matching AI report "
                 f"(tax_return, cash_flow, balance_sheet). "
                 f"Up to {MAX_BENCHMARK_REFERENCE_DOCS} documents."
@@ -1424,7 +1424,7 @@ with tab_pipeline:
     elif st.session_state.available_reports is not None:
         st.info(
             "No reference documents found. Check S3 settings "
-            "(`BENCHMARK_DOCS_S3_BUCKET`, `BENCHMARK_DOCS_S3_PREFIX`) and ensure PDFs are uploaded."
+            "(`BENCHMARK_DOCS_S3_BUCKET`, `BENCHMARK_DOCS_S3_PREFIX`) and ensure documents are uploaded."
         )
 
     st.markdown("---")
@@ -1564,7 +1564,9 @@ with tab_benchmark:
         br = st.session_state.benchmark_response
         st.markdown("## 🎯 Benchmark Results")
         st.caption(
-            "Scores compare AI-generated reports to filed reference PDFs. "
+            "Scores compare AI-generated reports to the filed return. An IRS e-file XML "
+            "reference is read exactly; a PDF is read by a model, so a disagreement "
+            "there means the two readings differ. "
             "Sandbox or partial QuickBooks data often yields low match scores."
         )
         if br.get("year_resolution_note"):

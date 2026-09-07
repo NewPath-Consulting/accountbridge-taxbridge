@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Return xmlns="http://www.irs.gov/efile" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.irs.gov/efile" returnVersion="2021v4.1">
+  <ReturnHeader binaryAttachmentCnt="0">
+    <ReturnTs>2022-03-04T16:32:47-06:00</ReturnTs>
+    <TaxPeriodEndDt>2021-12-31</TaxPeriodEndDt>
+    <PreparerFirmGrp>
+      <PreparerFirmEIN>911503183</PreparerFirmEIN>
+      <PreparerFirmName>
+        <BusinessNameLine1Txt>DP&amp;C</BusinessNameLine1Txt>
+      </PreparerFirmName>
+      <PreparerUSAddress>
+        <AddressLine1Txt>PO BOX 1614</AddressLine1Txt>
+        <CityNm>TACOMA</CityNm>
+        <StateAbbreviationCd>WA</StateAbbreviationCd>
+        <ZIPCd>984011614</ZIPCd>
+      </PreparerUSAddress>
+    </PreparerFirmGrp>
+    <ReturnTypeCd>990EZ</ReturnTypeCd>
+    <TaxPeriodBeginDt>2021-01-01</TaxPeriodBeginDt>
+    <Filer>
+      <EIN>990370960</EIN>
+      <BusinessName>
+        <BusinessNameLine1Txt>COMMERCIAL RELOCATION NETWORK</BusinessNameLine1Txt>
+        <BusinessNameLine2Txt>C/O CRN</BusinessNameLine2Txt>
+      </BusinessName>
+      <BusinessNameControlTxt>COMM</BusinessNameControlTxt>
+      <PhoneNum>2532653042</PhoneNum>
+      <USAddress>
+        <AddressLine1Txt>5727 BAKER WAY NW SUITE 200</AddressLine1Txt>
+        <CityNm>GIG HARBOR</CityNm>
+        <StateAbbreviationCd>WA</StateAbbreviationCd>
+        <ZIPCd>98332</ZIPCd>
+      </USAddress>
+    </Filer>
+    <BusinessOfficerGrp>
+      <PersonNm>BRANDON STEPHENS</PersonNm>
+      <PersonTitleTxt>PRESIDENT</PersonTitleTxt>
+      <PhoneNum>2532653042</PhoneNum>
+      <SignatureDt>2022-03-03</SignatureDt>
+      <DiscussWithPaidPreparerInd>1</DiscussWithPaidPreparerInd>
+    </BusinessOfficerGrp>
+    <SigningOfficerGrp>
+      <PersonFullName>
+        <PersonFirstNm>BRANDON</PersonFirstNm>
+        <PersonLastNm>STEPHENS</PersonLastNm>
+      </PersonFullName>
+      <SSN>999009999</SSN>
+    </SigningOfficerGrp>
+    <PreparerPersonGrp>
+      <PreparerPersonNm>TERRY L ZIEGLER CPA</PreparerPersonNm>
+      <PTIN>P00031770</PTIN>
+      <PhoneNum>2535729922</PhoneNum>
+    </PreparerPersonGrp>
+    <AdditionalFilerInformation>
+      <TrustedCustomerGrp>
+        <TrustedCustomerCd>3</TrustedCustomerCd>
+        <AuthenticationAssuranceLevelCd>AAL1</AuthenticationAssuranceLevelCd>
+        <IdentityAssuranceLevelCd>IAL1</IdentityAssuranceLevelCd>
+      </TrustedCustomerGrp>
+    </AdditionalFilerInformation>
+    <TaxYr>2021</TaxYr>
+    <BuildTS>2022-09-23 18:48:47Z</BuildTS>
+  </ReturnHeader>
+  <ReturnData documentCnt="3">
+    <IRS990EZ documentId="RetDoc1234200001" referenceDocumentId="RetDoc1051800001 RetDoc2278000001">
+      <MethodOfAccountingCashInd>X</MethodOfAccountingCashInd>
+      <ScheduleBNotRequiredInd>X</ScheduleBNotRequiredInd>
+      <WebsiteAddressTxt>OFFICEMOVINGCRN.COM</WebsiteAddressTxt>
+      <Organization501cInd organization501cTypeTxt="6">X</Organization501cInd>
+      <TypeOfOrganizationCorpInd>X</TypeOfOrganizationCorpInd>
+      <GrossReceiptsAmt>112769</GrossReceiptsAmt>
+      <InfoInScheduleOPartIInd>X</InfoInScheduleOPartIInd>
+      <ProgramServiceRevenueAmt>34050</ProgramServiceRevenueAmt>
+      <MembershipDuesAmt>78614</MembershipDuesAmt>
+      <InvestmentIncomeAmt>105</InvestmentIncomeAmt>
+      <TotalRevenueAmt>112769</TotalRevenueAmt>
+      <FeesAndOtherPymtToIndCntrctAmt>29011</FeesAndOtherPymtToIndCntrctAmt>
+      <PrintingPublicationsPostageAmt>86</PrintingPublicationsPostageAmt>
+      <OtherExpensesTotalAmt>46574</OtherExpensesTotalAmt>
+      <TotalExpensesAmt>75671</TotalExpensesAmt>
+      <ExcessOrDeficitForYearAmt>37098</ExcessOrDeficitForYearAmt>
+      <NetAssetsOrFundBalancesBOYAmt>229989</NetAssetsOrFundBalancesBOYAmt>
+      <OtherChangesInNetAssetsAmt>0</OtherChangesInNetAssetsAmt>
+      <NetAssetsOrFundBalancesEOYAmt>267087</NetAssetsOrFundBalancesEOYAmt>
+      <InfoInScheduleOPartIIInd>X</InfoInScheduleOPartIIInd>
+      <CashSavingsAndInvestmentsGrp>
+        <BOYAmt>229989</BOYAmt>
+        <EOYAmt>242087</EOYAmt>
+      </CashSavingsAndInvestmentsGrp>
+      <OtherAssetsTotalDetail>
+        <BOYAmt>0</BOYAmt>
+        <EOYAmt>25000</EOYAmt>
+      </OtherAssetsTotalDetail>
+      <Form990TotalAssetsGrp>
+        <BOYAmt>229989</BOYAmt>
+        <EOYAmt>267087</EOYAmt>
+      </Form990TotalAssetsGrp>
+      <SumOfTotalLiabilitiesGrp>
+        <BOYAmt>0</BOYAmt>
+        <EOYAmt>0</EOYAmt>
+      </SumOfTotalLiabilitiesGrp>
+      <NetAssetsOrFundBalancesGrp>
+        <BOYAmt>229989</BOYAmt>
+        <EOYAmt>267087</EOYAmt>
+      </NetAssetsOrFundBalancesGrp>
+      <InfoInScheduleOPartIIIInd>X</InfoInScheduleOPartIIIInd>
+      <PrimaryExemptPurposeTxt>TO PROMOTE COMMUNITY IMPROVEMENT AND CAPACITY BUILDING</PrimaryExemptPurposeTxt>
+      <ProgramSrvcAccomplishmentGrp>
+        <DescriptionProgramSrvcAccomTxt>COMMUNITY IMPROVEMENT &amp; CAPACITY BUILDING</DescriptionProgramSrvcAccomTxt>
+        <GrantsAndAllocationsAmt>0</GrantsAndAllocationsAmt>
+        <ProgramServiceExpensesAmt>0</ProgramServiceExpensesAmt>
+      </ProgramSrvcAccomplishmentGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>BRANDON STEPHENS</PersonNm>
+        <TitleTxt>PRESIDENT</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>JOHN LUSARDI</PersonNm>
+        <TitleTxt>VICE PRESIDENT</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>BRAD MURPHY</PersonNm>
+        <TitleTxt>TREASURER</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>JIM MARTIN</PersonNm>
+        <TitleTxt>DIRECTOR</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>JIM CAREY</PersonNm>
+        <TitleTxt>DIRECTOR</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>DENNIS BARHYDT</PersonNm>
+        <TitleTxt>DIRECTOR</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>MATHIEU VALADE</PersonNm>
+        <TitleTxt>DIRECTOR</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <OfficerDirectorTrusteeEmplGrp>
+        <PersonNm>MICHAEL HASTINGS</PersonNm>
+        <TitleTxt>DIRECTOR</TitleTxt>
+        <AverageHrsPerWkDevotedToPosRt>1.00</AverageHrsPerWkDevotedToPosRt>
+        <CompensationAmt>0</CompensationAmt>
+        <EmployeeBenefitProgramAmt>0</EmployeeBenefitProgramAmt>
+        <ExpenseAccountOtherAllwncAmt>0</ExpenseAccountOtherAllwncAmt>
+      </OfficerDirectorTrusteeEmplGrp>
+      <InfoInScheduleOPartVInd>X</InfoInScheduleOPartVInd>
+      <ActivitiesNotPreviouslyRptInd>0</ActivitiesNotPreviouslyRptInd>
+      <ChgMadeToOrgnzngDocNotRptInd>0</ChgMadeToOrgnzngDocNotRptInd>
+      <OrganizationHadUBIInd>0</OrganizationHadUBIInd>
+      <SubjectToProxyTaxInd>0</SubjectToProxyTaxInd>
+      <OrganizationDissolvedEtcInd>0</OrganizationDissolvedEtcInd>
+      <DirectIndirectPltclExpendAmt>0</DirectIndirectPltclExpendAmt>
+      <MadeLoansToFromOfficersInd>0</MadeLoansToFromOfficersInd>
+      <ProhibitedTaxShelterTransInd>0</ProhibitedTaxShelterTransInd>
+      <StatesWhereCopyOfReturnIsFldCd>WA</StatesWhereCopyOfReturnIsFldCd>
+      <BooksInCareOfDetail>
+        <BusinessName>
+          <BusinessNameLine1Txt>LIANNA COLLINGE</BusinessNameLine1Txt>
+        </BusinessName>
+        <USAddress>
+          <AddressLine1Txt>5727 BAKER WAY NW SUITE 200</AddressLine1Txt>
+          <CityNm>GIG HARBOR</CityNm>
+          <StateAbbreviationCd>WA</StateAbbreviationCd>
+          <ZIPCd>98332</ZIPCd>
+        </USAddress>
+        <PhoneNum>2532653042</PhoneNum>
+      </BooksInCareOfDetail>
+      <ForeignFinancialAccountInd>0</ForeignFinancialAccountInd>
+      <ForeignOfficeInd>0</ForeignOfficeInd>
+      <DonorAdvisedFndsInd>0</DonorAdvisedFndsInd>
+      <OperateHospitalInd>0</OperateHospitalInd>
+      <TanningServicesProvidedInd>0</TanningServicesProvidedInd>
+      <RelatedOrganizationCtrlEntInd>0</RelatedOrganizationCtrlEntInd>
+      <PoliticalCampaignActyInd>0</PoliticalCampaignActyInd>
+    </IRS990EZ>
+    <IRS990ScheduleO documentId="RetDoc1051800001">
+      <SupplementalInformationDetail>
+        <FormAndLineReferenceDesc>FORM 990-EZ, PART I, LINE 4 - OTHER INVESTMENT INCOME</FormAndLineReferenceDesc>
+        <ExplanationTxt>DESCRIPTION: INTEREST. AMOUNT: 105.</ExplanationTxt>
+      </SupplementalInformationDetail>
+      <SupplementalInformationDetail>
+        <FormAndLineReferenceDesc>FORM 990-EZ, PART I, LINE 16 - OTHER EXPENSES</FormAndLineReferenceDesc>
+        <ExplanationTxt>DESCRIPTION: INSURANCE. AMOUNT: 1,265. DESCRIPTION: COMMUNICATIONS. AMOUNT: 16,742. DESCRIPTION: CONVENTION EXPENSE. AMOUNT: 24,766. DESCRIPTION: SPEAKERS. AMOUNT: 750. DESCRIPTION: BANK FEES. AMOUNT: 41. DESCRIPTION: LICENSE. AMOUNT: 10. DESCRIPTION: GUIDEBOOK ANNUAL RENEWAL. AMOUNT: 3,000. TOTAL TO FORM 990-EZ, LINE 16: 46,574.</ExplanationTxt>
+      </SupplementalInformationDetail>
+      <SupplementalInformationDetail>
+        <FormAndLineReferenceDesc>FORM 990-EZ, PART II, LINE 24 - OTHER ASSETS</FormAndLineReferenceDesc>
+        <ExplanationTxt>DESCRIPTION: RESERVES. BEG. OF YEAR AMOUNT: 0. END OF YEAR AMOUNT: 25,000.</ExplanationTxt>
+      </SupplementalInformationDetail>
+    </IRS990ScheduleO>
+    <TransferPrsnlBnftContractsDecl documentId="RetDoc2278000001">
+      <DeclarationDesc>THE ORGANIZATION DID NOT, DURING THE YEAR, RECEIVE ANY FUNDS, DIRECTLY,OR INDIRECTLY, TO PAY PREMIUMS ON A PERSONAL BENEFIT CONTRACT.THE ORGANIZATION, DID NOT, DURING THE YEAR, PAY ANY PREMIUMS, DIRECTLY,OR INDIRECTLY, ON A PERSONAL BENEFIT CONTRACT.</DeclarationDesc>
+    </TransferPrsnlBnftContractsDecl>
+  </ReturnData>
+</Return>
