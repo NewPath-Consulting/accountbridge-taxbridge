@@ -37,6 +37,7 @@ __all__ = [
     "assign_part_viii_lines",
     "apply_settled_classifications",
     "part_viii_family_for_line",
+    "part_viii_family_for_item",
     "part_viii_prompt_lines",
     "part_viii_prompt_categories",
     "normalise_account_label",
@@ -440,6 +441,22 @@ def part_viii_family_for_line(line_number: Any) -> str | None:
     use the same mapping the enforcement pass does, not a second copy of it.
     """
     return _ROOT_FAMILY.get(_root_of(line_number))
+
+
+def part_viii_family_for_item(item: Any) -> str | None:
+    """The Part VIII family a line item belongs to, from whatever it carries.
+
+    Public for the same reason as `part_viii_family_for_line`: the benchmark
+    scorer has to group line items exactly as enforcement does, and a second
+    copy of the rules would drift. Handles an item with a category and no line
+    number, which is what older report output looks like.
+    """
+    if not isinstance(item, dict):
+        return None
+    if not (item.get("lineNumber") or item.get("category") or item.get("label")):
+        return None
+    family, _ = _family_for(item)
+    return family
 
 
 def part_viii_prompt_categories() -> str:

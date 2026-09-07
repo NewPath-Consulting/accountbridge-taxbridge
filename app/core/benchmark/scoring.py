@@ -258,7 +258,55 @@ def _ai_has_total(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional
     return False, None
 
 
+# Part VIII family -> the reference field it answers. Membership dues have no
+# line of their own on the full form; they are line 1b, inside contributions.
+_FAMILY_FIELD = {
+    "contributions": "contributions",
+    "program_service": "program_service_revenue",
+    "investment": "investment_income",
+}
+
+
+def _part_viii_rollup(ai_report: Dict[str, Any]) -> Dict[str, float]:
+    """Sum the enforced Part VIII line items by family.
+
+    Preferred over the report's own `revenue` summary because that block is
+    built by keyword matching and does not agree with the return underneath
+    it: on a 2024 run it read contributions 57,654 against a Part VIII of
+    271,654, and its buckets summed to 578,812 against a total revenue of
+    305,506. Part VIII is enforced from the ledger and its line numbers are
+    validated, so it is the figure the return actually reports.
+    """
+    from app.utils.form_990_enforce import part_viii_family_for_item
+
+    rollup: Dict[str, float] = {}
+    for item in ai_report.get("part_viii_revenue") or []:
+        if not isinstance(item, dict):
+            continue
+        amount = _num(item.get("totalRevenue") or item.get("amount"))
+        if amount is None:
+            continue
+        line = str(item.get("lineNumber") or "")
+        field = _FAMILY_FIELD.get(part_viii_family_for_item(item) or "", "other_revenue")
+        rollup[field] = round(rollup.get(field, 0.0) + amount, 2)
+        if line == "1b":
+            rollup["membership_dues"] = round(rollup.get("membership_dues", 0.0) + amount, 2)
+    # Deliberately no total_revenue. The report states one, enforced from the
+    # ledger, and it is right even when the line items are partial -- summing
+    # a single 50,000 item into a total the report gives as 100,000 would be
+    # worse than reading the total.
+    return rollup
+
+
 def _ai_revenue_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    rollup = _part_viii_rollup(ai_report)
+    if field in rollup:
+        return True, rollup[field]
+    # A family with no line items reports zero, not "missing" -- 2020 had no
+    # program service revenue at all and the filed return says so.
+    if rollup and field in set(_FAMILY_FIELD.values()) | {"other_revenue"}:
+        return True, 0.0
+
     revenue = ai_report.get("revenue") or {}
     if isinstance(revenue, dict):
         val = _num(revenue.get(field))
@@ -414,7 +462,11 @@ def _score_reconciliation(reconciliation_results: List[Dict[str, Any]]) -> Dict[
     for item in reconciliation_results or []:
         if not isinstance(item, dict):
             continue
-        status = str(item.get("status") or "").upper()
+        # The pipeline writes these as {"check": ..., "result": "Pass"}; the
+        # schema this scorer was written against uses status/description.
+        # Reading only one spelling scored every check UNKNOWN and the whole
+        # reconciliation dimension zero, on returns where every check passed.
+        status = str(item.get("status") or item.get("result") or "").upper()
         passed = status == "PASS"
         if passed:
             pass_count += 1
@@ -423,7 +475,7 @@ def _score_reconciliation(reconciliation_results: List[Dict[str, Any]]) -> Dict[
         checks.append(
             {
                 "check_id": item.get("checkId") or item.get("check_id"),
-                "description": item.get("description"),
+                "description": item.get("description") or item.get("check"),
                 "status": status or "UNKNOWN",
                 "difference": _num(item.get("difference")),
                 "notes": (item.get("notes") or "")[:300],
