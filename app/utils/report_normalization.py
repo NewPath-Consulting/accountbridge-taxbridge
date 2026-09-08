@@ -80,6 +80,17 @@ def build_organization_summary(
         "tax_year": tax_year,
         "gross_receipts": gross_receipts,
         "mission": org.get("mission") or part_i.get("missionStatement"),
+        # What this pipeline produced, not what the organization ought to file.
+        # It generates a full Form 990 on every run; whether a 990-N or 990-EZ
+        # would have been the correct return is decided elsewhere, by
+        # form_routing.select_form, which this module never sees. An EZ filer
+        # will therefore show a mismatch here -- correctly, because the
+        # artifact really is the wrong form for them.
+        #
+        # Against a filed 990 it scores as a match and lifts the composite by
+        # about three points. That is a constant agreeing with itself, not the
+        # model classifying better. Do not quote it as accuracy.
+        "return_type": org.get("return_type") or org.get("returnType") or "990",
     }
 
 
