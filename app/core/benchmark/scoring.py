@@ -506,6 +506,13 @@ def _compare_fields(
         manual_num = _num(manual_val)
         ai_present, ai_val = _ai_field_present(ai_report, section, field)
 
+        # A numeric reference field has to be matched on its value. Where the
+        # reference is not a number there is nothing to compare, so presence
+        # is all that can be asked. An identifier is neither, and is compared
+        # digit by digit -- which is why it has to be settled here rather than
+        # after. A second, unconditional copy of these branches used to follow
+        # and overwrite the result with `ai_present`, so a wrong EIN scored as
+        # a match.
         if (section, field) in _IDENTIFIER_FIELDS:
             ai_val = (ai_report.get("organization_summary") or {}).get(field)
             manual_num = None          # show both sides as written, not as numbers
@@ -515,13 +522,6 @@ def _compare_fields(
         else:
             is_match = ai_present and _values_agree(manual_num, _num(ai_val))
 
-        # A numeric reference field has to be matched on its value. Where the
-        # reference is not a number there is nothing to compare, so presence
-        # is all that can be asked.
-        if manual_num is None:
-            is_match = ai_present
-        else:
-            is_match = ai_present and _values_agree(manual_num, _num(ai_val))
         if is_match:
             matched += 1
 
