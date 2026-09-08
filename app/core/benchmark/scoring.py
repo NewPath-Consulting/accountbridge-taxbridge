@@ -156,6 +156,16 @@ def _roughly_similar(manual: Optional[float], ai: Optional[float]) -> bool:
     base = max(abs(manual), 1.0)
     return abs(manual - ai) / base <= _VALUE_DIVERGENCE_THRESHOLD
 
+# Identifiers are not quantities. The pipeline formats an EIN as
+# "99-0370960" and the IRS XML stores "990370960" -- the same EIN, but _num()
+# parses only the second, so comparing them as numbers scored a correct
+# value as a miss.
+_IDENTIFIER_FIELDS = {("organization_summary", "ein")}
+
+
+def _digits(value: Any) -> str:
+    return re.sub(r"[^0-9]", "", str(value if value is not None else ""))
+
 
 def _values_agree(manual: Optional[float], ai: Optional[float]) -> bool:
     """Do the two figures agree closely enough to call the field matched?
@@ -266,6 +276,10 @@ _FAMILY_FIELD = {
     "investment": "investment_income",
 }
 
+# The families Part VIII is the authority for. Below, these are reported
+# unavailable rather than read from anywhere else.
+_PART_VIII_FAMILY_FIELDS = set(_FAMILY_FIELD.values()) | {"other_revenue"}
+
 
 def _part_viii_rollup(ai_report: Dict[str, Any]) -> Dict[str, float]:
     """Sum the enforced Part VIII line items by family.
@@ -304,8 +318,19 @@ def _ai_revenue_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Opti
         return True, rollup[field]
     # A family with no line items reports zero, not "missing" -- 2020 had no
     # program service revenue at all and the filed return says so.
-    if rollup and field in set(_FAMILY_FIELD.values()) | {"other_revenue"}:
+    if rollup and field in _PART_VIII_FAMILY_FIELDS:
         return True, 0.0
+
+    # No Part VIII line items at all. The report's own `revenue` block is
+    # built by keyword matching and is known to disagree with the return
+    # underneath it: it read contributions 57,654 against a Part VIII of
+    # 271,654, and its buckets summed to 578,812 against a stated total of
+    # 305,506. Reading it here scored that wrong figure as though the return
+    # contained it, and reported a composite of 96.79 while doing so. A
+    # family Part VIII does not state is unavailable -- not zero, and not the
+    # keyword block's guess. MISSING_PART_VIII records why.
+    if field in _PART_VIII_FAMILY_FIELDS:
+        return False, None
 
     revenue = ai_report.get("revenue") or {}
     if isinstance(revenue, dict):
@@ -417,6 +442,15 @@ def _compare_fields(
         expected += 1
         manual_num = _num(manual_val)
         ai_present, ai_val = _ai_field_present(ai_report, section, field)
+
+        if (section, field) in _IDENTIFIER_FIELDS:
+            ai_val = (ai_report.get("organization_summary") or {}).get(field)
+            manual_num = None          # show both sides as written, not as numbers
+            is_match = bool(_digits(manual_val)) and _digits(manual_val) == _digits(ai_val)
+        elif manual_num is None:
+            is_match = ai_present
+        else:
+            is_match = ai_present and _values_agree(manual_num, _num(ai_val))
 
         # A numeric reference field has to be matched on its value. Where the
         # reference is not a number there is nothing to compare, so presence
@@ -645,6 +679,14 @@ def _detect_confound_flags(
             _add("DATA_INTEGRITY_MISSING_PRIOR_PERIOD", warning_text)
         if "WA_PERIOD_EMPTY" in warning_text:
             _add("DATA_INTEGRITY_WA_EMPTY", warning_text)
+
+    if not (ai_report.get("part_viii_revenue") or []):
+        _add(
+            "MISSING_PART_VIII",
+            "The tax return carries no Part VIII line items, so revenue by family "
+            "cannot be read from the return. Those fields are reported unavailable "
+            "rather than scored against the report's keyword-built revenue summary.",
+        )
 
     for text in _collect_audit_text(ai_report, cash_flow_report, reports_raw):
         for pattern, code in _CONFOUND_PATTERNS:
