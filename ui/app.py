@@ -1632,6 +1632,13 @@ with tab_benchmark:
                 f'<div class="label">Status</div></div>', unsafe_allow_html=True
             )
 
+        if bstatus == "partial":
+            st.caption(
+                "Partial: a report type had no reference document to score against, "
+                "so the cross-report synthesis was skipped. The scores below are the "
+                "report types that did have one."
+            )
+
         st.markdown("<br>", unsafe_allow_html=True)
 
         results = br.get("results", {})
@@ -1644,6 +1651,8 @@ with tab_benchmark:
 
                     synthesis = year_data.get("synthesis") or {}
                     scorecard = year_data.get("scorecard") or {}
+                    for note in year_data.get("notes") or []:
+                        st.info(note)
                     if scorecard:
                         st.markdown("#### Deterministic scorecard")
                         render_scorecard_summary(scorecard)
@@ -1669,7 +1678,8 @@ with tab_benchmark:
                     elif synthesis.get("errors"):
                         st.warning("Synthesis incomplete: " + "; ".join(synthesis["errors"][:3]))
                     else:
-                        st.caption("No synthesis scores returned for this year.")
+                        st.caption("No cross-report synthesis for this year: it runs only when "
+                            "every report type has a reference to score against.")
 
                     summary_text = synthesis.get("summary") or synthesis.get("executive_summary")
                     if summary_text:
