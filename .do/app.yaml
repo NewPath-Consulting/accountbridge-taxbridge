@@ -25,6 +25,22 @@
 # Secrets are typed SECRET and must be set in the DigitalOcean console or with
 # `doctl apps update --spec`, never committed.
 
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+# Only the UI is routed publicly. The API has no rule here and no http_port,
+# which is what keeps it off the public internet -- see the note on the api
+# component below. Written as `ingress` rather than a per-service `routes`
+# block because the latter is deprecated, and the console emits this form.
+ingress:
+  rules:
+    - component:
+        name: ui
+      match:
+        path:
+          prefix: /
+
 name: taxbridge
 region: tor
 
@@ -169,9 +185,6 @@ services:
       http_path: /_stcore/health
       initial_delay_seconds: 20
       period_seconds: 30
-
-    routes:
-      - path: /
 
     envs:
       # The API has no public route, so it is addressed by component name on
