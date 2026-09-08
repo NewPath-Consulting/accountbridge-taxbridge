@@ -3,15 +3,15 @@
 #   doctl apps create --spec .do/app.yaml
 #   doctl apps update <app-id> --spec .do/app.yaml
 #
-# Two components from the two Dockerfiles already in the repo. The UI is
-# standalone (streamlit and requests only, no imports from app/), so it builds
-# from ui/ and talks to the API over the internal network.
+# Two components from the two Dockerfiles already in the repo. Only the UI is
+# public. The API is internal, and the UI is standalone (streamlit and
+# requests only, no imports from app/), so it builds from ui/.
 #
 # THINGS THAT WILL TRIP YOU UP HERE
 #
 # App Platform terminates any HTTP request at 100 seconds. It is a Cloudflare
-# limit and cannot be raised. A reports run measured at a median of 80s and a
-# p90 of 99s after the pipeline was parallelised, so it fits, but not by much.
+# limit and cannot be raised. A reports run measured at a median of 76s and a
+# p90 of 94s after the pipeline was parallelised, so it fits, but not by much.
 # If runs start failing with a 504 that never happens locally, that is this.
 #
 # The filesystem is ephemeral. QuickBooks rotates its refresh token on every
@@ -30,6 +30,17 @@ region: tor
 
 services:
   # ---------------------------------------------------------------- API ----
+  # Internal only: no `routes`, no `http_port`. A service with at least one
+  # `internal_ports` entry and no `http_port` is reachable by other components
+  # in the app and by nobody else. The UI addresses it as http://api:8000.
+  #
+  # That is deliberate. Routed publicly, /api would expose CRN's financials
+  # and an OpenAI key's spending to anyone who found the URL, and the only
+  # thing in the way would be AUTH_METHOD=bearer -- which has never been
+  # exercised, because every local run has been AUTH_METHOD=none. Removing
+  # the exposure beats guarding it with an untested path.
+  #
+  # The cost: Swagger at /docs is not publicly reachable. Demo it locally.
   - name: api
     dockerfile_path: Dockerfile
     github:
@@ -37,19 +48,19 @@ services:
       branch: main
       deploy_on_push: true
 
-    http_port: 8000
+    internal_ports:
+      - 8000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
 
     health_check:
+      # `port` is required here. With no http_port there is nothing to infer.
+      port: 8000
       http_path: /api/health/
       initial_delay_seconds: 20
       period_seconds: 30
       timeout_seconds: 5
       failure_threshold: 3
-
-    routes:
-      - path: /api
 
     envs:
       # --- secrets: set these in the console, they are not in the repo ---
@@ -85,10 +96,6 @@ services:
         scope: RUN_TIME
         type: SECRET
         value: REPLACE_ME
-      - key: BEARER_TOKEN
-        scope: RUN_TIME
-        type: SECRET
-        value: REPLACE_ME
 
       # --- identifiers: public, but organization-specific ---
       - key: QUICKBOOKS_REALM_ID
@@ -114,18 +121,21 @@ services:
       - key: REPORTS_MAX_TOKENS
         scope: RUN_TIME
         value: "16384"
+
+      # Matches .env. The component is not publicly routed, so there is
+      # nothing for auth to protect, and `bearer` has never been exercised.
       - key: AUTH_METHOD
         scope: RUN_TIME
-        value: bearer
+        value: none
 
-      # NOT goml_custom_extractor. That names a module which has never been in
-      # this repository, and selecting it makes every extraction path raise on
-      # import. The benchmark reads IRS e-file XML and needs no extractor at
-      # all; AWS_textract is only reached by PDF upload, which additionally
-      # needs AWS credentials to work.
+      # Matches .env, which is what every local run has used. The earlier
+      # warning against this value is obsolete: the XML dispatch in
+      # form_990_organization.py runs before any extractor is constructed, so
+      # the benchmark path never touches it. AWS_textract would be the
+      # untested value, and it needs AWS credentials this spec does not carry.
       - key: EXTRACTOR_TYPE
         scope: RUN_TIME
-        value: AWS_textract
+        value: goml_custom_extractor
 
       # The benchmark's reference documents ride in the image at /app/docs.
       - key: BENCHMARK_DOCS_SOURCE
@@ -164,15 +174,22 @@ services:
       - path: /
 
     envs:
-      # Resolved by App Platform to the API's internal address. The UI
-      # otherwise defaults to localhost:8000, which is nothing here.
+      # The API has no public route, so it is addressed by component name on
+      # the app's internal DNS. ${api.PRIVATE_URL} is documented for routed
+      # services; it is not documented for a service with no http_port, so do
+      # not substitute it back here.
       - key: API_BASE_URL
         scope: RUN_TIME
-        value: ${api.PRIVATE_URL}
+        value: http://api:8000
+
+      # Required even though the API runs with AUTH_METHOD=none: ui/app.py
+      # refuses to call /api/reports when this is empty, before any request
+      # is made. The API ignores the header it sends.
       - key: BEARER_TOKEN
         scope: RUN_TIME
         type: SECRET
         value: REPLACE_ME
+
       - key: QUICKBOOKS_REALM_ID
         scope: RUN_TIME
         value: REPLACE_ME
