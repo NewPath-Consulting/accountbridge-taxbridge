@@ -88,8 +88,14 @@ def _classify_benchmark_pdf(
     file_path: str,
     doc_types: list[BenchmarkDocType],
 ) -> BenchmarkDocument | None:
-    """Return a BenchmarkDocument when file_name matches a supported doc type."""
-    if not file_name.lower().endswith(".pdf"):
+    """Return a BenchmarkDocument when file_name matches a supported doc type.
+
+    XML is accepted alongside PDF because the IRS publishes filed returns as
+    e-file XML, where every figure is a named element. A reference read from
+    that is exact, where one a model reads out of a PDF only tells you the two
+    readings differ.
+    """
+    if not file_name.lower().endswith((".pdf", ".xml")):
         return None
 
     for dtype in doc_types:

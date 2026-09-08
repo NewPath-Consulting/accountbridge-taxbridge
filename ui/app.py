@@ -1,4 +1,6 @@
 import streamlit as st
+
+import filing_tab, run_progress
 import requests
 import json
 import time
@@ -41,7 +43,7 @@ if load_dotenv is not None:
 # Page config
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="AccountBridge · Reports & Benchmark",
+    page_title="TaxBridge · Reports → Prepare → File",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -630,7 +632,7 @@ def store_reports_success(resp: dict, elapsed: float) -> None:
 
 
 def fetch_available_reports(base_url: str) -> list:
-    """Fetch the list of available benchmark reference PDFs from the API."""
+    """Fetch the list of available benchmark reference documents from the API."""
     url = f"{base_url.rstrip('/')}/api/benchmark/reports"
     resp = requests.get(url, headers=build_api_headers(json_content=False), timeout=15)
     resp.raise_for_status()
@@ -645,7 +647,7 @@ def format_benchmark_doc_label(doc: dict) -> str:
 
 
 def fiscal_year_document_sets(docs: list) -> dict[int, list[str]]:
-    """Map fiscal year to available reference PDF file names (up to one per doc type)."""
+    """Map fiscal year to available reference file names (up to one per doc type)."""
     by_year: dict[int, dict[str, str]] = {}
     for doc in docs:
         year = doc.get("fiscal_year")
@@ -733,6 +735,39 @@ def _benchmark_overall_score(synthesis: dict) -> Optional[float]:
     return None
 
 
+def _one_type_per_column(rows: list) -> list:
+    """Give every column a single type before it reaches st.dataframe.
+
+    The benchmark's comparison rows carry a number in `manual` for the money
+    fields and a string for the fields that are not numbers -- the EIN, most
+    visibly. Pandas types such a column `object`, pyarrow infers `double`
+    from the majority and refuses the string, and Streamlit recovers by
+    casting the column itself, after printing the traceback. Casting here is
+    the same rendered table without the noise.
+    """
+    if not rows or not all(isinstance(r, dict) for r in rows):
+        return rows
+
+    def kind(value):
+        if isinstance(value, bool):
+            return "bool"
+        if isinstance(value, (int, float)):
+            return "number"
+        return "other"
+
+    mixed = {
+        key
+        for key in {k for row in rows for k in row}
+        if len({kind(row[key]) for row in rows if row.get(key) is not None}) > 1
+    }
+    if not mixed:
+        return rows
+    return [
+        {k: (str(v) if k in mixed and v is not None else v) for k, v in row.items()}
+        for row in rows
+    ]
+
+
 def render_benchmark_section(title: str, review: dict) -> None:
     """Render a compact section review (Form 990 or Cash Flow)."""
     score = review.get("score")
@@ -772,7 +807,7 @@ def render_benchmark_section(title: str, review: dict) -> None:
     diffs = review.get("key_differences") or []
     if diffs:
         st.markdown("Key differences")
-        st.dataframe(diffs, use_container_width=True, hide_index=True)
+        st.dataframe(_one_type_per_column(diffs), use_container_width=True, hide_index=True)
     issues = review.get("issues") or []
     if issues:
         st.markdown("Issues")
@@ -929,15 +964,17 @@ def execute_reports_run(
 
     t0 = time.time()
     try:
-        resp = call_reports(
-            base_url,
-            wa_id,
-            qb_id,
-            start_date,
-            end_date,
-            wildapricot_data=st.session_state.get("pending_wildapricot_data"),
-            quickbooks_credentials=quickbooks_credentials,
-            user_prompt=user_prompt,
+        resp = run_progress.run_with_progress(
+            lambda: call_reports(
+                base_url,
+                wa_id,
+                qb_id,
+                start_date,
+                end_date,
+                wildapricot_data=st.session_state.get("pending_wildapricot_data"),
+                quickbooks_credentials=quickbooks_credentials,
+                user_prompt=user_prompt,
+            )
         )
         store_reports_success(resp, time.time() - t0)
         st.session_state.qb_credentials_error = None
@@ -1028,7 +1065,7 @@ with st.sidebar:
         end_date = st.date_input(
             "End",
             value=date(prior_year, 12, 31),
-            help="Use year-end for benchmark reference PDFs",
+            help="Use year-end for benchmark reference documents",
         )
 
     if start_date.month != 1 or start_date.day != 1 or end_date.month != 12 or end_date.day != 31:
@@ -1046,7 +1083,7 @@ with st.sidebar:
         placeholder="e.g. 2025",
         help=(
             "Leave blank to benchmark the fiscal year(s) implied by the reports "
-            "period (start/end dates). Only matching reference PDFs from the configured source are used."
+            "period (start/end dates). Only matching reference documents from the configured source are used."
         ),
     )
 
@@ -1077,10 +1114,10 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 # Main area
 # ──────────────────────────────────────────────
-st.markdown("# 📊 AccountBridge · Reports → Benchmark")
+st.markdown("# 📊 TaxBridge · Reports → Prepare → File")
 st.markdown(
-    '<p class="ab-subtitle">Generate financial reports, then run benchmark '
-    "against reference documents.</p>",
+    '<p class="ab-subtitle">Generate financial reports, benchmark them, '
+    "then prepare and file a return through Tax990.</p>",
     unsafe_allow_html=True,
 )
 
@@ -1195,9 +1232,30 @@ if save_and_run:
                     quickbooks_credentials=qb_creds_payload,
                 )
 
-tab_pipeline, tab_reports, tab_benchmark, tab_raw = st.tabs(
-    ["🚀 Pipeline", "📄 Reports", "🎯 Benchmark", "🔩 Raw JSON"]
+tab_pipeline, tab_reports, tab_filing, tab_benchmark, tab_raw = st.tabs(
+    ["🚀 Pipeline", "📄 Reports", "📮 File a Return", "🎯 Benchmark", "🔩 Raw JSON"]
 )
+
+# ──────────────────────────────────────────────
+# TAB · File a Return
+# ──────────────────────────────────────────────
+with tab_filing:
+    _reports_response = st.session_state.get("reports_response") or {}
+    _tax_return = (
+        (_reports_response.get("reports") or {}).get("tax_return") or {}
+    )
+    filing_tab.render(
+        base_url=resolve_api_base_url(),
+        headers=build_api_headers(),
+        quickbooks_realm_id=qb_id,
+        start_date=str(start_date),
+        end_date=str(end_date),
+        report_content=_tax_return.get("content"),
+        quickbooks_credentials=build_quickbooks_credentials_payload(
+            qb_client_id, qb_client_secret, qb_refresh_token, qb_access_token, qb_id
+        ),
+        format_request_error=format_api_request_error,
+    )
 
 # ──────────────────────────────────────────────
 # TAB 1 · Pipeline
@@ -1304,7 +1362,7 @@ with tab_pipeline:
     # ── Step 3: Benchmark ──
     st.markdown("### Step 3 · Run Benchmark  `/api/benchmark`")
     st.caption(
-        "Select up to 3 reference PDFs from the list below, then click **Run Benchmark**. "
+        "Select up to 3 reference documents from the list below, then click **Run Benchmark**. "
         "The selected documents will be extracted and compared against your AI-generated reports."
     )
 
@@ -1348,7 +1406,7 @@ with tab_pipeline:
         if _fy_sets:
             st.caption(
                 f"Quick select a fiscal-year set "
-                f"(up to {MAX_BENCHMARK_REFERENCE_DOCS} PDFs):"
+                f"(up to {MAX_BENCHMARK_REFERENCE_DOCS} documents):"
             )
             _fy_cols = st.columns(min(len(_fy_sets), 4))
             for idx, (year, files) in enumerate(
@@ -1366,12 +1424,12 @@ with tab_pipeline:
                         st.rerun()
 
         _selected_files = st.multiselect(
-            f"Choose 1–{MAX_BENCHMARK_REFERENCE_DOCS} reference PDFs to benchmark against:",
+            f"Choose 1–{MAX_BENCHMARK_REFERENCE_DOCS} reference documents to benchmark against:",
             options=_file_names,
             format_func=lambda file_name: _label_by_file[file_name],
             key="selected_report_files",
             help=(
-                "Select Form 990, Cash Flow, and Financial Position PDFs (same fiscal year). "
+                "Select Form 990, Cash Flow, and Financial Position documents (same fiscal year). "
                 "Each PDF is extracted to JSON and compared to the matching AI report "
                 f"(tax_return, cash_flow, balance_sheet). "
                 f"Up to {MAX_BENCHMARK_REFERENCE_DOCS} documents."
@@ -1399,7 +1457,7 @@ with tab_pipeline:
     elif st.session_state.available_reports is not None:
         st.info(
             "No reference documents found. Check S3 settings "
-            "(`BENCHMARK_DOCS_S3_BUCKET`, `BENCHMARK_DOCS_S3_PREFIX`) and ensure PDFs are uploaded."
+            "(`BENCHMARK_DOCS_S3_BUCKET`, `BENCHMARK_DOCS_S3_PREFIX`) and ensure documents are uploaded."
         )
 
     st.markdown("---")
@@ -1539,7 +1597,9 @@ with tab_benchmark:
         br = st.session_state.benchmark_response
         st.markdown("## 🎯 Benchmark Results")
         st.caption(
-            "Scores compare AI-generated reports to filed reference PDFs. "
+            "Scores compare AI-generated reports to the filed return. An IRS e-file XML "
+            "reference is read exactly; a PDF is read by a model, so a disagreement "
+            "there means the two readings differ. "
             "Sandbox or partial QuickBooks data often yields low match scores."
         )
         if br.get("year_resolution_note"):
@@ -1572,6 +1632,13 @@ with tab_benchmark:
                 f'<div class="label">Status</div></div>', unsafe_allow_html=True
             )
 
+        if bstatus == "partial":
+            st.caption(
+                "Partial: a report type had no reference document to score against, "
+                "so the cross-report synthesis was skipped. The scores below are the "
+                "report types that did have one."
+            )
+
         st.markdown("<br>", unsafe_allow_html=True)
 
         results = br.get("results", {})
@@ -1584,6 +1651,8 @@ with tab_benchmark:
 
                     synthesis = year_data.get("synthesis") or {}
                     scorecard = year_data.get("scorecard") or {}
+                    for note in year_data.get("notes") or []:
+                        st.info(note)
                     if scorecard:
                         st.markdown("#### Deterministic scorecard")
                         render_scorecard_summary(scorecard)
@@ -1609,7 +1678,8 @@ with tab_benchmark:
                     elif synthesis.get("errors"):
                         st.warning("Synthesis incomplete: " + "; ".join(synthesis["errors"][:3]))
                     else:
-                        st.caption("No synthesis scores returned for this year.")
+                        st.caption("No cross-report synthesis for this year: it runs only when "
+                            "every report type has a reference to score against.")
 
                     summary_text = synthesis.get("summary") or synthesis.get("executive_summary")
                     if summary_text:

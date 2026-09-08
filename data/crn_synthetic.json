@@ -1,0 +1,293 @@
+{
+  "_comment": [
+    "Synthetic bookkeeping for a QuickBooks sandbox, derived from the published",
+    "Form 990 filings of Commercial Relocation Network (EIN 99-0370960), a",
+    "501(c)(6) business league in Gig Harbor, WA.",
+    "",
+    "The yearly totals are theirs and are public. The account names are ours,",
+    "chosen to reflect how a trade association actually keeps its books and",
+    "chosen independently of the classifier, so that comparing our output",
+    "against their filed returns is a real test rather than a circular one.",
+    "",
+    "This is not their bookkeeping. It is a reconstruction that adds up to the",
+    "same published totals.",
+    "",
+    "Why these years: 2021 to 2022 is where they crossed $200,000 and moved",
+    "from the 990-EZ to the full 990. 2018 and 2019 sit within 5% of that line,",
+    "which is where the review band should fire. Six years gives the rolling",
+    "average something to work with."
+  ],
+  "organization": {
+    "name": "Commercial Relocation Network (synthetic)",
+    "ein": "99-0370960",
+    "source": "ProPublica Nonprofit Explorer, EIN 99-0370960",
+    "subsection": "501(c)(6)",
+    "note": "Business league. Membership dues are reported as contributions, not program service revenue — which is the classification this fixture is built to test."
+  },
+  "accounts": {
+    "income": [
+      "Annual Membership Dues",
+      "Sponsorship Income",
+      "Conference Registration",
+      "Trade Show Booth Fees",
+      "Education and Training Fees",
+      "Certification Fees",
+      "Interest on Reserves"
+    ],
+    "expense": [
+      "Conference and Meeting Costs",
+      "Management Services",
+      "Professional Fees",
+      "Marketing and Communications",
+      "Website and Technology",
+      "Insurance",
+      "Office and Administration"
+    ],
+    "bank": [
+      "Operating Checking",
+      "Reserve Savings"
+    ]
+  },
+  "years": [
+    {
+      "year": 2019,
+      "filed": "990-EZ",
+      "why": "revenue 190,081 is 4.96% below the $200,000 limit; the review band should fire",
+      "revenue": {
+        "Annual Membership Dues": 51500.0,
+        "Sponsorship Income": 32200.0,
+        "Conference Registration": 61000.0,
+        "Trade Show Booth Fees": 28585.0,
+        "Education and Training Fees": 16000.0,
+        "Interest on Reserves": 796.0
+      },
+      "expenses": {
+        "Conference and Meeting Costs": 96000.0,
+        "Management Services": 42000.0,
+        "Professional Fees": 12500.0,
+        "Marketing and Communications": 14075.0,
+        "Website and Technology": 7500.0,
+        "Insurance": 3200.0,
+        "Office and Administration": 2800.0
+      },
+      "assets": {
+        "Operating Checking": 72481.0,
+        "Reserve Savings": 125000.0
+      },
+      "published": {
+        "revenue": 190081,
+        "expenses": 178075,
+        "assets": 197481
+      }
+    },
+    {
+      "year": 2020,
+      "filed": "990-EZ",
+      "why": "the pandemic year; revenue falls to 85,195, the events stop, and the filed return reports no program service revenue",
+      "revenue": {
+        "Annual Membership Dues": 66886.0,
+        "Sponsorship Income": 18000.0,
+        "Interest on Reserves": 309.0
+      },
+      "expenses": {
+        "Management Services": 30000.0,
+        "Professional Fees": 8500.0,
+        "Marketing and Communications": 5400.0,
+        "Website and Technology": 5187.0,
+        "Insurance": 2100.0,
+        "Office and Administration": 1500.0
+      },
+      "assets": {
+        "Operating Checking": 79989.0,
+        "Reserve Savings": 150000.0
+      },
+      "published": {
+        "revenue": 85195,
+        "expenses": 52687,
+        "assets": 229989
+      }
+    },
+    {
+      "year": 2021,
+      "filed": "990-EZ",
+      "why": "recovery begins; still comfortably under the limit",
+      "revenue": {
+        "Annual Membership Dues": 58614.0,
+        "Sponsorship Income": 20000.0,
+        "Conference Registration": 22664.0,
+        "Education and Training Fees": 8786.0,
+        "Certification Fees": 2600.0,
+        "Interest on Reserves": 105.0
+      },
+      "expenses": {
+        "Conference and Meeting Costs": 32000.0,
+        "Management Services": 24000.0,
+        "Professional Fees": 8000.0,
+        "Marketing and Communications": 5171.0,
+        "Website and Technology": 4200.0,
+        "Insurance": 1500.0,
+        "Office and Administration": 800.0
+      },
+      "assets": {
+        "Operating Checking": 92087.0,
+        "Reserve Savings": 175000.0
+      },
+      "published": {
+        "revenue": 112769,
+        "expenses": 75671,
+        "assets": 267087
+      }
+    },
+    {
+      "year": 2022,
+      "filed": "990",
+      "why": "revenue crosses $200,000 and the organization moves to the full return — the decision this fixture exists to demonstrate",
+      "revenue": {
+        "Annual Membership Dues": 62000.0,
+        "Sponsorship Income": 23800.0,
+        "Conference Registration": 88000.0,
+        "Trade Show Booth Fees": 34325.0,
+        "Education and Training Fees": 15000.0,
+        "Certification Fees": 3000.0,
+        "Interest on Reserves": 166.0
+      },
+      "expenses": {
+        "Conference and Meeting Costs": 168000.0,
+        "Management Services": 78000.0,
+        "Professional Fees": 31000.0,
+        "Marketing and Communications": 26937.0,
+        "Website and Technology": 18000.0,
+        "Insurance": 6000.0,
+        "Office and Administration": 5000.0
+      },
+      "assets": {
+        "Operating Checking": 60441.0,
+        "Reserve Savings": 100000.0
+      },
+      "published": {
+        "revenue": 226291,
+        "expenses": 332937,
+        "assets": 160441
+      }
+    },
+    {
+      "year": 2023,
+      "filed": "990",
+      "why": "settled above the line",
+      "revenue": {
+        "Annual Membership Dues": 168000.0,
+        "Sponsorship Income": 44250.0,
+        "Conference Registration": 24000.0,
+        "Trade Show Booth Fees": 12177.0,
+        "Education and Training Fees": 8000.0,
+        "Certification Fees": 4000.0,
+        "Interest on Reserves": 300.0
+      },
+      "expenses": {
+        "Conference and Meeting Costs": 132000.0,
+        "Management Services": 60000.0,
+        "Professional Fees": 24000.0,
+        "Marketing and Communications": 21340.0,
+        "Website and Technology": 15000.0,
+        "Insurance": 5000.0,
+        "Office and Administration": 4000.0
+      },
+      "assets": {
+        "Operating Checking": 59828.0,
+        "Reserve Savings": 100000.0
+      },
+      "published": {
+        "revenue": 260727,
+        "expenses": 261340,
+        "assets": 159828
+      }
+    },
+    {
+      "year": 2024,
+      "filed": "990",
+      "why": "the most recent year loaded; the filed return puts 88.9% of revenue on the contributions line",
+      "revenue": {
+        "Annual Membership Dues": 214000.0,
+        "Sponsorship Income": 57654.0,
+        "Conference Registration": 18000.0,
+        "Trade Show Booth Fees": 6000.0,
+        "Education and Training Fees": 5200.0,
+        "Certification Fees": 3000.0,
+        "Interest on Reserves": 1652.0
+      },
+      "expenses": {
+        "Conference and Meeting Costs": 138000.0,
+        "Management Services": 66000.0,
+        "Professional Fees": 26000.0,
+        "Marketing and Communications": 22306.0,
+        "Website and Technology": 16000.0,
+        "Insurance": 3000.0,
+        "Office and Administration": 2000.0
+      },
+      "assets": {
+        "Operating Checking": 92028.0,
+        "Reserve Savings": 100000.0
+      },
+      "published": {
+        "revenue": 305506,
+        "expenses": 273306,
+        "assets": 192028
+      }
+    }
+  ],
+  "expected_classification": {
+    "_comment": "What the filed returns say each bucket should total, from ProPublica Nonprofit Explorer. This is the answer key for classification. Every year's account amounts sum to these figures under line_mapping, and the account names were chosen without reference to the classifier.",
+    "line_mapping": {
+      "contributions": [
+        "Annual Membership Dues",
+        "Sponsorship Income"
+      ],
+      "program_service_revenue": [
+        "Conference Registration",
+        "Trade Show Booth Fees",
+        "Education and Training Fees",
+        "Certification Fees"
+      ],
+      "investment_income": [
+        "Interest on Reserves"
+      ],
+      "note": "For a 501(c)(6) business league, membership dues and qualified sponsorship payments are reported as contributions (Form 990 Part VIII line 1), not program service revenue. Convention and trade show income, registrations, training and certification fees are program service revenue (line 2). Interest is investment income (line 3). On the 990-EZ years, dues appear on Part I line 3 rather than line 1, so ProPublica extracts contributions as $0 for those years; the contributions figure below for 2019 to 2021 is lines 1 and 3 combined."
+    },
+    "2019": {
+      "form": "990-EZ",
+      "contributions": 83700,
+      "program_service_revenue": 105585,
+      "investment_income": 796
+    },
+    "2020": {
+      "form": "990-EZ",
+      "contributions": 84886,
+      "program_service_revenue": 0,
+      "investment_income": 309
+    },
+    "2021": {
+      "form": "990-EZ",
+      "contributions": 78614,
+      "program_service_revenue": 34050,
+      "investment_income": 105
+    },
+    "2022": {
+      "form": "990",
+      "contributions": 85800,
+      "program_service_revenue": 140325,
+      "investment_income": 166
+    },
+    "2023": {
+      "form": "990",
+      "contributions": 212250,
+      "program_service_revenue": 48177,
+      "investment_income": 300
+    },
+    "2024": {
+      "form": "990",
+      "contributions": 271654,
+      "program_service_revenue": 32200,
+      "investment_income": 1652
+    }
+  }
+}

@@ -1,7 +1,20 @@
-"""Deterministic field-alignment scorecard for Form 990 and cash flow benchmarking.
+"""Deterministic scorecard for Form 990 and cash flow benchmarking.
 
-Compares AI-generated report JSON against manual reference extraction JSON.
-Scores field presence and structural alignment — not strict numeric equality.
+Compares AI-generated report JSON against reference extraction JSON. A field
+counts as matched when it is present *and* its value agrees within
+`_VALUE_MATCH_TOLERANCE`; where the reference field is not numeric there is
+nothing to compare and presence is all that can be asked.
+
+It used to score presence alone. An output of all zeros therefore scored as
+well as a correct one, and the project's accuracy target could not be measured
+at all -- value similarity was computed, put in the output row, and then left
+out of the score.
+
+One thing this cannot tell you: the reference is itself extracted from a PDF by
+a model, so a disagreement says the two readings differ, not which one is
+wrong. Where a hand-checked answer key exists -- as it does for Part VIII in
+`data/crn_synthetic.json` -- that is the better measurement, and
+`app/utils/classification_harness.py` uses it.
 """
 
 from __future__ import annotations
@@ -95,6 +108,13 @@ _CONFOUND_PATTERNS = (
 # Lenient similarity threshold for confound detection only (not scoring)
 _VALUE_DIVERGENCE_THRESHOLD = 0.50
 
+# Scoring tolerance. Both sides describe the same organization's same year, so
+# they should agree closely; the slack is for a reference figure read out of a
+# PDF rather than for genuine disagreement. A field counts as matched only if
+# it is present AND its value agrees within this.
+_VALUE_MATCH_TOLERANCE = 0.01
+_VALUE_MATCH_ABSOLUTE = 1.0
+
 
 def _num(value: Any) -> Optional[float]:
     if value is None:
@@ -135,6 +155,32 @@ def _roughly_similar(manual: Optional[float], ai: Optional[float]) -> bool:
         return abs(ai) < 1.0
     base = max(abs(manual), 1.0)
     return abs(manual - ai) / base <= _VALUE_DIVERGENCE_THRESHOLD
+
+# Identifiers are not quantities. The pipeline formats an EIN as
+# "99-0370960" and the IRS XML stores "990370960" -- the same EIN, but _num()
+# parses only the second, so comparing them as numbers scored a correct
+# value as a miss.
+_IDENTIFIER_FIELDS = {("organization_summary", "ein")}
+
+
+def _digits(value: Any) -> str:
+    return re.sub(r"[^0-9]", "", str(value if value is not None else ""))
+
+
+def _values_agree(manual: Optional[float], ai: Optional[float]) -> bool:
+    """Do the two figures agree closely enough to call the field matched?
+
+    This is the scoring predicate. It exists because the score used to count a
+    field as matched when the AI merely had the field at all, which meant an
+    output of all zeros scored the same as a correct one and the project's
+    accuracy target could not be measured.
+    """
+    if manual is None or ai is None:
+        return False
+    difference = abs(manual - ai)
+    if difference <= _VALUE_MATCH_ABSOLUTE:
+        return True
+    return difference / max(abs(manual), 1.0) <= _VALUE_MATCH_TOLERANCE
 
 
 def _section(extraction: Dict[str, Any], name: str) -> Dict[str, Any]:
@@ -222,7 +268,70 @@ def _ai_has_total(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional
     return False, None
 
 
+# Part VIII family -> the reference field it answers. Membership dues have no
+# line of their own on the full form; they are line 1b, inside contributions.
+_FAMILY_FIELD = {
+    "contributions": "contributions",
+    "program_service": "program_service_revenue",
+    "investment": "investment_income",
+}
+
+# The families Part VIII is the authority for. Below, these are reported
+# unavailable rather than read from anywhere else.
+_PART_VIII_FAMILY_FIELDS = set(_FAMILY_FIELD.values()) | {"other_revenue"}
+
+
+def _part_viii_rollup(ai_report: Dict[str, Any]) -> Dict[str, float]:
+    """Sum the enforced Part VIII line items by family.
+
+    Preferred over the report's own `revenue` summary because that block is
+    built by keyword matching and does not agree with the return underneath
+    it: on a 2024 run it read contributions 57,654 against a Part VIII of
+    271,654, and its buckets summed to 578,812 against a total revenue of
+    305,506. Part VIII is enforced from the ledger and its line numbers are
+    validated, so it is the figure the return actually reports.
+    """
+    from app.utils.form_990_enforce import part_viii_family_for_item
+
+    rollup: Dict[str, float] = {}
+    for item in ai_report.get("part_viii_revenue") or []:
+        if not isinstance(item, dict):
+            continue
+        amount = _num(item.get("totalRevenue") or item.get("amount"))
+        if amount is None:
+            continue
+        line = str(item.get("lineNumber") or "")
+        field = _FAMILY_FIELD.get(part_viii_family_for_item(item) or "", "other_revenue")
+        rollup[field] = round(rollup.get(field, 0.0) + amount, 2)
+        if line == "1b":
+            rollup["membership_dues"] = round(rollup.get("membership_dues", 0.0) + amount, 2)
+    # Deliberately no total_revenue. The report states one, enforced from the
+    # ledger, and it is right even when the line items are partial -- summing
+    # a single 50,000 item into a total the report gives as 100,000 would be
+    # worse than reading the total.
+    return rollup
+
+
 def _ai_revenue_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    rollup = _part_viii_rollup(ai_report)
+    if field in rollup:
+        return True, rollup[field]
+    # A family with no line items reports zero, not "missing" -- 2020 had no
+    # program service revenue at all and the filed return says so.
+    if rollup and field in _PART_VIII_FAMILY_FIELDS:
+        return True, 0.0
+
+    # No Part VIII line items at all. The report's own `revenue` block is
+    # built by keyword matching and is known to disagree with the return
+    # underneath it: it read contributions 57,654 against a Part VIII of
+    # 271,654, and its buckets summed to 578,812 against a stated total of
+    # 305,506. Reading it here scored that wrong figure as though the return
+    # contained it, and reported a composite of 96.79 while doing so. A
+    # family Part VIII does not state is unavailable -- not zero, and not the
+    # keyword block's guess. MISSING_PART_VIII records why.
+    if field in _PART_VIII_FAMILY_FIELDS:
+        return False, None
+
     revenue = ai_report.get("revenue") or {}
     if isinstance(revenue, dict):
         val = _num(revenue.get(field))
@@ -261,7 +370,70 @@ def _ai_expense_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Opti
     return False, None
 
 
+def _part_x_rollup(ai_report: Dict[str, Any]) -> Dict[str, float]:
+    """Read the balance sheet from the enforced Part X, not the model's summary.
+
+    Part X is computed from the ledger, and its net assets are derived as
+    assets less liabilities rather than read from the model. `balance_sheet`
+    and `totals` are not: on a 2024 run Part X reported net assets of 192,028
+    -- matching the filed return exactly, and recorded as
+    PART_X_NET_ASSETS_CORRECTED -- while `totals.net_assets` still carried the
+    model's uncorrected 217,675. The scorer read the latter and reported a
+    mismatch the pipeline had already fixed.
+    """
+    part_x = (
+        ai_report.get("part_x_balance_sheet")
+        or ai_report.get("partX_balanceSheet")
+        or {}
+    )
+    if not isinstance(part_x, dict):
+        return {}
+
+    def _pick(*keys: str) -> Any:
+        for key in keys:
+            if key in part_x:
+                return part_x[key]
+        return None
+
+    def _eoy(node: Any) -> Optional[float]:
+        if isinstance(node, dict):
+            for key in ("endOfYear", "end_of_year"):
+                if key in node:
+                    return _num(node[key])
+            return None
+        return _num(node)
+
+    rollup: Dict[str, float] = {}
+    assets = _eoy(_pick("totalAssets", "total_assets"))
+    if assets is not None:
+        rollup["total_assets"] = assets
+    liabilities = _eoy(_pick("totalLiabilities", "total_liabilities"))
+    if liabilities is not None:
+        rollup["total_liabilities"] = liabilities
+
+    net = _pick("netAssets", "net_assets")
+    value = None
+    if isinstance(net, dict):
+        for key in ("totalNetAssets", "total_net_assets"):
+            if key in net:
+                value = _eoy(net[key])
+                break
+    else:
+        value = _eoy(net)
+    # Net assets are assets less liabilities. Deriving it here rather than
+    # leaving it missing keeps the identity that Part X already enforces.
+    if value is None and "total_assets" in rollup and "total_liabilities" in rollup:
+        value = round(rollup["total_assets"] - rollup["total_liabilities"], 2)
+    if value is not None:
+        rollup["net_assets"] = value
+    return rollup
+
+
 def _ai_balance_sheet_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    rollup = _part_x_rollup(ai_report)
+    if field in rollup:
+        return True, rollup[field]
+
     balance_sheet = ai_report.get("balance_sheet") or {}
     if isinstance(balance_sheet, dict):
         val = _num(balance_sheet.get(field))
@@ -333,15 +505,34 @@ def _compare_fields(
         expected += 1
         manual_num = _num(manual_val)
         ai_present, ai_val = _ai_field_present(ai_report, section, field)
-        if ai_present:
+
+        if (section, field) in _IDENTIFIER_FIELDS:
+            ai_val = (ai_report.get("organization_summary") or {}).get(field)
+            manual_num = None          # show both sides as written, not as numbers
+            is_match = bool(_digits(manual_val)) and _digits(manual_val) == _digits(ai_val)
+        elif manual_num is None:
+            is_match = ai_present
+        else:
+            is_match = ai_present and _values_agree(manual_num, _num(ai_val))
+
+        # A numeric reference field has to be matched on its value. Where the
+        # reference is not a number there is nothing to compare, so presence
+        # is all that can be asked.
+        if manual_num is None:
+            is_match = ai_present
+        else:
+            is_match = ai_present and _values_agree(manual_num, _num(ai_val))
+        if is_match:
             matched += 1
+
         rows.append(
             {
                 "field": f"{section}.{field}",
                 "manual": manual_num if manual_num is not None else manual_val,
                 "ai": ai_val,
                 "ai_field_present": ai_present,
-                "field_match": ai_present,
+                "field_match": is_match,
+                "value_matches": is_match,
                 "value_roughly_similar": _roughly_similar(manual_num, ai_val),
             }
         )
@@ -368,7 +559,11 @@ def _score_reconciliation(reconciliation_results: List[Dict[str, Any]]) -> Dict[
     for item in reconciliation_results or []:
         if not isinstance(item, dict):
             continue
-        status = str(item.get("status") or "").upper()
+        # The pipeline writes these as {"check": ..., "result": "Pass"}; the
+        # schema this scorer was written against uses status/description.
+        # Reading only one spelling scored every check UNKNOWN and the whole
+        # reconciliation dimension zero, on returns where every check passed.
+        status = str(item.get("status") or item.get("result") or "").upper()
         passed = status == "PASS"
         if passed:
             pass_count += 1
@@ -377,7 +572,7 @@ def _score_reconciliation(reconciliation_results: List[Dict[str, Any]]) -> Dict[
         checks.append(
             {
                 "check_id": item.get("checkId") or item.get("check_id"),
-                "description": item.get("description"),
+                "description": item.get("description") or item.get("check"),
                 "status": status or "UNKNOWN",
                 "difference": _num(item.get("difference")),
                 "notes": (item.get("notes") or "")[:300],
@@ -547,6 +742,14 @@ def _detect_confound_flags(
             _add("DATA_INTEGRITY_MISSING_PRIOR_PERIOD", warning_text)
         if "WA_PERIOD_EMPTY" in warning_text:
             _add("DATA_INTEGRITY_WA_EMPTY", warning_text)
+
+    if not (ai_report.get("part_viii_revenue") or []):
+        _add(
+            "MISSING_PART_VIII",
+            "The tax return carries no Part VIII line items, so revenue by family "
+            "cannot be read from the return. Those fields are reported unavailable "
+            "rather than scored against the report's keyword-built revenue summary.",
+        )
 
     for text in _collect_audit_text(ai_report, cash_flow_report, reports_raw):
         for pattern, code in _CONFOUND_PATTERNS:

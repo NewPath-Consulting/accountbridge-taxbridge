@@ -18,3 +18,5 @@ tiktoken
 openai
 python-multipart
 httpx
+pytest
+pytest-asyncio

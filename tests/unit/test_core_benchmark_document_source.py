@@ -37,24 +37,52 @@ def test_parse_fiscal_year_from_filename(file_name, expected):
     assert parse_fiscal_year_from_filename(file_name, doc_type) == expected
 
 
-def test_local_document_source_lists_form_990_and_cash_flow():
-    source = LocalBenchmarkDocumentSource()
+# These used to run against the real docs/ directory, which is not in the
+# repository, so they asserted on whatever happened to be on the machine and
+# failed everywhere else. They now build the directory they read.
+
+def _docs_dir(tmp_path, names):
+    for name in names:
+        (tmp_path / name).write_bytes(b"%PDF-1.4 stub")
+    return LocalBenchmarkDocumentSource(str(tmp_path))
+
+
+def test_local_document_source_lists_each_type(tmp_path):
+    source = _docs_dir(tmp_path, [
+        "form990 2023 filed 05152024.pdf",
+        "form990 2024 filed 05152025.pdf",
+        "Statement of Cash Flows 12312024.pdf",
+        "Statement of Financial Position 12312024.pdf",
+        "notes.txt",
+    ])
     docs = asyncio.run(source.list_documents())
 
-    form_990 = [d for d in docs if d.doc_type == "form_990"]
-    cash_flow = [d for d in docs if d.doc_type == "cash_flow"]
-    financial_position = [d for d in docs if d.doc_type == "financial_position"]
+    by_type = {}
+    for d in docs:
+        by_type.setdefault(d.doc_type, []).append(d)
 
-    assert len(form_990) == 3
-    assert len(cash_flow) == 3
-    assert len(financial_position) == 3
-    assert {d.fiscal_year for d in form_990} == {2023, 2024, 2025}
-    assert {d.fiscal_year for d in cash_flow} == {2023, 2024, 2025}
-    assert {d.fiscal_year for d in financial_position} == {2023, 2024, 2025}
+    assert {d.fiscal_year for d in by_type["form_990"]} == {2023, 2024}
+    assert {d.fiscal_year for d in by_type["cash_flow"]} == {2024}
+    assert {d.fiscal_year for d in by_type["financial_position"]} == {2024}
+    assert "notes.txt" not in {d.file_name for d in docs}
 
 
-def test_local_document_source_read_bytes():
-    source = LocalBenchmarkDocumentSource()
+def test_local_document_source_reads_irs_xml(tmp_path):
+    """IRS e-file XML is a reference document too, not just PDF."""
+    (tmp_path / "form990 2024 filed 2025-08-07.xml").write_bytes(
+        b"<Return><ReturnHeader><TaxYr>2024</TaxYr></ReturnHeader></Return>"
+    )
+    source = LocalBenchmarkDocumentSource(str(tmp_path))
+    docs = asyncio.run(source.list_documents(doc_type="form_990"))
+
+    assert [d.fiscal_year for d in docs] == [2024]
+    content, name = asyncio.run(source.read_bytes(docs[0]))
+    assert name == docs[0].file_name
+    assert content.startswith(b"<Return>")
+
+
+def test_local_document_source_read_bytes(tmp_path):
+    source = _docs_dir(tmp_path, ["Statement of Cash Flows 12312024.pdf"])
     docs = asyncio.run(source.list_documents(doc_type="cash_flow"))
     assert docs
 

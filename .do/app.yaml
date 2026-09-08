@@ -1,0 +1,211 @@
+# DigitalOcean App Platform spec — TaxBridge proof of concept.
+#
+#   doctl apps create --spec .do/app.yaml
+#   doctl apps update <app-id> --spec .do/app.yaml
+#
+# Two components from the two Dockerfiles already in the repo. Only the UI is
+# public. The API is internal, and the UI is standalone (streamlit and
+# requests only, no imports from app/), so it builds from ui/.
+#
+# THINGS THAT WILL TRIP YOU UP HERE
+#
+# App Platform terminates any HTTP request at 100 seconds. It is a Cloudflare
+# limit and cannot be raised. A reports run measured at a median of 76s and a
+# p90 of 94s after the pipeline was parallelised, so it fits, but not by much.
+# If runs start failing with a 504 that never happens locally, that is this.
+#
+# The filesystem is ephemeral. QuickBooks rotates its refresh token on every
+# use and the adapter writes the new one back to .env, which does not survive
+# a restart here. This is accepted for a proof of concept: when the token is
+# spent, paste a fresh one through the UI, which posts to
+# /api/quickbooks/credentials. Making that durable needs somewhere to store
+# it, and that is out of scope for this spec.
+#
+# Every value below is either non-secret configuration or a placeholder.
+# Secrets are typed SECRET and must be set in the DigitalOcean console or with
+# `doctl apps update --spec`, never committed.
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+# Only the UI is routed publicly. The API has no rule here and no http_port,
+# which is what keeps it off the public internet -- see the note on the api
+# component below. Written as `ingress` rather than a per-service `routes`
+# block because the latter is deprecated, and the console emits this form.
+ingress:
+  rules:
+    - component:
+        name: ui
+      match:
+        path:
+          prefix: /
+
+name: taxbridge
+region: tor
+
+services:
+  # ---------------------------------------------------------------- API ----
+  # Internal only: no `routes`, no `http_port`. A service with at least one
+  # `internal_ports` entry and no `http_port` is reachable by other components
+  # in the app and by nobody else. The UI addresses it as http://api:8000.
+  #
+  # That is deliberate. Routed publicly, /api would expose CRN's financials
+  # and an OpenAI key's spending to anyone who found the URL, and the only
+  # thing in the way would be AUTH_METHOD=bearer -- which has never been
+  # exercised, because every local run has been AUTH_METHOD=none. Removing
+  # the exposure beats guarding it with an untested path.
+  #
+  # The cost: Swagger at /docs is not publicly reachable. Demo it locally.
+  - name: api
+    dockerfile_path: Dockerfile
+    github:
+      repo: yohannesf/taxbridge
+      branch: main
+      deploy_on_push: true
+
+    internal_ports:
+      - 8000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+
+    health_check:
+      # `port` is required here. With no http_port there is nothing to infer.
+      port: 8000
+      http_path: /api/health/
+      initial_delay_seconds: 20
+      period_seconds: 30
+      timeout_seconds: 5
+      failure_threshold: 3
+
+    envs:
+      # --- secrets: set these in the console, they are not in the repo ---
+      - key: OPENAI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: QUICKBOOKS_CLIENT_ID
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: QUICKBOOKS_CLIENT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: QUICKBOOKS_REFRESH_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: WILDAPRICOT_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: TAX990_CLIENT_ID
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: TAX990_CLIENT_SECRET_ID
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+      - key: TAX990_USER_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+
+      # --- identifiers: public, but organization-specific ---
+      - key: QUICKBOOKS_REALM_ID
+        scope: RUN_TIME
+        value: REPLACE_ME
+      - key: WILDAPRICOT_ACCOUNT_ID
+        scope: RUN_TIME
+        value: REPLACE_ME
+
+      # --- configuration ---
+      - key: ENV
+        scope: RUN_TIME
+        value: production
+      - key: LOG_LEVEL
+        scope: RUN_TIME
+        value: INFO
+      - key: LLM_PROVIDER
+        scope: RUN_TIME
+        value: openai
+      - key: LLM_MODEL
+        scope: RUN_TIME
+        value: gpt-4o-mini
+      - key: REPORTS_MAX_TOKENS
+        scope: RUN_TIME
+        value: "16384"
+
+      # Matches .env. The component is not publicly routed, so there is
+      # nothing for auth to protect, and `bearer` has never been exercised.
+      - key: AUTH_METHOD
+        scope: RUN_TIME
+        value: none
+
+      # Matches .env, which is what every local run has used. The earlier
+      # warning against this value is obsolete: the XML dispatch in
+      # form_990_organization.py runs before any extractor is constructed, so
+      # the benchmark path never touches it. AWS_textract would be the
+      # untested value, and it needs AWS credentials this spec does not carry.
+      - key: EXTRACTOR_TYPE
+        scope: RUN_TIME
+        value: goml_custom_extractor
+
+      # The benchmark's reference documents ride in the image at /app/docs.
+      - key: BENCHMARK_DOCS_SOURCE
+        scope: RUN_TIME
+        value: local
+      - key: BENCHMARK_DOCS_LOCAL_PATH
+        scope: RUN_TIME
+        value: docs
+
+      # The QuickBooks client writes each report it fetches to disk. Nothing
+      # reads those files at runtime and the filesystem is ephemeral, so send
+      # them somewhere writable and forgettable rather than into the image.
+      - key: QUICKBOOKS_OUTPUT_DIR
+        scope: RUN_TIME
+        value: /tmp/quickbooks
+
+  # ----------------------------------------------------------------- UI ----
+  - name: ui
+    dockerfile_path: ui/Dockerfile
+    source_dir: ui
+    github:
+      repo: yohannesf/taxbridge
+      branch: main
+      deploy_on_push: true
+
+    http_port: 8501
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+
+    health_check:
+      http_path: /_stcore/health
+      initial_delay_seconds: 20
+      period_seconds: 30
+
+    envs:
+      # The API has no public route, so it is addressed by component name on
+      # the app's internal DNS. ${api.PRIVATE_URL} is documented for routed
+      # services; it is not documented for a service with no http_port, so do
+      # not substitute it back here.
+      - key: API_BASE_URL
+        scope: RUN_TIME
+        value: http://api:8000
+
+      # Required even though the API runs with AUTH_METHOD=none: ui/app.py
+      # refuses to call /api/reports when this is empty, before any request
+      # is made. The API ignores the header it sends.
+      - key: BEARER_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: REPLACE_ME
+
+      - key: QUICKBOOKS_REALM_ID
+        scope: RUN_TIME
+        value: REPLACE_ME
+      - key: WILDAPRICOT_ACCOUNT_ID
+        scope: RUN_TIME
+        value: REPLACE_ME

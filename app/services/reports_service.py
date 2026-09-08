@@ -4,6 +4,7 @@ import json
 import logging
 import time
 from typing import Dict, Any, Tuple, Callable, Awaitable, Optional, TYPE_CHECKING
+from app.utils.balance_sheet_totals import enforce_part_x
 
 if TYPE_CHECKING:
     from app.api.schemas.reports import QuickBooksCredentialsInline
@@ -36,6 +37,9 @@ from app.utils.llm_source_summary import (
     build_reference_financials_from_qb,
     wildapricot_period_empty,
 )
+from app.utils.form_990_enforce import enforce_deterministic_amounts
+from app.utils.form_990_propagate import propagate_enforced_totals
+from app.utils.form_990_structure import apply_static_line_inventories
 from app.utils.form_990_mapping import build_qb_mapping_hints
 from app.utils.quickbooks_periods import prior_year_balance_sheet_period
 from app.utils.report_normalization import (
@@ -78,6 +82,9 @@ class ReportsService:
 
     def __init__(self):
         logger.info("ReportsService initialized")
+        self._raw_pl_report: Dict[str, Any] = {}
+        self._raw_prior_balance_sheet: Dict[str, Any] = {}
+        self._raw_balance_sheet: Dict[str, Any] = {}
 
     async def generate_reports(
         self,
@@ -115,6 +122,18 @@ class ReportsService:
             logger.info(f"Postprocessing source data request_id={request_id}")
             wildapricot_data = postprocess_wildapricot_data(wildapricot_data)
             quickbooks_data = postprocess_quickbooks_data(quickbooks_data)
+            self._raw_pl_report = (
+                (quickbooks_data.get("profit_and_loss") or {}).get("raw") or {}
+            )
+
+            self._raw_balance_sheet = (
+                (quickbooks_data.get("balance_sheet") or {}).get("raw") or {}
+            )
+            self._raw_prior_balance_sheet = (
+                (quickbooks_data.get("prior_year_balance_sheet") or {}).get("raw") or {}
+            )
+
+            
 
             llm_inputs = build_llm_inputs(
                 wildapricot_data,
@@ -199,7 +218,7 @@ class ReportsService:
         wildapricot_data: Optional[Dict[str, Any]] = None,
         quickbooks_credentials: Optional["QuickBooksCredentialsInline"] = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        """Fetch QuickBooks first, then WildApricot (or reuse cached WA on QB retry)."""
+        """Fetch QuickBooks and WildApricot concurrently (WA reused on a QB retry)."""
         qb_client_kwargs: Dict[str, Any] = {}
         if quickbooks_credentials is not None:
             qb_client_kwargs = {
@@ -258,27 +277,46 @@ class ReportsService:
                 qb_payload["prior_year_balance_sheet"] = prior_year_balance_sheet
             return qb_payload
 
+        # WildApricot starts before QuickBooks rather than after it. They are
+        # separate APIs with separate credentials and nothing shared, so there
+        # is no token to race over -- unlike the three QuickBooks report calls,
+        # which stay sequential because a refresh mid-flight would have three
+        # callers competing for a refresh token that rotates on every use.
+        #
+        # Fetching was about a third of a run that has to finish inside
+        # DigitalOcean's hard 100-second HTTP limit.
+        wildapricot_task: Optional[asyncio.Task] = None
+        if wildapricot_data is None:
+            logger.info("Fetching WildApricot data")
+            wildapricot_task = asyncio.create_task(fetch_wildapricot())
+        else:
+            logger.info("Using cached WildApricot data (QuickBooks retry)")
+
+        async def settle_wildapricot() -> Optional[Dict[str, Any]]:
+            """Whatever WildApricot returned, however QuickBooks ended."""
+            if wildapricot_task is None:
+                return wildapricot_data
+            try:
+                return await wildapricot_task
+            except Exception as exc:  # noqa: BLE001 - reported, never fatal here
+                logger.warning("WildApricot fetch failed: %s", exc)
+                return wildapricot_data
+
         try:
             await asyncio.to_thread(qb_client._token_manager.get_valid_token)
             logger.info("Fetching QuickBooks data")
             qb_data = await fetch_quickbooks()
-        except QuickBooksRefreshTokenRequiredError as exc:
+        except (QuickBooksRefreshTokenRequiredError, QuickBooksAuthError) as exc:
+            # The WildApricot call is already in flight. Let it finish and
+            # carry the result, so entering a new token does not pay for the
+            # WildApricot fetch a second time -- and so the task is not left
+            # pending.
             raise QuickBooksRefreshTokenRequiredError(
                 str(exc),
-                wildapricot_data=wildapricot_data,
-            ) from exc
-        except QuickBooksAuthError as exc:
-            raise QuickBooksRefreshTokenRequiredError(
-                str(exc),
-                wildapricot_data=wildapricot_data,
+                wildapricot_data=await settle_wildapricot(),
             ) from exc
 
-        if wildapricot_data is None:
-            logger.info("Fetching WildApricot data")
-            wa_data = await fetch_wildapricot()
-        else:
-            logger.info("Using cached WildApricot data (QuickBooks retry)")
-            wa_data = wildapricot_data
+        wa_data = await settle_wildapricot()
 
         return wa_data, qb_data
 
@@ -674,7 +712,7 @@ class ReportsService:
         error_messages: list[str] = []
         truncated = False
 
-        for step_name, prompt_builder in section_steps:
+        async def run_section(step_name: str, prompt_builder: Callable[..., Dict[str, Any]]):
             step_start = time.time()
             logger.info("Tax Return: generating %s", step_name)
 
@@ -691,6 +729,37 @@ class ReportsService:
                 prompt_body,
                 step_name,
             )
+            logger.info(
+                "Tax Return %s completed in %.2fs status=%s",
+                step_name,
+                time.time() - step_start,
+                "partial" if error_message or step_truncated else "completed",
+            )
+            return content, error_message, step_truncated
+
+        # Parts VIII, IX and X take the same inputs and do not depend on one
+        # another, so they run concurrently rather than one after another.
+        # Serially they were the bulk of a 92-second median, and DigitalOcean
+        # App Platform terminates any HTTP request at 100 seconds -- a
+        # Cloudflare limit that cannot be raised. 21% of 72 measured runs
+        # exceeded it, so the pipeline worked locally and would have failed
+        # one demo in five.
+        sections_started = time.time()
+        outcomes = await asyncio.gather(
+            *(run_section(name, builder) for name, builder in section_steps)
+        )
+        logger.info(
+            "Tax Return: %d sections completed concurrently in %.2fs",
+            len(section_steps),
+            time.time() - sections_started,
+        )
+
+        # Collected in the order the steps are declared rather than the order
+        # they happened to finish, so results and error messages do not vary
+        # between runs.
+        for (step_name, _), (content, error_message, step_truncated) in zip(
+            section_steps, outcomes
+        ):
             if step_name == "part_ix" and content and not content.get("_parse_error"):
                 content = ensure_part_ix_minimum_fields(content, quickbooks_data)
             step_results[step_name] = content
@@ -699,13 +768,6 @@ class ReportsService:
                 error_messages.append(f"{step_name}: {error_message}")
             if step_truncated:
                 truncated = True
-
-            logger.info(
-                "Tax Return %s completed in %.2fs status=%s",
-                step_name,
-                time.time() - step_start,
-                "partial" if error_message or step_truncated else "completed",
-            )
 
         recon_start = time.time()
         logger.info("Tax Return: generating parts_i_vii_xi_xii")
@@ -803,9 +865,51 @@ class ReportsService:
             start_date=start_date,
             end_date=end_date,
         )
+
+        pl_raw = self._raw_pl_report or {}
+        content, enforcement_notes = enforce_deterministic_amounts(content, pl_raw)
+        if enforcement_notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + enforcement_notes
+            logger.info(
+                "Tax Return: deterministic enforcement applied %d correction(s)",
+                len(enforcement_notes),
+            )
+
+        content, part_x_notes = enforce_part_x(
+            content,
+            self._raw_balance_sheet or {},
+            prior_report=self._raw_prior_balance_sheet or None,
+        )
+        if part_x_notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + part_x_notes
+
+        
+
+        content, propagation_notes = propagate_enforced_totals(content, pl_raw)
+        if propagation_notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + propagation_notes
+
+        # Parts IV, V and VI are fixed checklists -- 53, 39 and 28 answer boxes
+        # printed on the form. Asked to write them out, the model produced 38
+        # Part IV rows and nothing at all for V and VI, and nothing said so: a
+        # return arrived with two parts silently absent. They are rebuilt from
+        # the static inventories here, keeping whatever answers the model gave
+        # and marking the rest undetermined, so the gap is visible.
+        structure = apply_static_line_inventories(content)
+        content = structure.content
+        if structure.notes:
+            existing = content.get("validationErrors") or []
+            content["validationErrors"] = list(existing) + structure.notes
+        if structure.missing:
+            content["structural_gaps"] = list(structure.missing)
+
         content = normalize_tax_return_content(
             content, quickbooks_data=quickbooks_data
         )
+
         error_message = "; ".join(error_messages) if error_messages else None
 
         processing_time = time.time() - start_time

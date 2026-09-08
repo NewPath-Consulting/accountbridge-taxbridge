@@ -53,18 +53,31 @@ def summarize_tax_return_part(part: dict[str, Any], items_key: str) -> dict[str,
             "_generation_error": True,
         }
 
+    # The model answers in either of two shapes, because the prompt asks for
+    # both: snake_case with `amount` and `classification`, or camelCase with
+    # `totalRevenue` and `category`. Keeping only the first spelling compacted
+    # every enforced Part VIII item to an empty dict, so the benchmark scored
+    # a keyword-derived summary instead of the return. Keep whichever arrived.
+    _KEEP = (
+        "form_section",
+        "line_number",
+        "amount",
+        "classification",
+        "confidence_score",
+        "lineNumber",
+        "label",
+        "category",
+        "totalRevenue",
+        "totalExpenses",
+        "programServices",
+        "managementAndGeneral",
+        "fundraising",
+        "beginningOfYear",
+        "endOfYear",
+    )
+
     def _compact_item(item: dict[str, Any]) -> dict[str, Any]:
-        compact = {
-            key: item[key]
-            for key in (
-                "form_section",
-                "line_number",
-                "amount",
-                "classification",
-                "confidence_score",
-            )
-            if key in item
-        }
+        compact = {key: item[key] for key in _KEEP if key in item}
         source_records = item.get("source_records") or []
         if source_records:
             first = source_records[0]

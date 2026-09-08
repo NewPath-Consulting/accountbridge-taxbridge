@@ -217,3 +217,38 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 ui/.env
+.DS_Store
+
+# pipeline output and API cache
+reports_response*.json
+data/quickbooks/*.json
+
+# ProPublica harness cache and results
+data/propublica_cache/
+data/propublica_harness/
+harness_run.txt
+
+# ProPublica harness cache and results
+
+form_990n_draft.pdf
+ui/app.py.bak
+
+# credentials
+*.env
+!.env.example
+ui/app.py.pre-revert
+
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.claude.json
+
+# QuickBooks caches
+data/.qb_cache/
+data/quickbooks_crn/
+
+# Classification harness runs and scores
+data/classification_runs/
+data/classification_harness/
+scripts/run_classification_grid.py

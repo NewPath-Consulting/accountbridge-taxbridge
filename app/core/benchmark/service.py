@@ -325,6 +325,11 @@ class BenchmarkService:
         cash_flow_scorecard: Optional[Dict[str, Any]] = None
         financial_position_scorecard: Optional[Dict[str, Any]] = None
         errors: List[str] = []
+        # Things that are true but not wrong. A report type with no reference
+        # document cannot be scored, which is a limit of what has been filed
+        # rather than a fault in the run -- a Form 990 carries no statement of
+        # cash flows, so no filed return will ever supply that reference.
+        notes: List[str] = []
         status = "completed"
 
         reports_context = {
@@ -448,7 +453,7 @@ class BenchmarkService:
                 errors.append(f"form_990: {exc}")
                 status = "failed"
         else:
-            errors.append(f"form_990: no reference document for {year}")
+            notes.append(f"Form 990 not scored: no reference document for {year}.")
 
         manual_cf: Dict[str, Any] = {}
         if "cash_flow" in year_docs:
@@ -523,7 +528,7 @@ class BenchmarkService:
                 errors.append(f"cash_flow: {exc}")
                 status = "failed"
         else:
-            errors.append(f"cash_flow: no reference document for {year}")
+            notes.append(f"Cash flow not scored: no reference document for {year}.")
 
         manual_fp: Dict[str, Any] = {}
         if "financial_position" in year_docs:
@@ -710,6 +715,7 @@ class BenchmarkService:
             scorecard=year_scorecard,
             reference_extractions=reference_extractions or None,
             status=status,
+            notes=notes,
         )
 
 

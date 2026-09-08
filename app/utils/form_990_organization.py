@@ -158,15 +158,35 @@ async def extract_organization_information_from_form_990(
 
     Returns None on failure (non-fatal for callers).
     """
+    from app.core.benchmark.irs_xml import (
+        is_irs_xml,
+        parse_organization_information_xml,
+    )
+
+    # A filed return in IRS e-file XML carries Item A through M as named
+    # elements, including the principal officer, which ProPublica does not
+    # publish. Reading it is exact where OCR plus a model was neither, and it
+    # needs no extractor.
+    if is_irs_xml(file_name):
+        org_info = parse_organization_information_xml(file_bytes)
+        if org_info:
+            logger.info("Form 990 org info read from IRS XML %s", file_name)
+            return org_info
+        logger.warning("Form 990 org info: %s is not a parseable return", file_name)
+        return None
+
     from app.services.ingestion_service import ExtractionService
     from app.services.llm_service import LLMService
     from app.utils.file_utils import FileValidator, TempFileManager
 
-    extraction_service = extraction_service or ExtractionService()
-    llm_service = llm_service or LLMService()
-
     temp_file_path: str | None = None
     try:
+        # Constructed inside the try because the configured extractor may not
+        # import at all -- EXTRACTOR_TYPE can name a module that was never in
+        # this repository, and this function promises callers a None rather
+        # than an exception.
+        extraction_service = extraction_service or ExtractionService()
+        llm_service = llm_service or LLMService()
         temp_file_path = await FileValidator.create_temp_file(file_bytes, FileType.PDF)
         pages = _parse_org_info_pages()
 

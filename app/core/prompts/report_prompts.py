@@ -2,6 +2,11 @@
 import json
 from typing import Dict, Any, Optional
 from app.config.settings import settings
+from app.utils.form_990_enforce import (
+    part_viii_prompt_categories,
+    part_viii_prompt_lines,
+)
+
 
 
 _MANDATORY_STRUCTURAL_LINE_ITEMS_RULE = """
@@ -644,21 +649,18 @@ def build_tax_return_part_viii_prompt(
 
 **JURISDICTION:** United States Federal Tax Filing | **FORM:** IRS Form 990
 
-Classify all incoming revenue into exactly one category.
+Classify all incoming revenue into exactly one category, and report it on a line that belongs to that category.
 
-**CATEGORY 1: Contributions, Gifts, Grants** — Part VIII Line 1
-**CATEGORY 2: Program Service Revenue** — Part VIII Line 2
-  WildApricot: Membership, Membership Renewal, Event Registration → Program Service Revenue
-**CATEGORY 3: Investment Income** — Part VIII Line 3
-**CATEGORY 4: Royalties** — Part VIII Line 5
-**CATEGORY 5: Fundraising Event Revenue** — Part VIII Line 8
-**CATEGORY 6: Gaming Revenue** — Part VIII Line 9
-**CATEGORY 7: Other Revenue** — Part VIII Line 11
+{part_viii_prompt_lines()}
 
 **NONPROFIT COMPLIANCE:**
+- WildApricot Membership, Membership Renewal and Event Registration → Program Service Revenue
 - Membership dues default to Program Service Revenue unless a charitable component is documented
 - Event revenue with substantial benefit → Program Service Revenue; excess over FMV → Contributions
 - Donor contributions → always Contributions, Gifts, Grants (never Program Revenue)
+- Sponsorship payments → Contributions. Only a portion buying advertising or other substantial return benefit is Other Revenue; absent evidence of such a benefit in the account detail, treat the payment as a contribution.
+- Exhibitor, booth and trade show fees from a convention or trade show the organization runs in furtherance of its exempt purpose → Program Service Revenue
+- Other Revenue is a residual. Before using it, rule out contributions, exempt-function services and investment income.
 
 **VALIDATION:**
 - Every revenue item in exactly one category
@@ -683,7 +685,7 @@ Each revenue line item must include: `lineNumber`, `category`, `label`, `totalRe
   "partVIII_revenue": [
     {{
       "lineNumber": "1a",
-      "category": "Contributions, Gifts, Grants | Program Service Revenue | Investment Income | Royalties | Fundraising Event Revenue | Gaming Revenue | Other Revenue",
+      "category": "{part_viii_prompt_categories()}",
       "label": "",
       "totalRevenue": 0.00,
       "programServiceRevenue": 0.00,
@@ -920,11 +922,16 @@ Three largest program services by expense (from Part IX program column), plus li
 
 ## PART IV - CHECKLIST OF REQUIRED SCHEDULES
 
-Answer lines 1-38 Yes/No from derivable facts. Line 38 is always Yes (Schedule O required).
+The questions are printed on the form and are supplied by the application, so
+emit a line number and an answer only -- never the question text. Answer only
+the lines the source data actually settles and omit the rest; every line you
+leave out is marked undetermined for a preparer, which is more useful than a
+guess. Line 38 is always Yes (Schedule O required).
 
 ## PART V - OTHER IRS FILINGS AND TAX COMPLIANCE
 
-Answer from QuickBooks vendor/payroll indicators where available; default to 0/No.
+Line number and value only, on the same terms: omit what the data does not
+settle rather than defaulting it to 0 or No.
 
 ## PART VI - GOVERNANCE, MANAGEMENT, AND DISCLOSURE
 
@@ -1046,17 +1053,17 @@ Return JSON only. Include every section below. Do not include Part VIII, IX, or 
     "line4e_totalProgramServiceExpenses": 0.00
   }},
   "partIV_checklistOfRequiredSchedules": [
-    {{ "line": "1", "question": "Section 501(c)(3) or 4947(a)(1) organization?", "answer": "Yes | No" }}
+    {{ "line": "1", "answer": "Yes | No" }}
   ],
   "partV_statementsRegardingOtherIRSFilings": [
-    {{ "line": "1a", "label": "Number reported in box 3 of Form 1096", "value": 0 }}
+    {{ "line": "1a", "value": 0 }}
   ],
   "partVI_governance": {{
     "sectionA": [
-      {{ "line": "1a", "label": "Voting members of governing body", "value": 0 }}
+      {{ "line": "1a", "value": 0 }}
     ],
     "sectionB_policies": [
-      {{ "line": "12a", "label": "Written conflict of interest policy?", "answer": "Yes | No" }}
+      {{ "line": "12a", "answer": "Yes | No" }}
     ],
     "sectionC_disclosure": {{
       "line17_statesFiledIn": [],
@@ -1729,17 +1736,17 @@ Every numeric line item must include `sourceSystem` for traceability.
     "line4e_totalProgramServiceExpenses": 0.00
   }},
   "partIV_checklistOfRequiredSchedules": [
-    {{ "line": "1", "question": "Section 501(c)(3) or 4947(a)(1) organization?", "answer": "Yes | No" }}
+    {{ "line": "1", "answer": "Yes | No" }}
   ],
   "partV_statementsRegardingOtherIRSFilings": [
-    {{ "line": "1a", "label": "Number reported in box 3 of Form 1096", "value": 0 }}
+    {{ "line": "1a", "value": 0 }}
   ],
   "partVI_governance": {{
     "sectionA": [
-      {{ "line": "1a", "label": "Voting members of governing body", "value": 0 }}
+      {{ "line": "1a", "value": 0 }}
     ],
     "sectionB_policies": [
-      {{ "line": "12a", "label": "Written conflict of interest policy?", "answer": "Yes | No" }}
+      {{ "line": "12a", "answer": "Yes | No" }}
     ],
     "sectionC_disclosure": {{
       "line17_statesFiledIn": [],

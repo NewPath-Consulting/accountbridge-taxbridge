@@ -31,6 +31,7 @@ class YearBenchmarkResult(BaseModel):
     scorecard: Optional[Dict[str, Any]] = None
     reference_extractions: Optional[Dict[str, Any]] = None
     status: str = "completed"
+    notes: List[str] = Field(default_factory=list)
 
 
 class BenchmarkResult(BaseModel):

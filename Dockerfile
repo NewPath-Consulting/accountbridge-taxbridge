@@ -28,7 +28,13 @@ RUN pip install --upgrade pip && \
  
 # Copy application code
 COPY app ./app
- 
+
+# The filed returns the benchmark scores against, and which supply the
+# organization's identity and subsection. Without them the benchmark finds no
+# reference documents and organizationInformation comes back empty -- the
+# image previously shipped with app/ alone.
+COPY docs ./docs
+
 EXPOSE 8000
  
 # Run with uvicorn (ECS long-running process)

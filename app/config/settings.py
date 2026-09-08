@@ -53,7 +53,8 @@ class Settings(BaseSettings):
     SHUTDOWN_DRAIN_SECONDS: int = 30
 
     # Reports generation (LLM)
-    REPORTS_MAX_TOKENS: int = 32768
+    #REPORTS_MAX_TOKENS: int = 32768   //Was this but changed to the below
+    REPORTS_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_SECTION_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_PART_IX_MAX_TOKENS: int = 16384
     REPORTS_TAX_RETURN_RECONCILIATION_MAX_TOKENS: int = 8192
@@ -140,6 +141,12 @@ class Settings(BaseSettings):
     # Automatic token refresh
     QUICKBOOKS_AUTO_REFRESH_ENABLED: bool = True
     QUICKBOOKS_AUTO_REFRESH_INTERVAL_MINUTES: int = 50  # Refresh every 50 min (before 1hr expiry)
+
+    TAX990_CLIENT_ID: str = ""
+    TAX990_CLIENT_SECRET_ID: str = ""
+    TAX990_USER_TOKEN: str = ""
+    TAX990_OAUTH_HOST: str = ""
+    TAX990_API_HOST: str = ""
 
     @model_validator(mode="after")
     def _resolve_llm_model(self) -> "Settings":

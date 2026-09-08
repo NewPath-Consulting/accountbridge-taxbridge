@@ -5,18 +5,60 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from app.api.schemas.document import ExtractionRequest, ExtractionMethod, ExtractionResponse, FileType
+from app.api.schemas.document import (
+    ExtractionRequest,
+    ExtractionMethod,
+    ExtractionResponse,
+    FileType,
+    ProcessingStatus,
+)
 from app.config.settings import settings
 from app.core.benchmark.schemas import BenchmarkDocType
 from app.core.prompts.benchmarking import (
     get_extraction_output_schema,
     get_extraction_prompt,
 )
+from app.core.benchmark.irs_xml import is_irs_xml, parse_form_990_xml, totals_agree
 from app.utils.llm_json import coerce_llm_dict
 
 logger = logging.getLogger(__name__)
 
 _FORM_990_PAGES = [1, 9, 10, 11, 12]
+
+
+def _reference_from_xml(
+    file_bytes: bytes, file_name: str, doc_type: BenchmarkDocType
+) -> ExtractionResponse:
+    """Read a filed return out of IRS e-file XML, with no model in the loop."""
+    if doc_type != "form_990":
+        raise ValueError(
+            f"IRS e-file XML carries a Form 990 return; {file_name} was offered "
+            f"as {doc_type}"
+        )
+
+    extracted = parse_form_990_xml(file_bytes)
+    for problem in totals_agree(extracted):
+        # A reference that does not add up would be scored against the
+        # pipeline, so say so rather than letting it look authoritative.
+        logger.warning("IRS XML reference %s: %s", file_name, problem)
+
+    summary = extracted.get("organization_summary") or {}
+    return ExtractionResponse(
+        document_id=f"irs-xml-{summary.get('tax_year') or file_name}",
+        file_name=file_name,
+        file_type=FileType.XML if hasattr(FileType, "XML") else FileType.PDF,
+        status=ProcessingStatus.COMPLETED,
+        method=ExtractionMethod.TEXTRACT,
+        total_pages=0,
+        pages_processed=0,
+        processing_time=0.0,
+        llm_output=extracted,
+        metadata={
+            "source": "irs_efile_xml",
+            "return_type": summary.get("return_type"),
+            "tax_year": summary.get("tax_year"),
+        },
+    )
 
 
 async def extract_reference_document(
@@ -28,13 +70,22 @@ async def extract_reference_document(
     llm_service=None,
 ) -> ExtractionResponse:
     """
-    Run a reference PDF through Textract + LLM extraction for benchmarking prompts.
+    Produce the reference figures a benchmark year is scored against.
 
     Ground truth is in ExtractionResponse.llm_output.
+
+    An IRS e-file XML is read directly: every figure is a named element, so
+    the reference is exact and no model is involved. A PDF has to go through
+    Textract and a model, which means a disagreement with our own output says
+    the two readings differ without saying which is wrong. Prefer the XML
+    where it exists.
     """
     from app.services.ingestion_service import ExtractionService
     from app.services.llm_service import LLMService
     from app.utils.file_utils import FileValidator, TempFileManager
+
+    if is_irs_xml(file_name):
+        return _reference_from_xml(file_bytes, file_name, doc_type)
 
     extraction_service = extraction_service or ExtractionService()
     llm_service = llm_service or LLMService()
