@@ -11,6 +11,7 @@ from app.core.benchmark.scoring import (
     _ai_field_present,
     _ai_revenue_field,
     _detect_confound_flags,
+    _part_x_rollup,
 )
 
 
@@ -449,4 +450,60 @@ def test_a_return_with_no_part_viii_is_penalised_rather_than_scored_excellent():
     # rate the result "excellent". A return with no statement of revenue is
     # not excellent, whatever its other fields say.
     assert scorecard["composite_rating"] != "excellent"
+
+
+# --- the balance sheet comes from the enforced Part X ---------------------
+#
+# Part X is computed from the ledger and its net assets are derived as assets
+# less liabilities. `totals` is not: on a 2024 run Part X said 192,028 and
+# `totals.net_assets` still carried the model's uncorrected 217,675, and the
+# scorer read the second one.
+
+
+def _part_x(assets, liabilities, *, total_net_assets=None):
+    part_x = {
+        "totalAssets": {"beginningOfYear": 0.0, "endOfYear": assets},
+        "totalLiabilities": {"beginningOfYear": 0.0, "endOfYear": liabilities},
+    }
+    if total_net_assets is not None:
+        part_x["netAssets"] = {
+            "totalNetAssets": {"beginningOfYear": 0.0, "endOfYear": total_net_assets}
+        }
+    return part_x
+
+
+def test_part_x_wins_over_the_models_totals_block():
+    assets, liabilities = 192028.0, 0.0
+    ai_report = {
+        "part_x_balance_sheet": _part_x(assets, liabilities, total_net_assets=assets),
+        # the model's uncorrected figures, deliberately disagreeing
+        "totals": {"net_assets": 217675.0, "total_assets": None},
+        "balance_sheet": {"cash": assets},
+    }
+    present, value = _ai_balance_sheet_field(ai_report, "net_assets")
+    assert present is True
+    assert value == assets
+    assert value != ai_report["totals"]["net_assets"]
+
+
+def test_net_assets_is_derived_when_part_x_states_no_total():
+    assets, liabilities = 250000.0, 40000.0
+    ai_report = {"part_x_balance_sheet": _part_x(assets, liabilities)}
+    assert _part_x_rollup(ai_report)["net_assets"] == assets - liabilities
+
+
+def test_zero_liabilities_are_read_not_skipped():
+    """CRN reports no liabilities at all; 0.0 is a value, not a missing field."""
+    ai_report = {"part_x_balance_sheet": _part_x(192028.0, 0.0)}
+    present, value = _ai_balance_sheet_field(ai_report, "total_liabilities")
+    assert present is True
+    assert value == 0.0
+
+
+def test_without_part_x_the_old_path_still_works():
+    ai_report = {"balance_sheet": {"total_assets": 5000.0}}
+    assert _part_x_rollup(ai_report) == {}
+    present, value = _ai_balance_sheet_field(ai_report, "total_assets")
+    assert present is True
+    assert value == ai_report["balance_sheet"]["total_assets"]
 

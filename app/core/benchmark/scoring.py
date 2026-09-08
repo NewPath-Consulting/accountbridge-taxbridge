@@ -370,7 +370,70 @@ def _ai_expense_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Opti
     return False, None
 
 
+def _part_x_rollup(ai_report: Dict[str, Any]) -> Dict[str, float]:
+    """Read the balance sheet from the enforced Part X, not the model's summary.
+
+    Part X is computed from the ledger, and its net assets are derived as
+    assets less liabilities rather than read from the model. `balance_sheet`
+    and `totals` are not: on a 2024 run Part X reported net assets of 192,028
+    -- matching the filed return exactly, and recorded as
+    PART_X_NET_ASSETS_CORRECTED -- while `totals.net_assets` still carried the
+    model's uncorrected 217,675. The scorer read the latter and reported a
+    mismatch the pipeline had already fixed.
+    """
+    part_x = (
+        ai_report.get("part_x_balance_sheet")
+        or ai_report.get("partX_balanceSheet")
+        or {}
+    )
+    if not isinstance(part_x, dict):
+        return {}
+
+    def _pick(*keys: str) -> Any:
+        for key in keys:
+            if key in part_x:
+                return part_x[key]
+        return None
+
+    def _eoy(node: Any) -> Optional[float]:
+        if isinstance(node, dict):
+            for key in ("endOfYear", "end_of_year"):
+                if key in node:
+                    return _num(node[key])
+            return None
+        return _num(node)
+
+    rollup: Dict[str, float] = {}
+    assets = _eoy(_pick("totalAssets", "total_assets"))
+    if assets is not None:
+        rollup["total_assets"] = assets
+    liabilities = _eoy(_pick("totalLiabilities", "total_liabilities"))
+    if liabilities is not None:
+        rollup["total_liabilities"] = liabilities
+
+    net = _pick("netAssets", "net_assets")
+    value = None
+    if isinstance(net, dict):
+        for key in ("totalNetAssets", "total_net_assets"):
+            if key in net:
+                value = _eoy(net[key])
+                break
+    else:
+        value = _eoy(net)
+    # Net assets are assets less liabilities. Deriving it here rather than
+    # leaving it missing keeps the identity that Part X already enforces.
+    if value is None and "total_assets" in rollup and "total_liabilities" in rollup:
+        value = round(rollup["total_assets"] - rollup["total_liabilities"], 2)
+    if value is not None:
+        rollup["net_assets"] = value
+    return rollup
+
+
 def _ai_balance_sheet_field(ai_report: Dict[str, Any], field: str) -> Tuple[bool, Optional[float]]:
+    rollup = _part_x_rollup(ai_report)
+    if field in rollup:
+        return True, rollup[field]
+
     balance_sheet = ai_report.get("balance_sheet") or {}
     if isinstance(balance_sheet, dict):
         val = _num(balance_sheet.get(field))
